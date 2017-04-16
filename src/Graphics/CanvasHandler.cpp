@@ -28,21 +28,15 @@ CanvasHandler::CanvasHandler(int width,
                              int height,
                              Context *nctx,
                              bool lazyLoad)
-    : m_Context(NULL), m_JsCx(nctx->getNJS()->getJSContext()), m_Right(0.0), m_Bottom(0.0),
+    : m_Context(NULL), m_JsCx(nctx->getNJS()->getJSContext()),
       m_Overflow(true), m_Parent(NULL), m_Children(NULL), m_Next(NULL),
       m_Prev(NULL), m_Last(NULL), m_Flags(0), m_nChildren(0),
       m_CoordPosition(COORD_DEFAULT), m_Visibility(CANVAS_VISIBILITY_VISIBLE),
-      m_CoordMode(kLeft_Coord | kTop_Coord),
       m_Zoom(1.0), m_ScaleX(1.0), m_ScaleY(1.0),
       m_AllowNegativeScroll(false), m_NidiumContext(nctx), m_Pending(0),
       m_Loaded(!lazyLoad), m_Cursor(UIInterface::ARROW)
 {
-    /*
-        TODO: thread safe
-    */
-    static uint64_t g_LastIdx = 8;
-
-    m_Identifier.idx = ++g_LastIdx;
+    m_Identifier.idx = ++nctx->m_CanvasCreatedIdx;
     m_NidiumContext->m_CanvasListIdx.insert({m_Identifier.idx, this});
     m_Identifier.str = nullptr;
 
@@ -85,8 +79,6 @@ CanvasHandler::CanvasHandler(int width,
 
     m_Content.scrollLeft = 0;
     m_Content.scrollTop  = 0;
-
-    m_CoordMode = kLeft_Coord | kTop_Coord;
 }
 
 void CanvasHandler::computeLayoutPositions()

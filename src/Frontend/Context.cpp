@@ -259,7 +259,7 @@ void Context::createDebugCanvas()
 
     m_RootHandler->addChild(m_DebugHandler);
 
-    m_DebugHandler->setRight(0);
+    m_DebugHandler->setPropRight(0);
     m_DebugHandler->setPropOpacity(0.6);
     ctx2d->getSkiaContext()->setFontType("monospace");
 }
@@ -279,8 +279,8 @@ void Context::createDebug2Canvas()
     ctx2d->setGLState(this->getGLState());
 
     m_RootHandler->addChild(m_Debug2Handler);
-    m_Debug2Handler->setRight(0);
-    m_Debug2Handler->setBottom(0);
+    m_Debug2Handler->setPropRight(0);
+    m_Debug2Handler->setPropBottom(0);
 }
 #endif
 

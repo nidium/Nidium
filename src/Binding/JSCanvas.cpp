@@ -586,11 +586,16 @@ bool JSCanvas::JSSetter_right(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
+    if (vp.isNullOrUndefined()) {
+        m_CanvasHandler->setPropRight(NAN);
+        return true;
+    }
+
     if (!JS::ToNumber(cx, vp, &dval)) {
         return true;
     }
 
-    m_CanvasHandler->setRight(dval);
+    m_CanvasHandler->setPropRight(dval);
 
     return true;
 }
@@ -612,11 +617,17 @@ bool JSCanvas::JSSetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
+    if (vp.isNullOrUndefined()) {
+        m_CanvasHandler->setPropRight(NAN);
+        return true;
+    }
+
+
     if (!JS::ToNumber(cx, vp, &dval)) {
         return true;
     }
 
-    m_CanvasHandler->setBottom(dval);
+    m_CanvasHandler->setPropBottom(dval);
 
     return true;
 }
@@ -780,8 +791,10 @@ bool JSCanvas::JSSetter_position(JSContext *cx, JS::MutableHandleValue vp)
         m_CanvasHandler->setPositioning(CanvasHandler::COORD_ABSOLUTE);
     } else if (strcasecmp(mode.ptr(), "fixed") == 0) {
         m_CanvasHandler->setPositioning(CanvasHandler::COORD_FIXED);
-    } else {
+    }  else if (strcasecmp(mode.ptr(), "relative") == 0) {
         m_CanvasHandler->setPositioning(CanvasHandler::COORD_RELATIVE);
+    } else {
+        m_CanvasHandler->setPositioning(CanvasHandler::COORD_DEFAULT);
     }
 
     return true;
@@ -1148,14 +1161,14 @@ bool JSCanvas::JSGetter_left(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_right(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setDouble(m_CanvasHandler->getRight());
+    vp.setDouble(m_CanvasHandler->getPropRight());
 
     return true;
 }
 
 bool JSCanvas::JSGetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setDouble(m_CanvasHandler->getBottom());
+    vp.setDouble(m_CanvasHandler->getPropBottom());
 
     return true;
 }

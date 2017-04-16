@@ -194,6 +194,8 @@ public:
         int position;
     };
 
+    CANVAS_DEF_CLASS_PROPERTY(Right,        double, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Bottom,       double, NAN, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Top,          double, 0, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Left,         double, 0, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Width,        int, 1, State::kDefault);
@@ -287,12 +289,6 @@ public:
     JS::TenuredHeap<JSObject *> m_JsObj;
     JSContext *m_JsCx;
 
-    /*
-        left and top are relative to parent
-        a_left and a_top are relative to the root layer
-    */
-    double m_Right, m_Bottom;
-
     struct
     {
         double top;
@@ -328,24 +324,6 @@ public:
         return m_Zoom;
     }
 
-    double getPropLeft() override
-    {
-        if (!(m_CoordMode & kLeft_Coord) && m_Parent) {
-            return m_Parent->getPropWidth() - (p_Width + m_Right);
-        }
-
-        return p_Left.get();
-    }
-
-    double getPropTop() override
-    {
-        if (!(m_CoordMode & kTop_Coord) && m_Parent) {
-            return m_Parent->getPropHeight() - (p_Height + m_Bottom);
-        }
-
-        return p_Top.get();
-    }
-
     inline double getPropLeftAbsolute()
     {
         return p_Left.getAlternativeValue();
@@ -355,7 +333,6 @@ public:
     {
         return p_Top.getAlternativeValue();
     }
-
 
     double getTopScrolled() 
     {
@@ -374,24 +351,6 @@ public:
             left -= m_Parent->m_Content.scrollLeft;
         }
         return left;
-    }
-
-    double getRight() 
-    {
-        if (!m_Parent) {
-            return m_Right;
-        }
-
-        return m_Parent->getPropWidth() - (getLeftScrolled() + getPropWidth());
-    }
-
-    double getBottom() 
-    {
-        if (!m_Parent) {
-            return m_Bottom;
-        }
-
-        return m_Parent->getPropHeight() - (getTopScrolled() + getPropHeight());
     }
 
     /*
@@ -423,35 +382,33 @@ public:
 
     void setPropLeft(double val) override
     {
-        m_CoordMode |= kLeft_Coord;
         p_Left.set(val);
         
         YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, val);
     }
 
-    void setRight(double val)
-    {
-        m_CoordMode |= kRight_Coord;
-        m_Right = val;
-    }
-
     void setPropTop(double val) override
     {
-        m_CoordMode |= kTop_Coord;
         p_Top.set(val);
 
         YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, val);
     }
 
-    void setPropCoating(unsigned int value) override;
-
-    void setBottom(double val)
+    void setPropRight(double val) override
     {
-        m_CoordMode |= kBottom_Coord;
-        m_Bottom = val;
-
-        setSize(p_Width, this->getPropHeight());
+        p_Left.set(val);
+        
+        YGNodeStyleSetPosition(m_YogaRef, YGEdgeRight, val == NAN ? YGUndefined : val);
     }
+
+    void setPropBottom(double val) override
+    {
+        p_Top.set(val);
+
+        YGNodeStyleSetPosition(m_YogaRef, YGEdgeBottom, val == NAN ? YGUndefined : val);
+    }
+
+    void setPropCoating(unsigned int value) override;
 
     void setScale(double x, double y);
 
@@ -627,7 +584,6 @@ private:
     COORD_POSITION m_CoordPosition;
     Visibility m_Visibility;
 
-    unsigned m_CoordMode : 16;
     double m_Zoom;
 
     double m_ScaleX, m_ScaleY;
