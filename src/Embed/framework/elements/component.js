@@ -123,6 +123,23 @@
                 return;
             }
 
+            let i = children.length;
+            while (i--) {
+                const child = children[i];
+
+                switch (child.type) {
+                    case "layout":
+                        this.shadowRoot.layout = child;
+                        children.splice(i, 1);
+                        break;
+                    case "template":
+                        this.shadowRoo.template = child;
+                        children.splice(i, 1);
+                        break;
+
+                }
+            }
+
             let ret     = super.createTree(children);
             let scope   = this.shadowRoot.getJSScope()
 

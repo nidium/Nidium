@@ -91,18 +91,18 @@ class Component extends Elements.Element {
     }
 
     createComponentTree() {
-        const layout      = this.constructor[s_ComponentShadow].findNodesByTag("layout")
-        const templates   = this.constructor[s_ComponentShadow].findNodesByTag("template");
-        const scope       = this.shadowRoot.getJSScope();
+        const layout    = this.constructor[s_ComponentShadow].layout;
+        const templates = this.constructor[s_ComponentShadow].template;
+        const scope     = this.shadowRoot.getJSScope();
 
         // When rendering a component, |this| should be the instance of the component
         const previousThis = scope["this"];
         scope["this"] = this;
 
         try  {
-            if (layout.length > 0) {
+            if (layout) {
                 // Apply style defined on <layout> to the component
-                const classes = layout[0].attributes.class;
+                const classes = layout.attributes.class;
                 if (classes) {
                     const tmp = [];
                     const nss = this.shadowRoot.getNSS();
@@ -119,12 +119,12 @@ class Component extends Elements.Element {
                 }
 
                 // Render layout
-                for (let child of layout[0].getChildren()) {
-                    this.add(child.cloneNode(true, this.shadowRoot));
-                }
+                NML.CreateTree(layout.children, this, this.shadowRoot);
             } else if (templates.length == 1) {
+                // XXX : Update me
                 // Render template
-                this.addMultiple(...templates[0].render(scope));
+                //this.addMultiple(...templates[0].render(scope));
+                throw new Error("<template> tag is not yet implemented");
             }
         } finally {
             scope["this"] = previousThis;
