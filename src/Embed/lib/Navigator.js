@@ -13,16 +13,67 @@ class Navigator extends Elements.Node {
         this.scenes = [];
     }
 
-    push(scene, params) {
-        var instance = new scene(params);
-        
-        this.scenes.push(instance);
-        document.canvas.add(instance);
+    push(view, params) {
+        var nextScene = new view(params);
+
+        if (this.scenes.length>0) {
+            var currScene = this.scenes[this.scenes.length-1];
+            currScene.opacity = 0.95;
+
+            setTimeout(()=>{
+                AnimationBlock(600, Easing.Cubic.Out, (c)=>{
+                    c.left = -window.innerWidth;
+                    c.opacity = 0.5;
+                }, currScene);
+            }, 50);
+
+
+            nextScene.left = window.innerWidth;
+            nextScene.opacity = 0.8;
+            setTimeout(()=>{
+                AnimationBlock(600, Easing.Cubic.Out, (c)=>{
+                    c.left = 0;
+                    c.opacity = 1;
+                }, nextScene);
+            }, 0);
+        }
+
+        this.scenes.push(nextScene);
+        document.canvas.add(nextScene);
+
     }
 
-    back(scene) {
-        var instance = this.scenes.pop();
-        instance.removeFromParent();
+    back() {
+        if (this.scenes.length<=1) return false;
+
+
+            var currScene = this.scenes.pop();
+            currScene.opacity = 1;
+
+            setTimeout(()=>{
+                AnimationBlock(400, Easing.Cubic.Out, (c)=>{
+                    c.left = window.innerWidth;
+                    c.opacity = 0.8;
+                }, currScene);
+            }, 0);
+
+            var prevScene = this.scenes[this.scenes.length-1];
+            prevScene.left = -window.innerWidth;
+            prevScene.opacity = 0.1;
+            setTimeout(()=>{
+                AnimationBlock(400, Easing.Cubic.Out, (c)=>{
+                    c.left = 0;
+                    c.opacity = 1;
+                }, prevScene);
+            }, 0);
+
+
+/*
+        var currScene = this.scenes.pop();
+        currScene.removeFromParent();
+*/
+
+
     }
 }
 

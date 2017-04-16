@@ -6,7 +6,7 @@
 
 const Elements = module.exports = {};
 
-const ShadowRoot    = require("../../ShadowRoot.js");
+const ShadowRoot    = require("../ShadowRoot.js");
 const g_MainShadow  = new ShadowRoot(document.canvas, {"name": "main"});
 
 Object.defineProperty(document.canvas, "shadowRoot", {
@@ -79,28 +79,6 @@ Elements.Loader = function(attributes) {
     return data;
 }
 
-/*
- * Native UI Controls and NML tags
- */
-load("embed://lib/Elements/controls/node.js");
-load("embed://lib/Elements/controls/element.js");
-load("embed://lib/Elements/controls/layout.js");
-//load("embed://lib/Elements/controls/button.js");
-load("embed://lib/Elements/controls/canvas.js");
-load("embed://lib/Elements/controls/div.js");
-load("embed://lib/Elements/controls/span.js");
-load("embed://lib/Elements/controls/img.js");
-load("embed://lib/Elements/controls/section.js");
-load("embed://lib/Elements/controls/textnode.js");
-
-/**
- * Node extends
- */
-load("embed://lib/Elements/nss.js");
-load("embed://lib/Elements/script.js");
-load("embed://lib/Elements/template.js");
-load("embed://lib/Elements/component.js");
-load("embed://lib/Elements/slot.js");
 
 window._onready = function(lst){};
 

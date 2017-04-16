@@ -4,7 +4,6 @@
  * that can be found in the LICENSE file.
  */
 
-
 /**
  * Defer creation of the layout once all assets are ready
  */
@@ -28,16 +27,13 @@ function __nidiumPreload(options, lst) {
     load("embed://additions/Canvas.js");
     load("embed://additions/NML.js");
     load("embed://additions/HTTP.js");
-
+    /*
+     * Native UI Controls and NML tags
+     */
+    load("embed://framework/index.js");
+    
     /**
      * Misc
      */
     load("embed://AnimationBlock.js");
-
-    /**
-     * Native Components
-     */
-    require("./lib/Navigator.js");
-    require("./components/statusbar.nc");
-    require("./components/button.nc");
 }

@@ -46,7 +46,7 @@ class TemplateEngine {
 /*
     Default template engine (nunjucks)
 */
-const Nunjucks = require("nunjucks");
+const Nunjucks = require("../nunjucks.js");
 
 TemplateEngine.Register("nunjucks", class extends TemplateEngine {
     compile(data) {

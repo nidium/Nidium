@@ -6,9 +6,9 @@
 
 {
     const Elements      = require("Elements");
-    const ShadowRoot    = require("../../../ShadowRoot.js");
-    const s_ShadowRoot  = require("../../../Symbols.js").ElementShadowRoot;
-    const s_ShadowHost  = require("../../../Symbols.js").ElementShadowHost;
+    const ShadowRoot    = require("../../ShadowRoot.js");
+    const s_ShadowRoot  = require("../../Symbols.js").ElementShadowRoot;
+    const s_ShadowHost  = require("../../Symbols.js").ElementShadowHost;
     const VM            = require("VM");
 
     const s_FnFixStaticRight = Symbol("NodeFunctionFixStaticRight");
@@ -77,7 +77,7 @@
 
             // And adjust their height to the content
             this.height = attributes.height ? attributes.height : "auto";
-            this.width = attributes.width ? attributes.width : "auto";
+            //this.width = attributes.width ? attributes.width : "auto";
 
             this[s_ShadowRoot] = shadowRoot;
             this[s_ShadowRoot].addTag(this.name(), this);

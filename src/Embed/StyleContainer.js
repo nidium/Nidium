@@ -1,24 +1,34 @@
-const s_ShadowRoot = require("../Symbols").ElementShadowRoot;
+const s_ShadowRoot = require("./Symbols").ElementShadowRoot;
 
 const inheritedProperties = [
     "color", "textAlign", "lineHeight",
     "fontFamily", "fontSize", "fontWeight"
 ];
 
-function styleProxy(el, key, val) {
+const nonNumericProperties = [
+    "color", "textAlign", "position", "fontFamily"
+];
+
+function styleProxy(el, key, value) {
     let p = el.getParent(),
-        value = parseFloat(val);
+        numericValue = parseFloat(value);
 
     /* inherited properties */
     if (inheritedProperties.includes(key)) {
-        value = val;
-        el.inherit[key] = val;
-        el[key] = val;
+        el.inherit[key] = value;
+        el[key] = value;
         return;
     }
 
-    if (p && value && val[val.length -1] == "%") {
-        let parsed = value*0.01;
+
+    /* non numeric properties */
+    if (nonNumericProperties.includes(key)) {
+        el[key] = value;
+        return;
+    }
+
+    if (p && numericValue && value[value.length -1] == "%") {
+        let parsed = numericValue*0.01;
 
         switch (key) {
             case "width":
@@ -49,7 +59,7 @@ function styleProxy(el, key, val) {
                 break;
         }
     } else {
-        el[key] = val == "auto" ? val : value;
+        el[key] = value == "auto" ? "auto" : numericValue;
     }
 }
 
