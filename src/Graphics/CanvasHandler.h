@@ -445,6 +445,11 @@ public:
 
     void setMargin(double top, double right, double bottom, double left)
     {
+        YGNodeStyleSetMargin(m_YogaRef, YGEdgeTop, top);
+        YGNodeStyleSetMargin(m_YogaRef, YGEdgeRight, right);
+        YGNodeStyleSetMargin(m_YogaRef, YGEdgeBottom, bottom);
+        YGNodeStyleSetMargin(m_YogaRef, YGEdgeLeft, left);
+
         m_Margin.top    = top;
         m_Margin.right  = right;
         m_Margin.bottom = bottom;
