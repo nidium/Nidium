@@ -54,7 +54,6 @@ CanvasHandler::CanvasHandler(int width,
 
     YGNodeSetContext(m_YogaRef, this);
 
-    YGNodeStyleSetFlexDirection(m_YogaRef, YGFlexDirectionRow);
     YGNodeStyleSetFlexWrap(m_YogaRef, YGWrapNoWrap);
     YGNodeStyleSetAlignItems(m_YogaRef, YGAlignStretch);
     YGNodeStyleSetAlignContent(m_YogaRef, YGAlignStretch);
@@ -256,6 +255,8 @@ void CanvasHandler::deviceSetSize(int width, int height)
     if (m_Context) {
         m_Context->setSize(width + (p_Coating * 2),
                            height + (p_Coating * 2));
+    } else {
+        nlog("Resize without context");
     }
 
     Args arg;
@@ -584,15 +585,28 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
     } else {
 
         if (m_Parent && m_Parent->p_Flex) {
-            printf("===== YOGA =====\n");
-            YGNodePrint(m_YogaRef, YGPrintOptionsLayout);
-            printf("\n");
-            printf("Element height %f\n", YGNodeLayoutGetHeight(m_YogaRef));
-            YGNodePrint(m_Parent->m_YogaRef, YGPrintOptionsLayout);
-            printf("\n");
+            //printf("===== YOGA =====\n");
+            //YGNodePrint(m_YogaRef, YGPrintOptionsLayout);
+            //printf("\n");
+            //("Element height %f\n", YGNodeLayoutGetHeight(m_YogaRef));
+            //YGNodePrint(m_Parent->m_YogaRef, YGPrintOptionsLayout);
+            //printf("\n");
             tmpLeft = YGNodeLayoutGetLeft(m_YogaRef);
             tmpTop = YGNodeLayoutGetTop(m_YogaRef);
-            printf("================\n\n");
+
+            int nwidth = YGNodeLayoutGetWidth(m_YogaRef);
+            int nheight = YGNodeLayoutGetHeight(m_YogaRef);
+
+            if (nwidth != p_Width.getAlternativeValue()
+                || nheight != p_Height.getAlternativeValue()) {
+
+                p_Width.setAlternativeValue(nwidth);
+                p_Height.setAlternativeValue(nheight);
+                printf("New value detected to %d %d\n", nwidth, nheight);
+                deviceSetSize(nwidth, nheight);
+                
+            }
+            //printf("================\n\n");
         } else {
             tmpLeft = this->getPropLeft();
             tmpTop  = this->getPropTop();
@@ -661,10 +675,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
             if (!m_Parent) {
                 return;
             }
-            if (getIdentifier() == 11) {
 
-                nlog("Draw element 11");
-            }
             compList.push_back(std::move(compctx));
         }
     }

@@ -104,6 +104,22 @@ bool JSCanvas::JS_setScale(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
+bool JSCanvas::JS_getDimensions(JSContext *cx, JS::CallArgs &args)
+{
+    int width, height;
+
+    m_CanvasHandler->getDimenions(&width, &height);
+
+    JS::RootedObject out(cx, JS_NewPlainObject(cx));
+
+    NIDIUM_JSOBJ_SET_PROP_INT(out, "width", width);
+    NIDIUM_JSOBJ_SET_PROP_INT(out, "height", height);
+
+    args.rval().setObject(*out);
+    
+    return true;
+}
+
 bool JSCanvas::JS_setSize(JSContext *cx, JS::CallArgs &args)
 {
     int width, height;
@@ -395,9 +411,9 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
             case CanvasContext::CONTEXT_2D: {
                 Canvas2DContext *ctx2d = new Canvas2DContext(
                     m_CanvasHandler, cx,
-                    m_CanvasHandler->getPropWidth()
+                    m_CanvasHandler->p_Width.getAlternativeValue()
                         + (m_CanvasHandler->p_Coating * 2),
-                    m_CanvasHandler->getPropHeight()
+                    m_CanvasHandler->p_Height.getAlternativeValue()
                         + (m_CanvasHandler->p_Coating * 2),
                     ui);
 
@@ -419,9 +435,9 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
             case CanvasContext::CONTEXT_WEBGL:
                 JSWebGLRenderingContext *ctxWebGL = new JSWebGLRenderingContext(
                     m_CanvasHandler, cx,
-                    m_CanvasHandler->getPropWidth()
+                    m_CanvasHandler->p_Width.getAlternativeValue()
                         + (m_CanvasHandler->p_Coating * 2),
-                    m_CanvasHandler->getPropHeight()
+                    m_CanvasHandler->p_Height.getAlternativeValue()
                         + (m_CanvasHandler->p_Coating * 2),
                     ui);
 
@@ -1284,6 +1300,7 @@ JSFunctionSpec *JSCanvas::ListMethods()
         CLASSMAPPER_FN(JSCanvas, clear, 0),
         CLASSMAPPER_FN(JSCanvas, setZoom, 1),
         CLASSMAPPER_FN(JSCanvas, setScale, 2),
+        CLASSMAPPER_FN(JSCanvas, getDimensions, 0),
         JS_FS_END
     };
 

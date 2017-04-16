@@ -429,19 +429,12 @@ public:
     }
 
     /*
-        Get the width in logical pixels
+        Get the real dimensions computed by Yoga
     */
-    int getPropWidth() override
+    void getDimenions(int *width, int *height)
     {
-        return p_Width;
-    }
-
-    /*
-        Get the height in logical pixels
-    */
-    int getPropHeight() override
-    {
-        return p_Height;
+        *width = YGNodeLayoutGetWidth(m_YogaRef);
+        *height = YGNodeLayoutGetHeight(m_YogaRef);
     }
 
     Frontend::Context *getNidiumContext() const

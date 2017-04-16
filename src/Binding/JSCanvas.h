@@ -70,6 +70,7 @@ protected:
     NIDIUM_DECL_JSCALL(clear);
     NIDIUM_DECL_JSCALL(setZoom);
     NIDIUM_DECL_JSCALL(setScale);
+    NIDIUM_DECL_JSCALL(getDimensions);
 
     NIDIUM_DECL_JSGETTERSETTER(opacity);
     NIDIUM_DECL_JSGETTERSETTER(overflow);
