@@ -136,6 +136,7 @@ class DebugCanvas extends Canvas {
 
         this.onload = this.randomPaint;
         this.onresize = this.randomPaint;
+
         this.m_highlight = false;
         this._pickColor();
         this.cursor = "pointer";

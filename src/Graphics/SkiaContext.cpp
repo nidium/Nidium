@@ -480,6 +480,9 @@ bool SkiaContext::setSize(int width, int height, bool redraw)
 {
     float ratio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
+    width = nidium_max(width, 1);
+    height = nidium_max(height, 1);
+
     const SkImageInfo &info = SkImageInfo::MakeN32Premul(ceilf(width * ratio),
                                     ceilf(height * ratio));
 
@@ -488,7 +491,7 @@ bool SkiaContext::setSize(int width, int height, bool redraw)
     sk_sp<SkSurface> newSurface = m_Surface->makeSurface(info);
 
     if (!newSurface) {
-        ndm_log(NDM_LOG_ERROR, "Canvas", "Can't create new surface");
+        ndm_logf(NDM_LOG_ERROR, "Canvas", "Can't create new surface of size %dx%d", width, height);
         return false;
     }
 

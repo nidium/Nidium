@@ -25,6 +25,8 @@
 #include "Core/Context.h"
 #include "Frontend/InputHandler.h"
 
+#include <Yoga.h>
+
 class GrContext;
 
 namespace Nidium {
@@ -203,6 +205,8 @@ public:
     void logShow() override;
     void logHide() override;
 
+    YGConfigRef m_YogaConfig;
+    uint64_t m_CanvasCreatedIdx = 8;
 private:
     Graphics::GLResources m_Resources;
     Graphics::CanvasHandler *m_RootHandler;
