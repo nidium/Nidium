@@ -54,9 +54,8 @@ CanvasHandler::CanvasHandler(int width,
 
     YGNodeSetContext(m_YogaRef, this);
 
-    YGNodeStyleSetFlexWrap(m_YogaRef, YGWrapNoWrap);
-    YGNodeStyleSetAlignItems(m_YogaRef, YGAlignStretch);
-    YGNodeStyleSetAlignContent(m_YogaRef, YGAlignStretch);
+    YGNodeStyleSetFlexWrap(m_YogaRef, YGWrapWrap);
+
 
     YGNodeStyleSetPositionType(m_YogaRef, YGPositionTypeRelative);
     YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, p_Left);
@@ -192,8 +191,6 @@ bool CanvasHandler::setWidth(int width, bool force)
         return true;
     }
 
-    nlogf("Set width of %d (old %d)", width, p_Width.get());
-
     p_Width = width;
 
     this->setPendingFlags(kPendingResizeWidth);
@@ -234,12 +231,6 @@ void CanvasHandler::setSize(int width, int height, bool redraw)
         return;
     }
 
-    if (getIdentifier() == 11) {
-
-        nlogf("Set width2 of %d (old %d) on %lld", width, p_Width.get(), getIdentifier());        
-    }
-
-
     p_Width  = width;
     p_Height = height;
 
@@ -255,8 +246,6 @@ void CanvasHandler::deviceSetSize(int width, int height)
     if (m_Context) {
         m_Context->setSize(width + (p_Coating * 2),
                            height + (p_Coating * 2));
-    } else {
-        nlog("Resize without context");
     }
 
     Args arg;
@@ -602,7 +591,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 
                 p_Width.setAlternativeValue(nwidth);
                 p_Height.setAlternativeValue(nheight);
-                printf("New value detected to %d %d\n", nwidth, nheight);
+
                 deviceSetSize(nwidth, nheight);
                 
             }

@@ -100,6 +100,19 @@ protected:
     NIDIUM_DECL_JSGETTERSETTER(coating);
     NIDIUM_DECL_JSGETTERSETTER(cursor);
 
+    /* Flexbox container */
+    NIDIUM_DECL_JSGETTERSETTER(flexDirection);
+    NIDIUM_DECL_JSGETTERSETTER(flexWrap);
+    NIDIUM_DECL_JSGETTERSETTER(justifyContent);
+    NIDIUM_DECL_JSGETTERSETTER(alignItems);
+    NIDIUM_DECL_JSGETTERSETTER(alignContent);
+
+    /* Flexbox items */
+    NIDIUM_DECL_JSGETTERSETTER(flexGrow);
+    NIDIUM_DECL_JSGETTERSETTER(flexShrink);
+    NIDIUM_DECL_JSGETTERSETTER(flexBasis);
+    NIDIUM_DECL_JSGETTERSETTER(alignSelf);
+
     NIDIUM_DECL_JSGETTER(idx);
     NIDIUM_DECL_JSGETTER(clientWidth);
     NIDIUM_DECL_JSGETTER(clientHeight);

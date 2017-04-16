@@ -17,6 +17,7 @@
 #include "Graphics/Geometry.h"
 
 #include <Yoga.h>
+#include <YGStringEnums.h>
 
 #ifndef NAN                                                                     
 static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};                 
@@ -441,7 +442,6 @@ public:
     {
         return m_NidiumContext;
     }
-
 
     void setMargin(double top, double right, double bottom, double left)
     {

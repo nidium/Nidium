@@ -1245,6 +1245,205 @@ bool JSCanvas::JSGetter_idx(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
+/* Flexbox container getter */
+bool JSCanvas::JSGetter_flexDirection(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(true);
+    return true;
+}
+
+bool JSCanvas::JSGetter_flexWrap(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(true);
+    return true;
+}
+
+bool JSCanvas::JSGetter_justifyContent(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(true);
+    return true;
+}
+
+bool JSCanvas::JSGetter_alignItems(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(true);
+    return true;
+}
+
+bool JSCanvas::JSGetter_alignContent(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(true);
+    return true;
+}
+
+/* Flexbox items setter */
+bool JSCanvas::JSGetter_flexGrow(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(true);
+    return true;
+}
+
+bool JSCanvas::JSGetter_flexShrink(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(true);
+    return true;
+}
+
+bool JSCanvas::JSGetter_flexBasis(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(true);
+    return true;
+}
+
+bool JSCanvas::JSGetter_alignSelf(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(true);
+    return true;
+}
+
+
+/* Flexbox container setter */
+bool JSCanvas::JSSetter_flexDirection(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isString()) {
+        return true;
+    }
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString setstr(cx, vpStr);
+
+    YGNodeStyleSetFlexDirection(m_CanvasHandler->m_YogaRef,
+        YGFlexDirectionFromString(setstr.ptr()));
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_flexWrap(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isString()) {
+        return true;
+    }
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString setstr(cx, vpStr);
+
+    YGNodeStyleSetFlexWrap(m_CanvasHandler->m_YogaRef,
+        YGWrapFromString(setstr.ptr()));
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_justifyContent(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isString()) {
+        return true;
+    }
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString setstr(cx, vpStr);
+
+    YGNodeStyleSetJustifyContent(m_CanvasHandler->m_YogaRef,
+        YGJustifyFromString(setstr.ptr()));
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_alignItems(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isString()) {
+        return true;
+    }
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString setstr(cx, vpStr);
+
+    YGNodeStyleSetAlignItems(m_CanvasHandler->m_YogaRef,
+        YGAlignFromString(setstr.ptr()));
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_alignContent(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isString()) {
+        return true;
+    }
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString setstr(cx, vpStr);
+
+    YGNodeStyleSetAlignItems(m_CanvasHandler->m_YogaRef,
+        YGAlignFromString(setstr.ptr()));
+
+    return true;
+}
+
+/* Flexbox items setter */
+bool JSCanvas::JSSetter_flexGrow(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    dval = nidium_max(0, dval);
+
+    YGNodeStyleSetFlexGrow(m_CanvasHandler->m_YogaRef, dval);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_flexShrink(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    dval = nidium_max(0, dval);
+
+    YGNodeStyleSetFlexShrink(m_CanvasHandler->m_YogaRef, dval);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_flexBasis(JSContext *cx, JS::MutableHandleValue vp)
+{
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString setstr(cx, vpStr);
+
+    if (strcmp("auto", setstr.ptr()) == 0) {
+
+        YGNodeStyleSetFlexBasisAuto(m_CanvasHandler->m_YogaRef);
+
+        return true;
+    }
+
+    double dval;
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    dval = nidium_max(0, dval);
+
+    YGNodeStyleSetFlexBasis(m_CanvasHandler->m_YogaRef, dval);
+
+    return true;
+}
+bool JSCanvas::JSSetter_alignSelf(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isString()) {
+        return true;
+    }
+    
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString setstr(cx, vpStr);
+
+    YGNodeStyleSetAlignSelf(m_CanvasHandler->m_YogaRef,
+        YGAlignFromString(setstr.ptr()));
+
+    return true;
+}
+
+
 JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
     JS::HandleObject obj)
 {
@@ -1337,6 +1536,19 @@ JSPropertySpec *JSCanvas::ListProperties()
         CLASSMAPPER_PROP_GS(JSCanvas, marginTop),
         CLASSMAPPER_PROP_GS(JSCanvas, marginBottom),
         CLASSMAPPER_PROP_GS(JSCanvas, cursor),
+
+        /* Flexbox container */
+        CLASSMAPPER_PROP_GS(JSCanvas, flexDirection),
+        CLASSMAPPER_PROP_GS(JSCanvas, flexWrap),
+        CLASSMAPPER_PROP_GS(JSCanvas, justifyContent),
+        CLASSMAPPER_PROP_GS(JSCanvas, alignItems),
+        CLASSMAPPER_PROP_GS(JSCanvas, alignContent),
+
+        /* Flexbox items */
+        CLASSMAPPER_PROP_GS(JSCanvas, flexGrow),
+        CLASSMAPPER_PROP_GS(JSCanvas, flexShrink),
+        CLASSMAPPER_PROP_GS(JSCanvas, flexBasis),
+        CLASSMAPPER_PROP_GS(JSCanvas, alignSelf),
 
         CLASSMAPPER_PROP_G(JSCanvas, idx),
         CLASSMAPPER_PROP_G(JSCanvas, clientWidth),
