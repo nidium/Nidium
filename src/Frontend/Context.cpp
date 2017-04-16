@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <math.h>
 
-
+#include "Interface/SystemInterface.h"
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSDocument.h"
 #include "Binding/JSCanvas.h"
@@ -126,6 +126,10 @@ Context::Context(ape_global *net)
       m_UI(NULL), m_NML(NULL), m_GLState(NULL),
       m_JSWindow(NULL), m_SizeDirty(false), m_CurrentClickedHandler(NULL)
 {
+
+    m_YogaConfig = YGConfigNew();
+    YGConfigSetPointScaleFactor(m_YogaConfig,
+        Interface::SystemInterface::GetInstance()->backingStorePixelRatio());
 
     Binding::NidiumLocalContext *nlc = Binding::NidiumLocalContext::Get();
     nlc->ptr = (void *)new LocalContext();

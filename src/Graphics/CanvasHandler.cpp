@@ -31,7 +31,7 @@ CanvasHandler::CanvasHandler(int width,
     : m_Context(NULL), m_JsCx(nctx->getNJS()->getJSContext()), m_Right(0.0), m_Bottom(0.0),
       m_Overflow(true), m_Parent(NULL), m_Children(NULL), m_Next(NULL),
       m_Prev(NULL), m_Last(NULL), m_Flags(0), m_nChildren(0),
-      m_CoordPosition(COORD_RELATIVE), m_Visibility(CANVAS_VISIBILITY_VISIBLE),
+      m_CoordPosition(COORD_DEFAULT), m_Visibility(CANVAS_VISIBILITY_VISIBLE),
       m_CoordMode(kLeft_Coord | kTop_Coord),
       m_Zoom(1.0), m_ScaleX(1.0), m_ScaleY(1.0),
       m_AllowNegativeScroll(false), m_NidiumContext(nctx), m_Pending(0),
@@ -51,6 +51,8 @@ CanvasHandler::CanvasHandler(int width,
 
     m_FluidHeight = false;
     m_FluidWidth  = false;
+
+    m_YogaRef = YGNodeNewWithConfig(nctx->m_YogaConfig);
 
     YGNodeSetContext(m_YogaRef, this);
 
@@ -73,6 +75,7 @@ CanvasHandler::CanvasHandler(int width,
     memset(&m_MousePosition, 0, sizeof(m_MousePosition));
 
     m_MousePosition.consumed = true;
+    //p_Flex = true;
 
     m_Content.width  = p_Width;
     m_Content.height = p_Height;
@@ -84,8 +87,6 @@ CanvasHandler::CanvasHandler(int width,
     m_Content.scrollTop  = 0;
 
     m_CoordMode = kLeft_Coord | kTop_Coord;
-
-
 }
 
 void CanvasHandler::computeLayoutPositions()
@@ -96,6 +97,18 @@ void CanvasHandler::computeLayoutPositions()
 void CanvasHandler::setPositioning(CanvasHandler::COORD_POSITION mode)
 {
     m_CoordPosition = mode;
+    switch (mode) {
+        case CanvasHandler::COORD_DEFAULT:
+        case CanvasHandler::COORD_FIXED:
+            /* Relative in Yoga means that it interacts with the flexbox */
+            YGNodeStyleSetPositionType(m_YogaRef, YGPositionTypeRelative);
+            break;
+        case CanvasHandler::COORD_RELATIVE:
+        case CanvasHandler::COORD_ABSOLUTE:
+            YGNodeStyleSetPositionType(m_YogaRef, YGPositionTypeAbsolute);
+            break;
+    }
+
     this->computeAbsolutePosition();
 }
 
@@ -648,7 +661,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 #endif
         for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
             int offsetLeft = 0, offsetTop = 0;
-            if (cur->m_CoordPosition == COORD_RELATIVE) {
+            if (cur->m_CoordPosition == COORD_DEFAULT) {
                 offsetLeft = -m_Content.scrollLeft;
                 offsetTop  = -m_Content.scrollTop;
             }

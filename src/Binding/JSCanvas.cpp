@@ -1112,10 +1112,8 @@ bool JSCanvas::JSGetter_position(JSContext *cx, JS::MutableHandleValue vp)
 
     switch (m_CanvasHandler->getPositioning()) {
         case CanvasHandler::COORD_RELATIVE:
-
             jstr = JS_NewStringCopyZ(cx, "relative");
             vp.setString(jstr);
-
             break;
         case CanvasHandler::COORD_ABSOLUTE:
             jstr = JS_NewStringCopyZ(cx, "absolute");
@@ -1125,8 +1123,8 @@ bool JSCanvas::JSGetter_position(JSContext *cx, JS::MutableHandleValue vp)
             jstr = JS_NewStringCopyZ(cx, "fixed");
             vp.setString(jstr);
             break;
-        case CanvasHandler::COORD_FLEX:
-            jstr = JS_NewStringCopyZ(cx, "flex");
+        case CanvasHandler::COORD_DEFAULT:
+            jstr = JS_NewStringCopyZ(cx, "default");
             vp.setString(jstr);
             break;
     }
@@ -1300,6 +1298,13 @@ bool JSCanvas::JSGetter_alignSelf(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
+bool JSCanvas::JSGetter_aspectRatio(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(true);
+    return true;
+}
+
+
 
 /* Flexbox container setter */
 bool JSCanvas::JSSetter_flexDirection(JSContext *cx, JS::MutableHandleValue vp)
@@ -1427,6 +1432,7 @@ bool JSCanvas::JSSetter_flexBasis(JSContext *cx, JS::MutableHandleValue vp)
 
     return true;
 }
+
 bool JSCanvas::JSSetter_alignSelf(JSContext *cx, JS::MutableHandleValue vp)
 {
     if (!vp.isString()) {
@@ -1442,6 +1448,25 @@ bool JSCanvas::JSSetter_alignSelf(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
+bool JSCanvas::JSSetter_aspectRatio(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+
+    if (vp.isNullOrUndefined()) {
+        YGNodeStyleSetAspectRatio(m_CanvasHandler->m_YogaRef, YGUndefined);
+        return true;
+    }
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    dval = nidium_max(0.1, dval);
+
+    YGNodeStyleSetAspectRatio(m_CanvasHandler->m_YogaRef, dval);
+
+    return true;
+}
 
 JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
     JS::HandleObject obj)
@@ -1548,6 +1573,7 @@ JSPropertySpec *JSCanvas::ListProperties()
         CLASSMAPPER_PROP_GS(JSCanvas, flexShrink),
         CLASSMAPPER_PROP_GS(JSCanvas, flexBasis),
         CLASSMAPPER_PROP_GS(JSCanvas, alignSelf),
+        CLASSMAPPER_PROP_GS(JSCanvas, aspectRatio),
 
         CLASSMAPPER_PROP_G(JSCanvas, idx),
         CLASSMAPPER_PROP_G(JSCanvas, clientWidth),

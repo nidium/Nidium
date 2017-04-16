@@ -273,7 +273,7 @@ public:
         COORD_RELATIVE,
         COORD_ABSOLUTE,
         COORD_FIXED,
-        COORD_FLEX
+        COORD_DEFAULT
     };
 
     enum Visibility
@@ -419,11 +419,6 @@ public:
         m_Margin.right  = right;
         m_Margin.bottom = bottom;
         m_Margin.left   = left;
-    }
-
-    void setPropFlex(bool val) override
-    {
-        p_Flex = val;
     }
 
     void setPropLeft(double val) override
@@ -662,7 +657,7 @@ private:
     bool m_NeedPaint = true;
 
     /* Reference to the Yoga node */
-    YGNodeRef m_YogaRef = YGNodeNew();
+    YGNodeRef m_YogaRef;
 };
 
 
