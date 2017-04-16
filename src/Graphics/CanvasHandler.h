@@ -434,8 +434,8 @@ public:
     */
     void getDimenions(int *width, int *height)
     {
-        *width = YGNodeLayoutGetWidth(m_YogaRef);
-        *height = YGNodeLayoutGetHeight(m_YogaRef);
+        *width = ceilf(YGNodeLayoutGetWidth(m_YogaRef));
+        *height = ceilf(YGNodeLayoutGetHeight(m_YogaRef));
     }
 
     Frontend::Context *getNidiumContext() const

@@ -54,9 +54,6 @@ CanvasHandler::CanvasHandler(int width,
 
     YGNodeSetContext(m_YogaRef, this);
 
-    YGNodeStyleSetFlexWrap(m_YogaRef, YGWrapWrap);
-
-
     YGNodeStyleSetPositionType(m_YogaRef, YGPositionTypeRelative);
     YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, p_Left);
     YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, p_Top);
@@ -574,17 +571,16 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
     } else {
 
         if (m_Parent && m_Parent->p_Flex) {
-            //printf("===== YOGA =====\n");
-            //YGNodePrint(m_YogaRef, YGPrintOptionsLayout);
-            //printf("\n");
-            //("Element height %f\n", YGNodeLayoutGetHeight(m_YogaRef));
-            //YGNodePrint(m_Parent->m_YogaRef, YGPrintOptionsLayout);
-            //printf("\n");
-            tmpLeft = YGNodeLayoutGetLeft(m_YogaRef);
-            tmpTop = YGNodeLayoutGetTop(m_YogaRef);
+#if 0
+            printf("===== YOGA =====\n");
+            YGNodePrint(m_YogaRef, YGPrintOptionsLayout);
+            printf("\n");
+#endif
+            tmpLeft = floorf(YGNodeLayoutGetLeft(m_YogaRef));
+            tmpTop = floorf(YGNodeLayoutGetTop(m_YogaRef));
 
-            int nwidth = YGNodeLayoutGetWidth(m_YogaRef);
-            int nheight = YGNodeLayoutGetHeight(m_YogaRef);
+            int nwidth = ceilf(YGNodeLayoutGetWidth(m_YogaRef));
+            int nheight = ceilf(YGNodeLayoutGetHeight(m_YogaRef));
 
             if (nwidth != p_Width.getAlternativeValue()
                 || nheight != p_Height.getAlternativeValue()) {
@@ -595,7 +591,6 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                 deviceSetSize(nwidth, nheight);
                 
             }
-            //printf("================\n\n");
         } else {
             tmpLeft = this->getPropLeft();
             tmpTop  = this->getPropTop();
