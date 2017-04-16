@@ -22,11 +22,13 @@
 
         left: {
             width: "25%",
-            height: "100%"
+            height: "100%",
+            backgroundColor: "rgba(0, 30, 0, 0.1)"
         },
 
         icleft : {
-            textAlign:"left"
+            textAlign:"left",
+            width:"auto"
         },
 
         center: {
@@ -37,22 +39,23 @@
         right: {
             width: "25%",
             height: "100%",
+            backgroundColor: "rgba(0, 30, 0, 0.1)"
         },
 
         ar: {
-            textAlign: "right"
+            position: "relative",
+            textAlign: "right",
+            right:0
         }
     </nss>
     <layout class="clean">
         <span id="a" class="left" on:mousedown="clicked()">
             <icon js:data="{font:font}" on:toto="g(4)" class="icon" shape="fa-chevron-left"></icon> <span class="icleft">Back</span>
         </span>
-        <!--
         <span id="b" class="center">Nidium Kitchen</span>
         <span id="c" class="right">
             <icon js:data="{font:font}" on:mousedown="" class="icon ar" shape="fa-question-circle"></icon>
         </span>
-        -->
     </layout>
     <script>
 

@@ -1,7 +1,7 @@
 <component name="statusbar">
     <nss>
         clean: {
-            backgroundColor: "#212326",
+            backgroundColor: "#03387e",
             height: "20px",
             width: "100%",
             color: "#ffffff",

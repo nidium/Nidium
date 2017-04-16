@@ -75,6 +75,7 @@
         }
 
         paint(ctx) {
+/*
             this.style.angle = 0;
             this.style.originOffsetX = 0;
             this.style.originOffsetY = 0;
@@ -96,11 +97,12 @@
                 ctx.translate(origin.x, origin.y);
                 ctx.rotate(rad);
                 ctx.translate(-origin.x, -origin.y);
-
+*/
                 this.style._paint(ctx);
+/*                
                 this.afterpaint();
             ctx.restore();
-
+*/
         }
 
         afterpaint(ctx){
