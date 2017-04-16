@@ -15,7 +15,7 @@
 
     Elements.Node = class extends Canvas {
         constructor(attributes = {}) {
-            super(parseInt(attributes.width) || 10, parseInt(attributes.height) || 10);
+            super(attributes.width, attributes.height);
 
             const shadowRoot = Elements.currentShadow || document.canvas.shadowRoot;
 

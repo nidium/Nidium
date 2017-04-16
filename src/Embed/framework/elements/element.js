@@ -17,7 +17,7 @@
                 this.opacity = attributes.opacity;
             }
 
-            this.style = new StyleContainer(this);
+            //this.style = new StyleContainer(this);
 
             //this.onload = this.onpaint;
             this.onresize = this.onpaint;
@@ -28,11 +28,14 @@
         }
 
         onpaint() {
-            if (!this._ctx) return;
+            if (!this._ctx) {
+                return;
+            }
 
+            let dimensions = this.getDimensions();
             this._ctx.save();
             this.clear();
-            this.paint(this._ctx);
+            this.paint(this._ctx, dimensions.width, dimensions.height);
             this._ctx.restore();
         }
 
