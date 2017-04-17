@@ -34,8 +34,8 @@ JSObject *JSOS::RegisterModule(JSContext *cx)
 
     // Language
 #ifdef NIDIUM_PRODUCT_FRONTEND
-    Interface::SystemInterface* interface = Interface::SystemInterface::GetInstance();
-    const char *clang = interface->getLanguage();
+    Interface::SystemInterface* iface = Interface::SystemInterface::GetInstance();
+    const char *clang = iface->getLanguage();
     JS::RootedString langStr(cx, JSUtils::NewStringWithEncoding(cx,
                                       clang, strlen(clang), "utf8"));
     JS::RootedValue lang(cx, JS::StringValue(langStr));
