@@ -106,14 +106,16 @@ bool JSCanvas::JS_setScale(JSContext *cx, JS::CallArgs &args)
 
 bool JSCanvas::JS_getDimensions(JSContext *cx, JS::CallArgs &args)
 {
-    int width, height;
+    int width, height, left, top;
 
-    m_CanvasHandler->getDimensions(&width, &height);
+    m_CanvasHandler->getDimensions(&width, &height, &left, &top);
 
     JS::RootedObject out(cx, JS_NewPlainObject(cx));
 
     NIDIUM_JSOBJ_SET_PROP_INT(out, "width", width);
     NIDIUM_JSOBJ_SET_PROP_INT(out, "height", height);
+    NIDIUM_JSOBJ_SET_PROP_INT(out, "left", left);
+    NIDIUM_JSOBJ_SET_PROP_INT(out, "top", top);
 
     args.rval().setObject(*out);
     
