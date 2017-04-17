@@ -79,6 +79,7 @@
                 })
             };
 
+            /*
             scope["window"] = new Proxy(scope, {
                 get: (object, key, proxy) => {
                     switch (key) {
@@ -93,7 +94,8 @@
                 set: (object, key, value, proxy) => {
                     throw new Error(`Components are not allowed to set window.${key}`);
                 }
-            })
+            });
+            */
 
             // Prevent access to the global object using |this|
             scope["this"] = scope.window;

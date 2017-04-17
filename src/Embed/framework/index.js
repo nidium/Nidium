@@ -11,6 +11,7 @@ load("embed://framework/elements/node.js");
 load("embed://framework/elements/element.js");
 load("embed://framework/elements/layout.js");
 load("embed://framework/elements/canvas.js");
+load("embed://framework/elements/li.js");
 load("embed://framework/elements/div.js");
 load("embed://framework/elements/view.js");
 load("embed://framework/elements/span.js");
@@ -31,6 +32,7 @@ load("embed://framework/elements/slot.js");
 require("./components/icon.nc");
 require("./components/statusbar.nc");
 require("./components/button.nc");
+require("./components/listview.nc");
 
 /**
  * Fonts

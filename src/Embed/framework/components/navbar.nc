@@ -5,7 +5,6 @@
             flexDirection: "row",
             flexGrow:1,
             maxHeight: 46,
-            color: "#ffffff",
             fontSize: 13,
             lineHeight: 46,
             textAlign: "center",
@@ -23,7 +22,7 @@
         },
 
         il: {
-            textAlign: "left"
+            textAlign: "left",
         },
 
         ir: {
