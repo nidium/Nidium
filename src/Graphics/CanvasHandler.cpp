@@ -663,7 +663,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                 Incrementaly check the bottom/right most children
                 in order to compute the contentHeight/Width
             */
-            if (cur->m_CoordPosition == COORD_RELATIVE
+            if (cur->m_CoordPosition != COORD_ABSOLUTE
                 && cur->m_Visibility == CANVAS_VISIBILITY_VISIBLE) {
 
                 int actualChildrenHeightPlusTop
