@@ -14,7 +14,6 @@
 #include <pa_ringbuffer.h>
 
 #include <zita-resampler/resampler.h>
-#include <Coro.h>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -818,20 +817,13 @@ AudioSource::AudioSource(int out, Audio *audio, bool external)
 int AudioSource::open(const char *src)
 {
 #define RETURN_WITH_ERROR(err)                       \
-    this->sendEvent(SOURCE_EVENT_ERROR, err, false); \
+    this->sendEvent(SOURCE_EVENT_ERROR, err);        \
     this->closeInternal(true);                       \
     return err;
     // If a previous file has been opened, close it
     if (m_Container != NULL) {
         this->closeInternal(true);
     }
-
-    m_Coro     = Coro_new();
-    m_MainCoro = Coro_new();
-    Coro_initializeMainCoro(m_MainCoro);
-
-    m_Reader = new AVStreamReader(src, Audio::sourceNeedWork, m_Audio, this,
-                                  m_Audio->m_Net);
 
     m_AvioBuffer = static_cast<unsigned char *>(
         av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE));
@@ -844,51 +836,24 @@ int AudioSource::open(const char *src)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Container->pb
-        = avio_alloc_context(m_AvioBuffer, NIDIUM_AVIO_BUFFER_SIZE, 0, m_Reader,
-                             AVStreamReader::read, NULL, AVStreamReader::seek);
-    if (!m_Container) {
-        RETURN_WITH_ERROR(ERR_OOM);
+    Core::Path p = Core::Path(src);
+    if (!p.path()) {
+        RETURN_WITH_ERROR(ERR_FAILED_OPEN);
     }
+
+    m_Filename = strdup(p.path());
+
+    this->openInit();
 
     return 0;
-#undef RETURN_WITH_ERROR
-}
-
-int AudioSource::openInit()
-{
-    m_SourceDoOpen = true;
-    NIDIUM_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
-    return 0;
-}
-
-void AudioSource::openInitCoro(void *arg)
-{
-#define RETURN_WITH_ERROR(err)                       \
-    thiz->sendEvent(SOURCE_EVENT_ERROR, err, false); \
-    thiz->postMessage(thiz, AVSource::MSG_CLOSE);    \
-    Coro_switchTo_(thiz->m_Coro, thiz->m_MainCoro);
-    AudioSource *thiz    = static_cast<AudioSource *>(arg);
-    thiz->m_SourceDoOpen = false;
-
-    int ret;
-    if ((ret = thiz->initStream()) != 0) {
-        RETURN_WITH_ERROR(ret);
-    }
-
-    if ((ret = thiz->initInternal()) != 0) {
-        RETURN_WITH_ERROR(ret);
-    }
-
-    Coro_switchTo_(thiz->m_Coro, thiz->m_MainCoro);
 #undef RETURN_WITH_ERROR
 }
 
 int AudioSource::open(void *buffer, int size)
 {
-#define RETURN_WITH_ERROR(err)                       \
-    this->sendEvent(SOURCE_EVENT_ERROR, err, false); \
-    this->closeInternal(true);                       \
+#define RETURN_WITH_ERROR(err)                \
+    this->sendEvent(SOURCE_EVENT_ERROR, err); \
+    this->closeInternal(true);                \
     return err;
 
     // If a previous file has been opened, close it
@@ -916,6 +881,29 @@ int AudioSource::open(void *buffer, int size)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
+    this->openInit();
+
+    return 0;
+
+#undef RETURN_WITH_ERROR
+}
+
+int AudioSource::openInit()
+{
+    m_SourceDoOpen = true;
+    NIDIUM_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
+    return 0;
+}
+
+int AudioSource::openInitInternal()
+{
+#define RETURN_WITH_ERROR(err)                       \
+    this->sendEvent(SOURCE_EVENT_ERROR, err);        \
+    this->postMessage(this, AVSource::MSG_CLOSE);    \
+    return err                                       \
+
+    m_SourceDoOpen = false;
+
     int ret;
     if ((ret = this->initStream()) != 0) {
         RETURN_WITH_ERROR(ret);
@@ -926,14 +914,13 @@ int AudioSource::open(void *buffer, int size)
     }
 
     return 0;
-
 #undef RETURN_WITH_ERROR
 }
 
 int AudioSource::initStream()
 {
     // Open input
-    int ret = avformat_open_input(&m_Container, "dummyFile", NULL, NULL);
+    int ret = avformat_open_input(&m_Container, m_Filename, NULL, NULL);
 
     if (ret != 0) {
         char error[1024];
@@ -950,7 +937,7 @@ int AudioSource::initStream()
     }
 
     // Dump information about file onto standard error
-    av_dump_format(m_Container, 0, "Memory input", 0);
+    av_dump_format(m_Container, 0, m_Filename, 0);
 
     // Find first audio stream
     for (unsigned int i = 0; i < m_Container->nb_streams; i++) {
@@ -1055,7 +1042,7 @@ int AudioSource::initInternal()
         this->play();
     }
 
-    this->sendEvent(SOURCE_EVENT_READY, 0, false);
+    this->sendEvent(SOURCE_EVENT_READY, 0);
 
     return 0;
 }
@@ -1068,29 +1055,6 @@ int AudioSource::avail()
 }
 
 bool AudioSource::buffer()
-{
-    if (m_Reader->m_Async) {
-        if (m_Buffering || m_DoSemek) {
-            // Reader already trying to get data
-            // or we need to seek, so don't buffer
-            return false;
-        }
-
-        m_Buffering = true;
-        Coro_startCoro_(m_MainCoro, m_Coro, this, AudioSource::bufferCoro);
-
-        if (!m_Reader->m_Pending) {
-            m_Buffering = false;
-            return true;
-        }
-
-        return false;
-    } else {
-        return this->bufferInternal();
-    }
-}
-
-bool AudioSource::bufferInternal()
 {
     for (;;) {
         int ret = av_read_frame(m_Container, m_TmpPacket);
@@ -1113,14 +1077,6 @@ bool AudioSource::bufferInternal()
     return true;
 }
 
-void AudioSource::bufferCoro(void *arg)
-{
-    AudioSource *t = static_cast<AudioSource *>(arg);
-    t->bufferInternal();
-
-    Coro_switchTo_(t->m_Coro, t->m_MainCoro);
-}
-
 // This method is used when the source is externally managed
 // (To fill a packet to the source)
 void AudioSource::buffer(AVPacket *pkt)
@@ -1132,36 +1088,14 @@ void AudioSource::buffer(AVPacket *pkt)
 bool AudioSource::work()
 {
     if (!m_ExternallyManaged) {
-        if (!m_Reader) {
-            return false;
-        }
-
         if (m_SourceDoOpen) {
-            Coro_startCoro_(m_MainCoro, m_Coro, this,
-                            AudioSource::openInitCoro);
+            this->openInitInternal();
             return true;
-        }
-
-        if (m_Reader->m_NeedWakup) {
-            Coro_switchTo_(m_MainCoro, m_Coro);
-            if (m_Reader->m_Pending) {
-                return false;
-            } else {
-                m_Buffering = false;
-            }
         }
     }
 
     if (m_DoSemek) {
-        if (m_Reader->m_Pending) {
-            return false;
-        }
-
-        if (!m_Reader->m_Async) {
-            this->seekInternal(m_DoSeekTime);
-        } else {
-            Coro_startCoro_(m_MainCoro, m_Coro, this, AudioSource::seekCoro);
-        }
+        this->seekInternal(m_DoSeekTime);
     }
 
     if (m_DoNotProcess || !m_Opened || m_Stopped) {
@@ -1205,9 +1139,9 @@ bool AudioSource::work()
 }
 bool AudioSource::decode()
 {
-#define RETURN_WITH_ERROR(err)                      \
-    av_free(tmpFrame);                              \
-    this->sendEvent(SOURCE_EVENT_ERROR, err, true); \
+#define RETURN_WITH_ERROR(err)                \
+    av_free(tmpFrame);                        \
+    this->sendEvent(SOURCE_EVENT_ERROR, err); \
     return false;
     if (m_Error) {
         SPAM(("decode() return false cause of error %d\n", m_Error));
@@ -1452,11 +1386,6 @@ void AudioSource::seek(double time)
     NIDIUM_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
 }
 
-void AudioSource::seekCoro(void *arg)
-{
-    AudioSource *source = static_cast<AudioSource *>(arg);
-    source->seekInternal(source->m_DoSeekTime);
-}
 void AudioSource::seekInternal(double time)
 {
     if (m_ExternallyManaged) {
@@ -1473,7 +1402,7 @@ void AudioSource::seekInternal(double time)
 
         SPAM(("Seeking source to=%f / position=%f\n", time, m_Clock));
 
-        flags = time > clock ? 0 : AVSEEK_FLAG_BACKWARD;
+        flags = time > clock ? AVSEEK_FLAG_ANY : AVSEEK_FLAG_BACKWARD;
 
         target = time * AV_TIME_BASE;
 
@@ -1497,7 +1426,7 @@ void AudioSource::seekInternal(double time)
             char errorStr[2048];
             av_strerror(ret, errorStr, 2048);
             SPAM(("Seeking error %d : %s\n", ret, errorStr));
-            this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, true);
+            this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING);
         }
     }
 
@@ -1514,10 +1443,6 @@ void AudioSource::seekInternal(double time)
     m_FrameConsumed  = true;
 
     m_DoSemek = false;
-
-    if (m_Reader->m_Async) {
-        Coro_switchTo_(m_Coro, m_MainCoro);
-    }
 }
 
 bool AudioSource::process()
@@ -1546,7 +1471,7 @@ bool AudioSource::process()
             m_DoNotProcess = true;
             this->stop();
 
-            this->sendEvent(SOURCE_EVENT_EOF, 0, true);
+            this->sendEvent(SOURCE_EVENT_EOF, 0);
         }
         SPAM(("Not enough data to read. return false %ld\n",
               PaUtil_GetRingBufferReadAvailable(m_rBufferOut)));
@@ -1601,7 +1526,6 @@ void AudioSource::closeInternal(bool reset)
             PthreadAutoLock lock(&AVSource::m_FfmpegLock);
 
             avcodec_close(m_CodecCtx);
-            av_free(m_Container->pb);
             avformat_close_input(&m_Container);
             swr_free(&m_SwrCtx);
         }
@@ -1623,13 +1547,6 @@ void AudioSource::closeInternal(bool reset)
 
     delete m_Reader;
     m_Reader = NULL;
-
-    if (m_Coro != NULL) {
-        Coro_free(m_Coro);
-        Coro_free(m_MainCoro);
-        m_Coro     = NULL;
-        m_MainCoro = NULL;
-    }
 
     if (!m_PacketConsumed) {
         av_packet_unref(m_TmpPacket);
@@ -1687,7 +1604,7 @@ void AudioSource::play()
 
     NIDIUM_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
 
-    this->sendEvent(SOURCE_EVENT_PLAY, 0, false);
+    this->sendEvent(SOURCE_EVENT_PLAY, 0);
 }
 
 void AudioSource::pause()
@@ -1697,7 +1614,7 @@ void AudioSource::pause()
     }
 
     m_Playing = false;
-    this->sendEvent(SOURCE_EVENT_PAUSE, 0, false);
+    this->sendEvent(SOURCE_EVENT_PAUSE, 0);
 }
 
 void AudioSource::stop()
@@ -1712,7 +1629,7 @@ void AudioSource::stop()
 
     this->resetFrames();
 
-    this->sendEvent(SOURCE_EVENT_STOP, 0, false);
+    this->sendEvent(SOURCE_EVENT_STOP, 0);
 }
 
 void AudioSource::close()
@@ -1740,7 +1657,7 @@ void AudioSourceCustom::play()
 
     NIDIUM_PTHREAD_SIGNAL(&m_Audio->m_QueueHaveData);
 
-    this->sendEvent(SOURCE_EVENT_PLAY, 0, false);
+    this->sendEvent(SOURCE_EVENT_PLAY, 0);
 }
 
 
@@ -1748,7 +1665,7 @@ void AudioSourceCustom::pause()
 {
     m_Playing = false;
 
-    this->sendEvent(SOURCE_EVENT_PAUSE, 0, false);
+    this->sendEvent(SOURCE_EVENT_PAUSE, 0);
 }
 
 void AudioSourceCustom::stop()
@@ -1756,7 +1673,7 @@ void AudioSourceCustom::stop()
     m_Playing = false;
     this->seek(0);
 
-    this->sendEvent(SOURCE_EVENT_STOP, 0, false);
+    this->sendEvent(SOURCE_EVENT_STOP, 0);
 }
 
 void AudioSourceCustom::setSeek(SeekCallback cbk, void *custom)

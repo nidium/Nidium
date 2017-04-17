@@ -244,9 +244,8 @@ struct AVSourceEvent
     int m_Ev;
     Core::Args m_Args;
     void *m_Custom;
-    bool m_FromThread;
-    AVSourceEvent(int ev, void *custom, bool fromThread)
-        : m_Ev(ev), m_Custom(custom), m_FromThread(fromThread){};
+    AVSourceEvent(int ev, void *custom)
+        : m_Ev(ev), m_Custom(custom) {};
 };
 // }}}
 
@@ -262,14 +261,14 @@ public:
         m_EventCbkCustom = custom;
     };
 
-    AVSourceEvent *createEvent(int ev, bool fromThread)
+    AVSourceEvent *createEvent(int ev)
     {
-        return new AVSourceEvent(ev, m_EventCbkCustom, fromThread);
+        return new AVSourceEvent(ev, m_EventCbkCustom);
     };
 
-    void sendEvent(int type, int value, bool fromThread)
+    void sendEvent(int type, int value)
     {
-        AVSourceEvent *ev = this->createEvent(type, fromThread);
+        AVSourceEvent *ev = this->createEvent(type);
         ev->m_Args[0].set(value);
         this->sendEvent(ev);
     };

@@ -93,7 +93,7 @@ AVStreamReader::AVStreamReader(const char *src,
     m_Async  = true;
     m_Stream = Stream::Create(Path(src));
     if (!m_Stream) {
-        m_Source->sendEvent(SOURCE_EVENT_ERROR, ERR_FAILED_OPEN, false);
+        m_Source->sendEvent(SOURCE_EVENT_ERROR, ERR_FAILED_OPEN);
         return;
     }
     m_Stream->start(NIDIUM_AVIO_BUFFER_SIZE * 4);
@@ -308,13 +308,13 @@ void AVStreamReader::onMessage(const SharedMessages::Message &msg)
                 err = ERR_IO;
             }
 
-            m_Source->sendEvent(SOURCE_EVENT_ERROR, err, false);
+            m_Source->sendEvent(SOURCE_EVENT_ERROR, err);
 
             return;
         }
         case Stream::kEvents_Progress: {
             AVSourceEvent *ev
-                = m_Source->createEvent(SOURCE_EVENT_BUFFERING, false);
+                = m_Source->createEvent(SOURCE_EVENT_BUFFERING);
             ev->m_Args[0].set(msg.m_Args[0].toInt64());
             ev->m_Args[1].set(msg.m_Args[1].toInt64());
             ev->m_Args[2].set(msg.m_Args[2].toInt64());
@@ -480,7 +480,7 @@ int AVSource::readError(int err)
         return AVERROR_EOF;
     } else if (err != AVERROR(EAGAIN)) {
         m_Error = AVERROR(err);
-        this->sendEvent(SOURCE_EVENT_ERROR, ERR_READING, true);
+        this->sendEvent(SOURCE_EVENT_ERROR, ERR_READING);
         return -1;
     }
 

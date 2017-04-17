@@ -76,9 +76,9 @@ Video::Video(ape_global *n)
 }
 
 // {{{ Open
-#define RETURN_WITH_ERROR(err)                       \
-    this->sendEvent(SOURCE_EVENT_ERROR, err, false); \
-    this->closeInternal(true);                       \
+#define RETURN_WITH_ERROR(err)                \
+    this->sendEvent(SOURCE_EVENT_ERROR, err); \
+    this->closeInternal(true);                \
     return err;
 
 int Video::open(void *buffer, int size)
@@ -86,6 +86,8 @@ int Video::open(void *buffer, int size)
     if (m_Container) {
         this->closeInternal(true);
     }
+
+    m_Filename = strdup("Memory input");
 
     if (!(m_AvioBuffer = static_cast<unsigned char *>(av_malloc(
               NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE)))) {
@@ -129,6 +131,9 @@ int Video::open(const char *src)
     }
 
     Core::Path p = Core::Path(src);
+    if (!p.path()) {
+        RETURN_WITH_ERROR(ERR_FAILED_OPEN);
+    }
     m_Filename = strdup(p.path());
 
     this->openInit();
@@ -236,7 +241,7 @@ int Video::openInitInternal()
         this->play();
     }
 
-    this->sendEvent(SOURCE_EVENT_READY, 0, false);
+    this->sendEvent(SOURCE_EVENT_READY, 0);
 
     return 0;
 }
@@ -276,7 +281,7 @@ void Video::play()
         this->scheduleDisplay(1);
     }
 
-    this->sendEvent(SOURCE_EVENT_PLAY, 0, false);
+    this->sendEvent(SOURCE_EVENT_PLAY, 0);
 }
 
 void Video::pause()
@@ -289,7 +294,7 @@ void Video::pause()
         m_AudioSource->pause();
     }
 
-    this->sendEvent(SOURCE_EVENT_PAUSE, 0, false);
+    this->sendEvent(SOURCE_EVENT_PAUSE, 0);
 }
 
 void Video::close()
@@ -320,7 +325,7 @@ void Video::stop()
 
     NIDIUM_PTHREAD_SIGNAL(&m_BufferCond);
 
-    this->sendEvent(SOURCE_EVENT_STOP, 0, false);
+    this->sendEvent(SOURCE_EVENT_STOP, 0);
 }
 
 double Video::getClock()
@@ -377,7 +382,7 @@ bool Video::seekMethod(int64_t target, int flags)
 
         return true;
     } else {
-        this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, true);
+        this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING);
         return false;
     }
 }
@@ -674,7 +679,7 @@ VideoAudioSource *Video::getAudioNode(Audio *audio)
         m_AudioSource->m_Container = m_Container;
         m_AudioSource->eventCallback(NULL, NULL); // Disable events callbacks
         if (0 != m_AudioSource->initInternal()) {
-            this->sendEvent(SOURCE_EVENT_ERROR, ERR_INIT_VIDEO_AUDIO, false);
+            this->sendEvent(SOURCE_EVENT_ERROR, ERR_INIT_VIDEO_AUDIO);
             delete m_AudioSource;
             m_AudioSource = NULL;
         }
@@ -725,7 +730,7 @@ int Video::display(void *custom)
         }
         if (v->m_Eof) {
             DPRINT("No frame, eof reached\n");
-            v->sendEvent(SOURCE_EVENT_EOF, 0, false);
+            v->sendEvent(SOURCE_EVENT_EOF, 0);
         } else {
             DPRINT("No frame, try again in 20ms\n");
             v->scheduleDisplay(1, true);
@@ -1057,7 +1062,7 @@ void *Video::decode(void *args)
             v->m_SourceDoOpen = false;
             int ret = v->openInitInternal();
             if (ret != 0) {
-                v->sendEvent(SOURCE_EVENT_ERROR, ret, true /* threaded */);
+                v->sendEvent(SOURCE_EVENT_ERROR, ret);
                 v->postMessage(v, AVSource::MSG_CLOSE);
             }
         }

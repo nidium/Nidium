@@ -342,14 +342,9 @@ void *Audio::decodeThread(void *args)
         NIDIUM_AUDIO_CHECK_EXIT_THREAD
 
         // Wait for work to do unless some source need to wakeup
-        if (!audio->m_SourceNeedWork) {
-            SPAM(("Waitting for queueNeedData m_SourceNeedWork=%d\n",
-                  audio->m_SourceNeedWork));
-            NIDIUM_PTHREAD_WAIT(&audio->m_QueueNeedData);
-            SPAM(("QueueNeedData received\n"));
-        } else {
-            SPAM(("decodeThread not sleeping cause it need wakup\n"));
-        }
+        SPAM(("Waitting for queueNeedData"));
+        NIDIUM_PTHREAD_WAIT(&audio->m_QueueNeedData);
+        SPAM(("QueueNeedData received\n"));
 
         audio->m_SourceNeedWork = false;
 

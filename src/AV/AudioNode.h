@@ -346,6 +346,7 @@ public:
     int open(const char *src) override;
     int open(void *buffer, int size) override;
     int openInit() override;
+    int openInitInternal();
     static void openInitCoro(void *arg);
     int initStream();
     int initInternal();
@@ -397,6 +398,7 @@ private:
     void *m_rBufferOutData;
 
     bool m_Buffering;
+    char *m_Filename = nullptr;
 };
 // }}}
 

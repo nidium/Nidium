@@ -155,7 +155,7 @@ bool JSAVSourceBase::JS__open(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    if (ret < 0) {
+    if (ret != 0) {
         JS_ReportError(cx, "Failed to open stream %d\n", ret);
         return false;
     }
