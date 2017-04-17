@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <signal.h>
 
 #include <SDL.h>
 
@@ -37,6 +38,8 @@ using Nidium::Frontend::InputTouch;
 namespace Nidium {
 namespace Interface {
 
+extern UIInterface *__NidiumUI;
+
 // {{{ UIInterface
 UIInterface::UIInterface()
     : m_CurrentCursor(UIInterface::ARROW), m_NidiumCtx(NULL), m_Nml(NULL),
@@ -46,6 +49,7 @@ UIInterface::UIInterface()
       m_FrameBuffer(NULL), m_Console(NULL), m_MainGLCtx(NULL),
       m_SystemMenu(this)
 {
+    this->setSignalHandler();
 }
 
 void UIInterface::setGLContextAttribute()
@@ -439,6 +443,32 @@ void UIInterface::refresh()
     SDL_GL_SwapWindow(this->m_Win);
 
     SDL_GL_SetSwapInterval(oswap);
+}
+
+static void SignalHandler(int sig)
+{
+    UIInterface *interface = Nidium::Interface::__NidiumUI;
+
+    interface->signalHandler(sig);
+}
+
+void UIInterface::setSignalHandler()
+{
+    signal(SIGHUP, SignalHandler);
+}
+
+void UIInterface::signalHandler(int sig)
+{
+    static bool inRefresh = false;
+
+    switch(sig) {
+        case SIGHUP:
+            if (inRefresh) break;
+            inRefresh = true;
+            this->hitRefresh();
+            inRefresh = false;
+            break;
+    }
 }
 
 void UIInterface::centerWindow()

@@ -206,8 +206,6 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     int, 0, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    int, 0, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Coating,      unsigned int, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(FluidWidth,   bool, false, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(FluidHeight,  bool, false, State::kDefault);
 
     CANVAS_DEF_CLASS_PROPERTY(Flex,         bool, false, State::kDefault);
 
@@ -520,16 +518,6 @@ public:
         return m_CoordPosition;
     }
 
-    bool isHeightFluid() const
-    {
-        return m_FluidHeight;
-    }
-
-    bool isWidthFluid() const
-    {
-        return m_FluidWidth;
-    }
-
     CanvasHandler(int width,
                   int height,
                   Frontend::Context *nctx,
@@ -550,9 +538,6 @@ public:
 
     void setPropMaxWidth(int width) override;
     void setPropMaxHeight(int height) override;
-
-    bool setFluidHeight(bool val);
-    bool setFluidWidth(bool val);
 
     void setSize(int width, int height, bool redraw = true);
     void setPositioning(CanvasHandler::COORD_POSITION mode);
@@ -680,7 +665,6 @@ private:
 
     double m_ScaleX, m_ScaleY;
     bool m_AllowNegativeScroll;
-    bool m_FluidWidth, m_FluidHeight;
 
     Frontend::Context *m_NidiumContext;
 

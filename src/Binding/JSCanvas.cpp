@@ -909,28 +909,6 @@ bool JSCanvas::JSSetter_id(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
-bool JSCanvas::JSSetter_fluidWidth(JSContext *cx, JS::MutableHandleValue vp)
-{
-    if (!vp.isBoolean()) {
-        return true;
-    }
-
-    m_CanvasHandler->setFluidWidth(vp.toBoolean());
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_fluidHeight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    if (!vp.isBoolean()) {
-        return true;
-    }
-
-    m_CanvasHandler->setFluidHeight(vp.toBoolean());
-
-    return true;
-}
-
 bool JSCanvas::JSSetter_cursor(JSContext *cx, JS::MutableHandleValue vp)
 {
     if (!vp.isString()) {
@@ -1304,20 +1282,6 @@ bool JSCanvas::JSGetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
 bool JSCanvas::JSGetter_visible(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setBoolean(!m_CanvasHandler->isHidden());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_fluidWidth(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setBoolean(m_CanvasHandler->isWidthFluid());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_fluidHeight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setBoolean(m_CanvasHandler->isHeightFluid());
 
     return true;
 }
@@ -1724,8 +1688,6 @@ JSPropertySpec *JSCanvas::ListProperties()
         CLASSMAPPER_PROP_GS(JSCanvas, right),
         CLASSMAPPER_PROP_GS(JSCanvas, bottom),
         CLASSMAPPER_PROP_GS(JSCanvas, visible),
-        CLASSMAPPER_PROP_GS(JSCanvas, fluidHeight),
-        CLASSMAPPER_PROP_GS(JSCanvas, fluidWidth),
         CLASSMAPPER_PROP_GS(JSCanvas, id),
         CLASSMAPPER_PROP_GS(JSCanvas, marginLeft),
         CLASSMAPPER_PROP_GS(JSCanvas, marginRight),

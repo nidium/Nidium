@@ -45,8 +45,8 @@ CanvasHandler::CanvasHandler(int width,
     p_Width     = nidium_max(width, -1);
     p_Height    = nidium_max(height, -1);
 
-    m_FluidHeight = false;
-    m_FluidWidth  = false;
+    p_Width.setAlternativeValue(p_Width);
+    p_Height.setAlternativeValue(p_Height);
 
     m_YogaRef = YGNodeNewWithConfig(nctx->m_YogaConfig);
 
@@ -637,8 +637,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                        p_Left.getAlternativeValue(),
                        p_Top.getAlternativeValue(),
                        p_Width.getAlternativeValue() + p_Left.getAlternativeValue(),
-                       p_Height.getAlternativeValue() + p_Top.getAlternativeValue())
-                   && (!m_FluidHeight || !m_FluidWidth)) {
+                       p_Height.getAlternativeValue() + p_Top.getAlternativeValue())) {
 
             /* don't need to draw children (out of bounds) */
             return;
@@ -718,34 +717,6 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         m_Content._width = maxChildrenWidth;
 
         this->propertyChanged(kContentWidth_Changed);
-    }
-
-    /*
-        Height is dynamic.
-        It's automatically adjusted by the height of its content
-    */
-    if (m_FluidHeight) {
-        int contentHeight = this->getContentHeight(true);
-
-        int newHeight = p_MaxHeight ? nidium_clamp(contentHeight, p_MinHeight,
-                                                   p_MaxHeight)
-                                    : nidium_max(contentHeight, p_MinHeight);
-
-        if (p_Height != newHeight) {
-            this->setHeight(newHeight, true);
-        }
-    }
-
-    if (m_FluidWidth) {
-        int contentWidth = this->getContentWidth(true);
-
-        int newWidth = p_MaxWidth
-                           ? nidium_clamp(contentWidth, p_MinWidth, p_MaxWidth)
-                           : nidium_max(contentWidth, p_MinWidth);
-
-        if (p_Width != newWidth) {
-            this->setWidth(newWidth, true);
-        }
     }
 
     if (layerContext.m_Layer == this) {
@@ -1040,19 +1011,6 @@ void CanvasHandler::setContext(CanvasContext *context)
     m_Context = context;
     m_Context->translate(p_Coating, p_Coating);
 }
-
-bool CanvasHandler::setFluidHeight(bool val)
-{
-    m_FluidHeight = val;
-    return true;
-}
-
-bool CanvasHandler::setFluidWidth(bool val)
-{
-    m_FluidWidth = val;
-    return true;
-}
-// }}}
 
 void CanvasHandler::recursiveScale(double x, double y, double oldX, double oldY)
 {
