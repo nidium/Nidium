@@ -198,6 +198,7 @@ enum
 // {{{ Error code and description
 enum
 {
+    ERR_NONE,
     ERR_FAILED_OPEN,
     ERR_READING,
     ERR_NO_INFORMATION,
@@ -216,7 +217,8 @@ enum
 };
 
 const char *const AVErrorsStr[ERR_MAX]
-    = { "Failed to open media file",
+    = { "No error",
+        "Failed to open media file",
         "Failed to read media file",
         "Failed to find stream information",
         "No audio stream",

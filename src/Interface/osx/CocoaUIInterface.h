@@ -61,6 +61,7 @@ public:
 protected:
     void setSystemCursor(CURSOR_TYPE cursor);
     void onWindowCreated();
+    void hitRefresh() override;
 
 private:
     void renderSystemTray();

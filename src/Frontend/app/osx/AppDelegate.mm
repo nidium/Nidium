@@ -75,11 +75,7 @@ namespace Nidium {
 
 - (void) refreshApp
 {
-    self->UI->refreshApplication();
-    Nidium::Interface::UICocoaConsole *console = self->UI->getConsole(false, NULL);
-    if (console) {
-        console->clear();
-    }
+    self->UI->refreshApplication(true);
 }
 
 - (void) openConsole
