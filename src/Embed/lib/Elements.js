@@ -20,12 +20,13 @@ const Elements = {
     Exists(tag) {
         return (tag in Elements);
     }
-
 };
 
 class NidiumNode extends Canvas {
     constructor(attributes = {}) {
         super(attributes.width, attributes.height);
+
+        this.styles = {};
 
         this.attributes = attributes;
         this.computedAttributes = {};
@@ -407,11 +408,19 @@ Elements.flexcanvas = class extends NidiumNode {
         this._color = attributes.color || "red";
     }
 
+    set color(value) {
+        this._color = value;
+        this.requestPaint();
+    }
+
     paint(ctx, width, height) {
         ctx.fillStyle = this._color;
         ctx.fillRect(0, 0, width, height);
         ctx.fillStyle = "black";
         ctx.fillText(this.idx, 0, 10);
+        ctx.fillText(`${width}x${height}`, 0, 20);
+
+        console.log("Client width", this.idx, this.clientWidth, this.clientHeight);
     }
 }
 
@@ -419,4 +428,52 @@ window._onready = function(lst) {
     
 }
 
+
+class ElementStyle {
+    constructor(name, options) {
+        this.name = name;
+        this.isNative = options.isNative || false;
+        this.inherit = options.inherit || false;
+        this.repaint = true;
+    }
+
+    read(element) {
+        if (this.isNative) {
+            return element[name];
+        }
+
+        if (!this.inherit) {
+            return element.styles[name];
+        }
+
+        return element.inherit[`_Style_${name}`];
+    }
+
+    write(element, value) {
+        if (this.isNative) {
+            element[name] = value;
+
+            return;
+        }
+
+        if (!this.inherit) {
+            element.styles[name] = value;
+            return;
+        }
+
+        element.inherit[`_Style_${name}`] = value;
+
+        return;
+
+    }
+}
+
+const Styles = new Map();
+
+["left", "top", "right", "bottom", "width", "height"].forEach((stl) => {
+    Styles.set(stl, new ElementStyle(stl, { isNative: true }));
+});
+
+
 module.exports = Elements;
+
