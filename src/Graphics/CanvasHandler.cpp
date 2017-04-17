@@ -198,7 +198,6 @@ bool CanvasHandler::setHeight(int height, bool force)
 
 void CanvasHandler::setSize(int width, int height, bool redraw)
 {
-
     height = p_MaxHeight ? nidium_clamp(height, p_MinHeight, p_MaxHeight)
                          : nidium_max(height, p_MinHeight);
 
@@ -485,7 +484,11 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 {
     CanvasHandler *cur;
     Rect nclip;
-
+#if 0
+        printf("===== YOGA =====\n");
+        YGNodePrint(m_YogaRef, YGPrintOptionsLayout);
+        printf("\n");
+#endif
     if (m_Visibility == CANVAS_VISIBILITY_HIDDEN || p_Opacity == 0.0) {
         return;
     }
@@ -496,7 +499,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
     int tmpLeft;
     int tmpTop;
 
-    if (m_Parent && m_Parent->p_Flex) {
+    if (1 || (m_Parent && m_Parent->p_Flex)) {
 #if 0
         printf("===== YOGA =====\n");
         YGNodePrint(m_YogaRef, YGPrintOptionsLayout);
@@ -518,6 +521,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 
             p_Width.setAlternativeValue(nwidth);
             p_Height.setAlternativeValue(nheight);
+
 
             deviceSetSize(nwidth, nheight);
             
