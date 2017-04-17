@@ -11,20 +11,52 @@
 #include <locale.h>
 #include <atlstr.h>  
 
-#include <Port/MSWindows.h>
-
-#ifndef _MSC_VER
-#error Windows port must be compiled with msvc
-#endif
 
 #ifndef MIN
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #endif
 
+
 namespace Nidium {
 namespace Interface {
 
-System::System() : m_EmbedPath(NULL)
+void OnSize(HWND hwnd, UINT flag, int width, int height)
+{
+        // Handle resizing
+}
+
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg) {
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        return 0;
+    case WM_SIZE: {
+        int width = LOWORD(lParam);  // Macro to get the low-order word.
+        int height = HIWORD(lParam); // Macro to get the high-order word.
+                                     // Respond to the message:
+        OnSize(hwnd, (UINT)wParam, width, height);
+    }
+    break;
+    case WM_PAINT: {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hwnd, &ps);
+        FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+        EndPaint(hwnd, &ps);
+    }
+    break;
+    case WM_CLOSE:
+        if (MessageBox(hwnd, "Really quit?", "Nidium", MB_OKCANCEL) == IDOK) {
+            DestroyWindow(hwnd);
+        }
+        // Else: User canceled. Do nothing.
+        return 0;
+    }
+
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+
+System::System() : m_EmbedPath(NULL), m_SystemUIReady(false)
     {
      m_fBackingStorePixelRatio = 1.0;
 
@@ -46,6 +78,41 @@ System::~System()
         free(m_EmbedPath);
     }
 }
+
+float System::backingStorePixelRatio()
+{
+    return m_fBackingStorePixelRatio;
+}
+
+void System::initSystemUI(HINSTANCE hInstance)
+{
+    if (!m_SystemUIReady) {
+        const LPCSTR CLASS_NAME = TEXT("Nidium");
+        const LPCSTR text = TEXT("Nidium demo");
+        WNDCLASS wc = {};
+
+        wc.lpfnWndProc = WindowProc;
+        wc.hInstance = hInstance;
+        wc.lpszClassName = CLASS_NAME;
+        RegisterClass(&wc);
+
+        HWND hwnd = CreateWindowEx( 0, CLASS_NAME, text, WS_OVERLAPPEDWINDOW,
+            CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+            NULL,       // Parent window    
+            NULL,       // Menu
+            hInstance,  // Instance handle
+            NULL        // Additional application data
+        );
+
+        if (hwnd == NULL) {
+            return;
+        }
+
+        int nCmdShow = 0;
+        ShowWindow(hwnd, nCmdShow);
+    }
+}
+
 
 const char *System::getCacheDirectory()
 {
@@ -93,6 +160,17 @@ const char *System::cwd()
 
     return dir;
 }
+void alert(const char *message, Nidium::Interface::SystemInterface::AlertType type = Nidium::Interface::SystemInterface::AlertType::ALERT_INFO)
+{
+
+    HWND hWnd = NULL;
+    LPCTSTR lpText = message;
+    LPCTSTR lpCaption = "nidium";
+    UINT uType = MB_OK | MB_ICONSTOP;
+
+    MessageBox(hWnd, lpText, lpCaption, uType);
+
+}
 
 void System::sendNotification(const char *title, const char *content, bool sound)
 {
@@ -102,7 +180,6 @@ void System::sendNotification(const char *title, const char *content, bool sound
     UINT uType = MB_OK;
 
     MessageBox(hWnd, lpText, lpCaption, uType);
-
 }
 
 const char *System::execute(const char *cmd)

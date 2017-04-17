@@ -4,18 +4,24 @@
    that can be found in the LICENSE file.
 */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-//#include <libgen.h>
 #include <time.h>
+#include <direct.h>
+#include <process.h>
 #include <sys/types.h>
-#include <Port/MSWindows.h>
 
 #ifdef NIDIUM_ENABLE_CRASHREPORTER
 #include <client/windows/handler/exception_handler.h>
 #endif
 
-#include <windows.h>
+
+
 #include "System.h"
+#include <Port/MSWindows.h>
+#include "WinUIInterface.h"
+
+#include <windows.h>
 
 extern "C" {
    unsigned long _ape_seed;
@@ -23,14 +29,17 @@ extern "C" {
 
 namespace Nidium {
 namespace Interface {
+
 class SystemInterface;
 class UIInterface;
 
 SystemInterface *SystemInterface::_interface = new System();
 UIInterface *__NidiumUI;
 }
+
 namespace App {
 
+//TODO: check driveletter usage
 char _root[PATH_MAX]; // Using _root to store the location of nidium exec
 
 #ifdef NIDIUM_ENABLE_CRASHREPORTER
@@ -53,9 +62,9 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor,
 } // namespace App
 } // namespace Nidium
 
-int main(int argc, char **argv)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdShow)
 {
-    Nidium::Interface::UIX11Interface UI;
+    Nidium::Interface::UIWinInterface UI;
 
 #ifdef NIDIUM_ENABLE_CRASHREPORTER
     google_breakpad::MinidumpDescriptor descriptor(UI.getCacheDirectory());
@@ -69,15 +78,15 @@ int main(int argc, char **argv)
         int l                 = strlen(Nidium::App::_root);
         Nidium::App::_root[l] = '/';
         l += 1;
-        strncpy(&Nidium::App::_root[l], argv[0], PATH_MAX - l);
-        dirname(Nidium::App::_root);
+        strncpy(&Nidium::App::_root[l], __argv[0], PATH_MAX - l);
+        _splitpath(&Nidium::App::_root[1], NULL, &Nidium::App::_root[0], NULL, NULL);
     }
 
     const char *nml = NULL;
 
-    nml = argc > 1 ? argv[1] : "embed://default.nml";
+    nml = __argc > 1 ? __argv[1] : "embed://default.nml";
 
-    UI.setArguments(argc, argv);
+    UI.setArguments(__argc, __argv, hInstance );
 
     if (!UI.runApplication(nml)) {
         return 0;
