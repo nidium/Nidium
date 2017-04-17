@@ -395,9 +395,14 @@ void UIInterface::setSignalHandler()
 
 void UIInterface::signalHandler(int sig)
 {
+    static bool inRefresh = false;
+
     switch(sig) {
         case SIGHUP:
+            if (inRefresh) break;
+            inRefresh = true;
             this->hitRefresh();
+            inRefresh = false;
             break;
     }
 }
