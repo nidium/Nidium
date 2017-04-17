@@ -91,6 +91,15 @@ void File::checkRead(bool async, void *arg)
     }
 }
 
+int File::mkdir()
+{
+
+    int ret = mkdir(m_Path);
+
+    return ret;
+
+}
+
 int File::rm()
 {
     int ret = unlink(m_Path);

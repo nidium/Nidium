@@ -28,14 +28,14 @@ Tests.register("File (outside root)", function() {
 // {{{ Properties
 Tests.register("File.filename", function() {
     var f = new File(__filename);
-    Assert.equal(f.filename, __filename, 
+    Assert.equal(f.filename, __filename,
             "Expected filename to be \"" + __filename + "\" but got " + f.filename + "\"");
 });
 
 Tests.register("File.filesize", function() {
     var f = new File("File/doesexists/simplefile.txt");
     f.openSync("r");
-    Assert.equal(f.filesize, 9, 
+    Assert.equal(f.filesize, 9,
             "Expected filesize to be \"9\" but got \"" + f.filesize+ "\"");
 });
 // }}}
@@ -51,7 +51,7 @@ Tests.register("File.open (inexistent file exception)", function() {
 Tests.registerAsync("File.open (writing)", function(next) {
     var f = new File("File/file_open_write_test");
     f.open("w+", function(err) {
-        Assert.equal(err, undefined, 
+        Assert.equal(err, undefined,
                 "Got an error while trying to open file for writing : " + err);
         f.rm();
         next();
@@ -61,8 +61,8 @@ Tests.registerAsync("File.open (writing)", function(next) {
 Tests.registerAsync("File.open (reading)", function(next) {
     var f = new File(__filename);
     f.open("r", function(err) {
-        Assert.equal(err, undefined, 
-                "Got an error while trying to open file " + __filename + 
+        Assert.equal(err, undefined,
+                "Got an error while trying to open file " + __filename +
                 " for reading : " + err);
         next();
     });
@@ -137,6 +137,19 @@ Tests.register("File.isDir",  function() {
         fileObject.openSync("r");
 
         Assert.equal(fileObject.isDir(), expected, "Path \"" + path + "\" should be a " + (cases[path] ? "directory" : "file"));
+    }
+
+});
+
+Tests.register("File.mkdir", function() {
+
+    var result = File.mkdir('File/dir_to_create');
+    if (result === true) {
+
+        var check = new File('File/dir_to_create');
+
+        Assert.equal(check.isDir(), true, "Path \"File/dir_to_create\" should be a directory");
+
     }
 
 });
@@ -242,10 +255,10 @@ Tests.registerAsync("File.write", function(next) {
         f.seek(0, function() {
             var wroteContent = f.readSync();
 
-            Assert.equal(f.filesize, content.length, 
+            Assert.equal(f.filesize, content.length,
                     "Expected filesize to be " + content.length + " but got " + f.filesize);
 
-            Assert.equal(wroteContent, content, 
+            Assert.equal(wroteContent, content,
                     "Expected wrote content to be \"" + content + "\" but got \"" + wroteContent + "\"");
             f.rm();
             next();
@@ -267,7 +280,7 @@ Tests.register("File.writeSync", function(next) {
     Assert.equal(f.filesize, content.length,
             "Expected filesize to be " + content.length + " but got " + f.filesize);
 
-    Assert.equal(wroteContent, content, 
+    Assert.equal(wroteContent, content,
             "Expected wrote content to be \"" + content + "\" but got \"" + wroteContent + "\"");
 
     f.rm();
@@ -282,7 +295,7 @@ Tests.registerAsync("File.write (utf8)", function(next) {
 
         f.seek(0, function() {
             var wroteContent = f.readSync();
-            Assert.equal(wroteContent, content, 
+            Assert.equal(wroteContent, content,
                     "Expected wrote content to be \"" + content + "\" but got \"" + wroteContent + "\"");
             f.rm();
             next();
@@ -301,7 +314,7 @@ Tests.register("File.writeSync (utf8)", function(next) {
 
     wroteContent = f.readSync();
 
-    Assert.equal(wroteContent, content, 
+    Assert.equal(wroteContent, content,
             "Expected wrote content to be \"" + content + "\" but got \"" + wroteContent + "\"");
 
     f.rm();
