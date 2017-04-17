@@ -291,13 +291,9 @@ bool JSFile::JS_mkDir(JSContext *cx, JS::CallArgs &args)
 {
 
     File *file = this->getFile();
-
     int val = file->mkDir();
-    if (val == 0) {
-        args.rval().setBoolean(true);
-    } else {
-        args.rval().setBoolean(false);
-    }
+
+    args.rval().setBoolean(val == 0);
 
     return true;
 }
@@ -308,11 +304,8 @@ bool JSFile::JS_rm(JSContext *cx, JS::CallArgs &args)
     File *file = this->getFile();
 
     int val = file->rm();
-    if (val == 0) {
-        args.rval().setBoolean(true);
-    } else {
-        args.rval().setBoolean(false);
-    }
+
+    args.rval().setBoolean(val == 0);
 
     return true;
 }
