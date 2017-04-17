@@ -1644,8 +1644,15 @@ uint32_t Canvas2DContext::createProgram(const char *data)
 
     const char *shaders[] = {  getCoopFragmentShader(), data };
 
+#ifdef NIDIUM_OPENGLES2
+    #define SH_TYPE_OUTPUT SH_ESSL_OUTPUT
+#else
+    #define SH_TYPE_OUTPUT SH_GLSL_COMPATIBILITY_OUTPUT
+#endif
+
     char *output = CanvasContext::ProcessMultipleShader(shaders, 2,
-        CanvasContext::SHADER_FRAGMENT, SH_GLSL_COMPATIBILITY_OUTPUT);
+        CanvasContext::SHADER_FRAGMENT, SH_TYPE_OUTPUT);
+#undef SH_TYPE_OUTPUT
 
     nlogf("output =>\n%s", output);
 
