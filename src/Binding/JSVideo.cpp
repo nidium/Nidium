@@ -66,7 +66,7 @@ void JSVideo::frameCallback(uint8_t *data)
     int h                  = m_Video->m_CodecCtx->height;
 
     surface->setFillColor(0xFF000000);
-    surface->drawRect(0, 0, handler->getWidth(), handler->getHeight(), 0);
+    surface->drawRect(0, 0, handler->getComputedWidth(), handler->getComputedHeight(), 0);
 
     m_Bitmap.setPixels(data);
 
@@ -101,8 +101,8 @@ void JSVideo::setSize(int width, int height)
         return;
     }
 
-    int canvasWidth  = m_CanvasCtx->getHandler()->getWidth();
-    int canvasHeight = m_CanvasCtx->getHandler()->getHeight();
+    int canvasWidth  = m_CanvasCtx->getHandler()->getPropWidth();
+    int canvasHeight = m_CanvasCtx->getHandler()->getPropHeight();
 
     // Invalid dimension, force size to canvas
     if (width == 0) width = -1;
