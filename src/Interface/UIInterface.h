@@ -247,7 +247,6 @@ public:
     */
     virtual void setWindowFrame(int x, int y, int w, int h);
 
-
     virtual void
     setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a){};
     virtual void setWindowControlsOffset(double x, double y){};
@@ -266,6 +265,9 @@ public:
     virtual void centerWindow();
 
     virtual void refresh();
+
+    virtual void setSignalHandler();
+    virtual void signalHandler(int sign);
 
     void setArguments(int argc, char **argv)
     {
