@@ -526,9 +526,10 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         tmpLeft = this->getPropLeft();
         tmpTop  = this->getPropTop();
     }
-
-    int maxChildrenHeight = p_Width.getAlternativeValue(),
-        maxChildrenWidth  = p_Height.getAlternativeValue();
+    
+    int maxChildrenWidth  = p_Width.getAlternativeValue(),
+        maxChildrenHeight = p_Height.getAlternativeValue();
+            
 
     /*
         This is the base surface on top of the window frame buffer
@@ -663,11 +664,11 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                 && cur->m_Visibility == CANVAS_VISIBILITY_VISIBLE) {
 
                 int actualChildrenHeightPlusTop
-                    = abs(cur->getComputedTop()) + (cur->m_Overflow
+                    = cur->getComputedTop() + (cur->m_Overflow
                                                        ? cur->m_Content._height
                                                        : cur->getComputedHeight());
                 int actualChildrenWidthPlusLeft
-                    = abs(cur->getComputedLeft()) + (cur->m_Overflow
+                    = cur->getComputedLeft() + (cur->m_Overflow
                                                         ? cur->m_Content._width
                                                         : cur->getComputedWidth());
 
@@ -695,8 +696,6 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         this->propertyChanged(kContentWidth_Changed);
     }
 
-    nlogf("Canvas %lld height %d width %d", getIdentifier(), m_Content._height, m_Content._width);
-
     if (layerContext.m_Layer == this) {
         m_MousePosition.consumed = true;
         m_MousePosition.xrel     = 0;
@@ -705,18 +704,14 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 }
 
 // {{{ Getters
-int CanvasHandler::getContentWidth(bool inner)
+int CanvasHandler::getContentWidth()
 {
-    this->computeContentSize(NULL, NULL, inner);
-
-    return m_Content.width;
+    return m_Content._width;
 }
 
-int CanvasHandler::getContentHeight(bool inner)
+int CanvasHandler::getContentHeight()
 {
-    this->computeContentSize(NULL, NULL, inner);
-
-    return m_Content.height;
+    return m_Content._height;
 }
 
 /* TODO: optimize tail recursion? */
@@ -835,42 +830,6 @@ Rect CanvasHandler::getVisibleRect()
         .m_fRight  = nidium_min(this->getPropLeftAbsolute() + getPropWidth(), vp.m_fRight)
     };
 }
-
-void CanvasHandler::computeContentSize(int *cWidth, int *cHeight, bool inner)
-{
-    CanvasHandler *cur;
-    m_Content.width  = inner ? 0 : this->getPropWidth();
-    m_Content.height = inner ? 0 : this->getPropHeight();
-
-    /* don't go further if it doesn't overflow (and not the requested handler)
-     */
-    if (!m_Overflow && /*!m_FluidHeight && */ cWidth && cHeight) {
-        *cWidth  = m_Content.width;
-        *cHeight = m_Content.height;
-        return;
-    }
-
-    for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
-        if (cur->m_CoordPosition == COORD_RELATIVE
-            && cur->m_Visibility == CANVAS_VISIBILITY_VISIBLE) {
-
-            int retWidth, retHeight;
-
-            cur->computeContentSize(&retWidth, &retHeight,
-                                    /*cur->m_FluidHeight*/ false);
-
-            if (retWidth + cur->getPropLeft() > m_Content.width) {
-                m_Content.width = retWidth + cur->getPropLeft();
-            }
-            if (retHeight + cur->getPropTop() > m_Content.height) {
-                m_Content.height = retHeight + cur->getPropTop();
-            }
-        }
-    }
-    if (cWidth) *cWidth = m_Content.width;
-    if (cHeight) *cHeight = m_Content.height;
-}
-
 
 bool CanvasHandler::isHidden() const
 {

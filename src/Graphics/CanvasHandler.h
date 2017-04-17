@@ -534,7 +534,6 @@ public:
     void setScrollTop(int value);
     void setScrollLeft(int value);
     void computeAbsolutePosition();
-    void computeContentSize(int *cWidth, int *cHeight, bool inner = false);
     bool isOutOfBound();
     Rect getViewport();
     Rect getVisibleRect();
@@ -547,8 +546,8 @@ public:
     void insertBefore(CanvasHandler *insert, CanvasHandler *ref);
     void insertAfter(CanvasHandler *insert, CanvasHandler *ref);
 
-    int getContentWidth(bool inner = false);
-    int getContentHeight(bool inner = false);
+    int getContentWidth();
+    int getContentHeight();
     void setHidden(bool val);
     bool isDisplayed() const;
     bool isHidden() const;

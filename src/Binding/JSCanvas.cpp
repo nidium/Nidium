@@ -976,30 +976,17 @@ bool JSCanvas::JSGetter_clientLeft(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
-bool JSCanvas::JSGetter_contentWidth(JSContext *cx, JS::MutableHandleValue vp)
+
+bool JSCanvas::JSGetter_innerWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setInt32(m_CanvasHandler->getContentWidth());
 
     return true;
 }
 
-bool JSCanvas::JSGetter_contentHeight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setInt32(m_CanvasHandler->getContentHeight());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_innerWidth(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setInt32(m_CanvasHandler->getContentWidth(true));
-
-    return true;
-}
-
 bool JSCanvas::JSGetter_innerHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getContentHeight(true));
+    vp.setInt32(m_CanvasHandler->getContentHeight());
 
     return true;
 }
@@ -1660,8 +1647,6 @@ JSPropertySpec *JSCanvas::ListProperties()
         CLASSMAPPER_PROP_G(JSCanvas, clientHeight),
         CLASSMAPPER_PROP_G(JSCanvas, clientTop),
         CLASSMAPPER_PROP_G(JSCanvas, clientLeft),
-        CLASSMAPPER_PROP_G(JSCanvas, contentWidth),
-        CLASSMAPPER_PROP_G(JSCanvas, contentHeight),
         CLASSMAPPER_PROP_G(JSCanvas, innerWidth),
         CLASSMAPPER_PROP_G(JSCanvas, innerHeight),
         CLASSMAPPER_PROP_G(JSCanvas, __visible),

@@ -123,8 +123,6 @@ protected:
     NIDIUM_DECL_JSGETTER(clientHeight);
     NIDIUM_DECL_JSGETTER(clientTop);
     NIDIUM_DECL_JSGETTER(clientLeft);
-    NIDIUM_DECL_JSGETTER(contentWidth);
-    NIDIUM_DECL_JSGETTER(contentHeight);
     NIDIUM_DECL_JSGETTER(innerWidth);
     NIDIUM_DECL_JSGETTER(innerHeight);
     NIDIUM_DECL_JSGETTER(__visible);
