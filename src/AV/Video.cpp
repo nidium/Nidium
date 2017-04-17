@@ -34,7 +34,7 @@ namespace Nidium {
 namespace AV {
 
 #undef DPRINT
-#if 1
+#if 0
 #define DEBUG_PRINT
 #ifdef __ANDROID__
 #define DPRINT(...)\
@@ -1035,8 +1035,8 @@ void *Video::decode(void *args)
                 bool videoFailed = !v->processVideo();
                 bool audioFailed = !v->processAudio();
 #ifdef DEBUG_PRINT
-                DPRINT("audioFailed=%d videoFailed=%d\n", audioFailed,
-                       videoFailed);
+                DPRINT("audioFailed=%d videoFailed=%d videoAvail=%ld\n", audioFailed,
+                       videoFailed, PaUtil_GetRingBufferWriteAvailable(v->m_rBuff));
 #else
                 (void)videoFailed;
                 (void)audioFailed;
@@ -1120,11 +1120,7 @@ bool Video::processAudio()
 
 bool Video::processVideo()
 {
-    if (PaUtil_GetRingBufferWriteAvailable(m_rBuff) < 1) {
-        DPRINT("processVideo not enough space to write data\n");
-        return false;
-    }
-
+    DPRINT("process video\n");
     if (m_DoSetSize) {
         m_DoSetSize = false;
         int ret     = this->setSizeInternal();
@@ -1134,29 +1130,37 @@ bool Video::processVideo()
         }
     }
 
-    int gotFrame;
-    Packet *p = this->getPacket(m_VideoQueue);
+    while (PaUtil_GetRingBufferWriteAvailable(m_rBuff) > 0) {
+        //DPRINT("in loop i=%d avail=%ld", i, PaUtil_GetRingBufferWriteAvailable(m_rBuff));
+        int gotFrame;
+        Packet *p = this->getPacket(m_VideoQueue);
 
-    if (p == NULL) {
-        DPRINT("processVideo no more packet\n");
-        if (m_Error == AVERROR_EOF) {
-            m_Eof = true;
+        if (p == NULL) {
+            DPRINT("processVideo no more packet\n");
+            if (m_Error == AVERROR_EOF) {
+                m_Eof = true;
+            }
+            return false;
         }
-        return false;
+
+        AVPacket packet = p->curr;
+
+        //DPRINT("decode video");
+        avcodec_decode_video2(m_CodecCtx, m_DecodedFrame, &gotFrame, &packet);
+        //DPRINT("end decode video");
+
+        if (gotFrame) {
+            this->processFrame(m_DecodedFrame);
+            //DPRINT("end process frame");
+        }
+
+        delete p;
+        av_packet_unref(&packet);
+        //i++;
     }
 
-    AVPacket packet = p->curr;
-
-    avcodec_decode_video2(m_CodecCtx, m_DecodedFrame, &gotFrame, &packet);
-
-    if (gotFrame) {
-        this->processFrame(m_DecodedFrame);
-    }
-
-    delete p;
-    av_packet_unref(&packet);
-
-    return true;
+    //DPRINT("process video over");
+    return PaUtil_GetRingBufferWriteAvailable(m_rBuff) != 0;
 }
 
 bool Video::processFrame(AVFrame *avFrame)
