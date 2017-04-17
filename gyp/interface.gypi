@@ -24,9 +24,11 @@
     'conditions': [
         ['OS=="win"', {
             'sources': [
+                '<(nidium_interface_path)/windows/WinUIInterface.cpp',
                 '<(nidium_interface_path)/windows/System.cpp',
             ],
             'include_dirs': [
+                '<(third_party_path)/SDL2/include/',
                 '<(nidium_interface_path)/windows/',
                 '<(third_party_path)/skia/include/gpu',
                 '<(third_party_path)/opengl/api',

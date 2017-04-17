@@ -83,7 +83,6 @@
                     #'windowscodecs.lib',
                         'shell32.lib',
                         'shlwapi.lib',
-#                        'ws2_32.lib',
 #                         'winmm.lib',
 #                         'imm32.lib',
 #                         'delayimp.lib',
