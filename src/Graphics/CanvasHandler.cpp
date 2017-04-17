@@ -54,6 +54,7 @@ CanvasHandler::CanvasHandler(int width,
     YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, p_Left);
     YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, p_Top);
 
+
     if (p_Width >= 0) {
         YGNodeStyleSetWidth(m_YogaRef, p_Width);
     }
@@ -518,8 +519,6 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
     int tmpLeft;
     int tmpTop;
 
-
-
     if (m_Parent && m_Parent->p_Flex) {
 #if 0
         printf("===== YOGA =====\n");
@@ -656,7 +655,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 #endif
         for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
             int offsetLeft = 0, offsetTop = 0;
-            if (cur->m_CoordPosition == COORD_DEFAULT) {
+            if (cur->m_CoordPosition != COORD_FIXED) {
                 offsetLeft = -m_Content.scrollLeft;
                 offsetTop  = -m_Content.scrollTop;
             }

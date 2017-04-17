@@ -419,14 +419,14 @@ public:
     {
         p_Left.set(val);
         
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeRight, val == NAN ? YGUndefined : val);
+        YGNodeStyleSetPosition(m_YogaRef, YGEdgeRight, isnan(val) ? YGUndefined : val);
     }
 
     void setPropBottom(double val) override
     {
         p_Top.set(val);
 
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeBottom, val == NAN ? YGUndefined : val);
+        YGNodeStyleSetPosition(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
     }
 
     void setPropCoating(unsigned int value) override;
