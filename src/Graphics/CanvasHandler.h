@@ -606,7 +606,6 @@ public:
     CanvasHandler *m_Prev;
     CanvasHandler *m_Last;
 
-    static void _JobResize(void *arg);
     bool _handleEvent(Frontend::InputEvent *ev);
 
     uint32_t m_Flags;
@@ -619,7 +618,6 @@ protected:
     void propertyChanged(EventsChangedProperty property);
 
 private:
-    void execPending();
     void deviceSetSize(int width, int height);
     void onMouseEvent(Frontend::InputEvent *ev);
     void
@@ -645,15 +643,7 @@ private:
     } m_Identifier;
 
     void recursiveScale(double x, double y, double oldX, double oldY);
-    void setPendingFlags(int flags, bool append = true);
 
-    enum PENDING_JOBS
-    {
-        kPendingResizeWidth  = 1 << 0,
-        kPendingResizeHeight = 1 << 1,
-    };
-
-    int m_Pending;
     bool m_Loaded;
     int m_Cursor;
     bool m_NeedPaint = true;

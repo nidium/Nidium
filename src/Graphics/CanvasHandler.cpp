@@ -33,7 +33,7 @@ CanvasHandler::CanvasHandler(int width,
       m_Prev(NULL), m_Last(NULL), m_Flags(0), m_nChildren(0),
       m_CoordPosition(COORD_DEFAULT), m_Visibility(CANVAS_VISIBILITY_VISIBLE),
       m_Zoom(1.0), m_ScaleX(1.0), m_ScaleY(1.0),
-      m_AllowNegativeScroll(false), m_NidiumContext(nctx), m_Pending(0),
+      m_AllowNegativeScroll(false), m_NidiumContext(nctx),
       m_Loaded(!lazyLoad), m_Cursor(UIInterface::ARROW)
 {
     m_Identifier.idx = ++nctx->m_CanvasCreatedIdx;
@@ -134,10 +134,6 @@ void CanvasHandler::setPropMinWidth(int width)
     p_MinWidth = p_MaxWidth ? nidium_min(width, p_MaxWidth) : width;
 
     YGNodeStyleSetMinWidth(m_YogaRef, p_MinWidth);
-
-    if (p_Width < p_MinWidth) {
-        this->setWidth(p_MinWidth);
-    }
 }
 
 void CanvasHandler::setPropMinHeight(int height)
@@ -147,10 +143,6 @@ void CanvasHandler::setPropMinHeight(int height)
     p_MinHeight = p_MaxHeight ? nidium_min(height, p_MaxHeight) : height;
 
     YGNodeStyleSetMinHeight(m_YogaRef, p_MinHeight);
-
-    if (p_Height < p_MinHeight) {
-        this->setHeight(p_MinHeight);
-    }
 }
 
 void CanvasHandler::setPropMaxWidth(int width)
@@ -160,10 +152,6 @@ void CanvasHandler::setPropMaxWidth(int width)
     p_MaxWidth = nidium_max(p_MinWidth, width);
 
     YGNodeStyleSetMaxWidth(m_YogaRef, p_MaxWidth);
-
-    if (p_Width > p_MaxWidth) {
-        this->setWidth(p_MaxWidth);
-    }
 }
 
 void CanvasHandler::setPropMaxHeight(int height)
@@ -173,10 +161,6 @@ void CanvasHandler::setPropMaxHeight(int height)
     p_MaxHeight = nidium_max(p_MinHeight, height);
 
     YGNodeStyleSetMaxHeight(m_YogaRef, p_MaxHeight);
-
-    if (p_Height > p_MaxHeight) {
-        this->setHeight(p_MaxHeight);
-    }
 }
 
 bool CanvasHandler::setWidth(int width, bool force)
@@ -189,8 +173,6 @@ bool CanvasHandler::setWidth(int width, bool force)
     }
 
     p_Width = width;
-
-    this->setPendingFlags(kPendingResizeWidth);
 
     YGNodeStyleSetWidth(m_YogaRef, width >= 0 ? width : YGUndefined);
 
@@ -206,9 +188,8 @@ bool CanvasHandler::setHeight(int height, bool force)
     if (p_Height == height) {
         return true;
     }
-    p_Height = height;
 
-    this->setPendingFlags(kPendingResizeHeight);
+    p_Height = height;
 
     YGNodeStyleSetHeight(m_YogaRef, height >= 0 ? height : YGUndefined);
 
@@ -231,11 +212,8 @@ void CanvasHandler::setSize(int width, int height, bool redraw)
     p_Width  = width;
     p_Height = height;
 
-
     YGNodeStyleSetWidth(m_YogaRef, width >= 0 ? width : YGUndefined);
     YGNodeStyleSetHeight(m_YogaRef, height >= 0 ? height : YGUndefined);
-
-    this->setPendingFlags(kPendingResizeWidth | kPendingResizeHeight);
 }
 
 void CanvasHandler::deviceSetSize(int width, int height)
@@ -249,6 +227,7 @@ void CanvasHandler::deviceSetSize(int width, int height)
 
     arg[0].set(width);
     arg[1].set(height);
+
     this->fireEvent<CanvasHandler>(RESIZE_EVENT, arg);
 }
 
@@ -667,11 +646,9 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
             }
 
             struct LayerizeContext ctx
-                = {.m_Layer = layerContext.m_Layer,
-                   .m_pLeft = tmpLeft + layerContext.m_pLeft
-                              + offsetLeft,
-                   .m_pTop
-                   = tmpTop + layerContext.m_pTop + offsetTop,
+                = {.m_Layer      = layerContext.m_Layer,
+                   .m_pLeft      = tmpLeft + layerContext.m_pLeft + offsetLeft,
+                   .m_pTop       = tmpTop  + layerContext.m_pTop  + offsetTop,
                    .m_aOpacity   = popacity,
                    .m_aZoom      = m_Zoom,
                    .m_Clip       = layerContext.m_Clip};
@@ -686,11 +663,13 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                 && cur->m_Visibility == CANVAS_VISIBILITY_VISIBLE) {
 
                 int actualChildrenHeightPlusTop
-                    = cur->getComputedTop() + (cur->m_Overflow ? cur->m_Content._height
-                                                       : cur->getComputedWidth());
+                    = abs(cur->getComputedTop()) + (cur->m_Overflow
+                                                       ? cur->m_Content._height
+                                                       : cur->getComputedHeight());
                 int actualChildrenWidthPlusLeft
-                    = cur->getComputedLeft() + (cur->m_Overflow ? cur->m_Content._width
-                                                        : cur->getComputedHeight());
+                    = abs(cur->getComputedLeft()) + (cur->m_Overflow
+                                                        ? cur->m_Content._width
+                                                        : cur->getComputedWidth());
 
                 if (actualChildrenHeightPlusTop > maxChildrenHeight) {
                     maxChildrenHeight = actualChildrenHeightPlusTop;
@@ -715,6 +694,8 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 
         this->propertyChanged(kContentWidth_Changed);
     }
+
+    nlogf("Canvas %lld height %d width %d", getIdentifier(), m_Content._height, m_Content._width);
 
     if (layerContext.m_Layer == this) {
         m_MousePosition.consumed = true;
@@ -975,8 +956,8 @@ int32_t CanvasHandler::countChildren() const
 
 bool CanvasHandler::containsPoint(double x, double y)
 {
-    return (x >= getPropLeftAbsolute() && x <= getPropLeftAbsolute() + p_Width
-            && y >= getPropTopAbsolute() && y <= getPropTopAbsolute() + p_Height);
+    return (x >= getPropLeftAbsolute() && x <= getPropLeftAbsolute() + getComputedWidth()
+            && y >= getPropTopAbsolute() && y <= getPropTopAbsolute() + getComputedHeight());
 }
 
 void CanvasHandler::unrootHierarchy()
@@ -997,48 +978,6 @@ void CanvasHandler::unrootHierarchy()
     }
     children = NULL;
 #endif
-}
-
-void CanvasHandler::_JobResize(void *arg)
-{
-    Args *args             = (Args *)arg;
-    CanvasHandler *handler = static_cast<CanvasHandler *>(args[0][0].toPtr());
-
-    int64_t height = args[0][1].toInt64();
-
-    /*
-        Force resize even if it hasn't a fixed height
-    */
-    handler->setHeight(height, true);
-
-    delete args;
-}
-
-void CanvasHandler::setPendingFlags(int flags, bool append)
-{
-    if (!append) {
-        m_Pending = 0;
-    }
-
-    m_Pending |= flags;
-
-    if (m_Pending == 0) {
-        m_NidiumContext->m_CanvasPendingJobs.erase((uint64_t) this);
-        return;
-    }
-    if (!m_NidiumContext->m_CanvasPendingJobs.get((uint64_t) this)) {
-        m_NidiumContext->m_CanvasPendingJobs.set((uint64_t) this, this);
-    }
-}
-
-void CanvasHandler::execPending()
-{
-    if ((m_Pending & kPendingResizeHeight)
-        || (m_Pending & kPendingResizeWidth)) {
-        this->deviceSetSize(nidium_max(p_Width, 1), nidium_max(1, p_Height));
-    }
-
-    this->setPendingFlags(0, false);
 }
 
 bool CanvasHandler::checkLoaded(bool async)
@@ -1232,8 +1171,6 @@ CanvasHandler::~CanvasHandler()
         m_NidiumContext->m_CanvasList.erase(m_Identifier.str);
         free(m_Identifier.str);
     }
-
-    m_NidiumContext->m_CanvasPendingJobs.erase((uint64_t) this);
 
     YGNodeFree(m_YogaRef);
 }

@@ -152,10 +152,6 @@ Context::Context(ape_global *net)
                                      Context::ReadStructuredCloneOp);
 
     JS::RootedObject globalObj(m_JS->m_Cx, JS::CurrentGlobalOrNull(m_JS->m_Cx));
-    //JS_InitReflect(m_JS->m_Cx, globalObj);
-
-    m_Jobs.head  = NULL;
-    m_Jobs.queue = NULL;
 }
 
 
@@ -410,13 +406,6 @@ void Context::frame(bool draw)
     rootctx = (Canvas2DContext *)m_RootHandler->m_Context;
 
     assert(m_UI != NULL);
-    // this->execJobs();
-    /*
-        Pending canvas events.
-        (e.g. resize events requested between frames,
-        Canvas that need to be resized because of a fluidheight)
-    */
-    this->execPendingCanvasChanges();
 
     /* Call requestAnimationFrame */
     this->callFrame();
@@ -428,7 +417,6 @@ void Context::frame(bool draw)
         Exec the pending events a second time in case
         there are resize in the requestAnimationFrame
     */
-    this->execPendingCanvasChanges();
     m_CanvasOrderedEvents.clear();
 
     m_RootHandler->computeLayoutPositions();
@@ -738,58 +726,6 @@ void Context::initHandlers(int width, int height)
         new Canvas2DContext(m_RootHandler, width, height, m_UI));
     m_RootHandler->getContext()->setGLState(this->getGLState());
 }
-
-void Context::addJob(void (*job)(void *arg), void *arg)
-{
-    struct JobQueue *obj
-        = static_cast<struct JobQueue *>(malloc(sizeof(struct JobQueue)));
-
-    obj->job  = job;
-    obj->arg  = arg;
-    obj->next = NULL;
-
-    if (m_Jobs.head == NULL) {
-        m_Jobs.head = obj;
-    }
-    if (m_Jobs.queue == NULL) {
-        m_Jobs.queue = obj;
-    } else {
-        m_Jobs.queue->next = obj;
-    }
-}
-
-void Context::execJobs()
-{
-    if (m_Jobs.head == NULL) {
-        return;
-    }
-
-    struct JobQueue *obj, *tObj;
-
-    for (obj = m_Jobs.head; obj != NULL; obj = tObj) {
-        tObj = obj->next;
-
-        obj->job(obj->arg);
-
-        free(obj);
-    }
-
-    m_Jobs.head  = NULL;
-    m_Jobs.queue = NULL;
-}
-
-void Context::execPendingCanvasChanges()
-{
-    ape_htable_item_t *item, *tmpItem;
-    for (item = m_CanvasPendingJobs.accessCStruct()->first; item != NULL;
-         item = tmpItem) {
-        tmpItem = item->lnext;
-        CanvasHandler *handler
-            = static_cast<CanvasHandler *>(item->content.addrs);
-        handler->execPending();
-    }
-}
-
 
 bool Context::WriteStructuredCloneOp(JSContext *cx,
                                      JSStructuredCloneWriter *w,
