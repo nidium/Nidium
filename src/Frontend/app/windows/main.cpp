@@ -1,5 +1,5 @@
 /*
-   Copyright 2016 Nidium Inc. All rights reserved.
+   Copyright 2017 Nidium Inc. All rights reserved.
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
@@ -14,11 +14,11 @@
 #include <client/windows/handler/exception_handler.h>
 #endif
 
-//#include "X11UIInterface.h"
+#include <windows.h>
 #include "System.h"
 
 extern "C" {
-unsigned long _ape_seed;
+   unsigned long _ape_seed;
 }
 
 namespace Nidium {

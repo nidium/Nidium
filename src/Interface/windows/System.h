@@ -16,18 +16,18 @@ class System: public SystemInterface
 {
 public:
     System();
-    ~System() = default;
+    ~System();
     const char* getCacheDirectory();
     const char* getEmbedDirectory();
     const char* getUserDirectory();
     const char* getLanguage();
-    const char* getCwd();
+    const char* cwd();
     void sendNotification(const char *title, const char *content, bool sound);
     const char *execute(const char *cmd);
 
 private:
     bool m_SystemUIReady;
-    char *m_Emebedpath;
+    char *m_EmbedPath;
 };
 
 } // namespace Interface
