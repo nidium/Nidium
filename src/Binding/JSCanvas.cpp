@@ -108,7 +108,7 @@ bool JSCanvas::JS_getDimensions(JSContext *cx, JS::CallArgs &args)
 {
     int width, height;
 
-    m_CanvasHandler->getDimenions(&width, &height);
+    m_CanvasHandler->getDimensions(&width, &height);
 
     JS::RootedObject out(cx, JS_NewPlainObject(cx));
 
@@ -968,7 +968,7 @@ bool JSCanvas::JSGetter_cursor(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_clientWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getPropWidth() +
+    vp.setInt32(m_CanvasHandler->p_Width.getAlternativeValue() +
         (m_CanvasHandler->p_Coating * 2));
 
     return true;
@@ -976,7 +976,7 @@ bool JSCanvas::JSGetter_clientWidth(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_clientHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getPropHeight() +
+    vp.setInt32(m_CanvasHandler->p_Height.getAlternativeValue() +
         (m_CanvasHandler->p_Coating * 2));
 
     return true;

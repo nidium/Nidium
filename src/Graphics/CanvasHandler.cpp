@@ -510,8 +510,6 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
     if (m_Visibility == CANVAS_VISIBILITY_HIDDEN || p_Opacity == 0.0) {
         return;
     }
-    int maxChildrenHeight = this->getPropHeight(),
-        maxChildrenWidth  = this->getPropWidth();
 
     // double pzoom = this->zoom * azoom;
     double popacity = p_Opacity * layerContext.m_aOpacity;
@@ -525,12 +523,17 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         YGNodePrint(m_YogaRef, YGPrintOptionsLayout);
         printf("\n");
 #endif
-        tmpLeft = floorf(YGNodeLayoutGetLeft(m_YogaRef));
-        tmpTop = floorf(YGNodeLayoutGetTop(m_YogaRef));
+        int nwidth, nheight;
 
-        int nwidth = ceilf(YGNodeLayoutGetWidth(m_YogaRef));
-        int nheight = ceilf(YGNodeLayoutGetHeight(m_YogaRef));
+        /* Read the values from Yoga */
+        getDimensions(&nwidth, &nheight, &tmpLeft, &tmpTop);
 
+        /*
+            Check if we need to resize the element.
+            p_Width|Height alternative values hold the last computed Yoga value.
+
+            This will trigger an onResize event on the element
+        */
         if (nwidth != p_Width.getAlternativeValue()
             || nheight != p_Height.getAlternativeValue()) {
 
@@ -545,6 +548,8 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         tmpTop  = this->getPropTop();
     }
 
+    int maxChildrenHeight = p_Width.getAlternativeValue(),
+        maxChildrenWidth  = p_Height.getAlternativeValue();
 
     /*
         This is the base surface on top of the window frame buffer
@@ -680,11 +685,11 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                 && cur->m_Visibility == CANVAS_VISIBILITY_VISIBLE) {
 
                 int actualChildrenHeightPlusTop
-                    = cur->getPropTop() + (cur->m_Overflow ? cur->m_Content._height
-                                                       : cur->getPropHeight());
+                    = cur->getComputedTop() + (cur->m_Overflow ? cur->m_Content._height
+                                                       : cur->getComputedWidth());
                 int actualChildrenWidthPlusLeft
-                    = cur->getPropLeft() + (cur->m_Overflow ? cur->m_Content._width
-                                                        : cur->getPropWidth());
+                    = cur->getComputedLeft() + (cur->m_Overflow ? cur->m_Content._width
+                                                        : cur->getComputedHeight());
 
                 if (actualChildrenHeightPlusTop > maxChildrenHeight) {
                     maxChildrenHeight = actualChildrenHeightPlusTop;

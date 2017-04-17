@@ -364,10 +364,51 @@ public:
     /*
         Get the real dimensions computed by Yoga
     */
-    void getDimenions(int *width, int *height)
+    void getDimensions(int *width, int *height,
+        int *left = nullptr, int *top = nullptr)
     {
         *width = ceilf(YGNodeLayoutGetWidth(m_YogaRef));
         *height = ceilf(YGNodeLayoutGetHeight(m_YogaRef));
+
+        if (left) {
+            *left = floorf(YGNodeLayoutGetLeft(m_YogaRef));
+        }
+
+        if (top) {
+            *top = floorf(YGNodeLayoutGetTop(m_YogaRef));
+        }
+    }
+
+    inline int getComputedTop() const {
+        return floorf(YGNodeLayoutGetTop(m_YogaRef));
+    }
+
+    inline int getComputedLeft() const {
+        return floorf(YGNodeLayoutGetLeft(m_YogaRef));
+    }
+
+    inline int getComputedRight() const {
+        return floorf(YGNodeLayoutGetRight(m_YogaRef));
+    }
+
+    inline int getComputedBottom() const {
+        return floorf(YGNodeLayoutGetBottom(m_YogaRef));
+    }
+
+    inline int getComputedWidth() const {
+        return ceilf(YGNodeLayoutGetWidth(m_YogaRef));
+    }
+
+    inline int getComputedHeight() const {
+        return ceilf(YGNodeLayoutGetHeight(m_YogaRef));
+    }
+
+    inline int getComputedAbsoluteLeft() const {
+        return p_Left.getAlternativeValue();
+    }
+
+    inline int getComputedAbsoluteTop() const {
+        return p_Top.getAlternativeValue();
     }
 
     Frontend::Context *getNidiumContext() const
