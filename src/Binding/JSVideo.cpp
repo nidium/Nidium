@@ -35,6 +35,7 @@ JSVideo::JSVideo(Canvas2DContext *canvasCtx, JSContext *cx)
     m_CanvasCtx->getHandler()->addListener(this);
 
     m_Paint.setColor(SK_ColorBLACK);
+    //m_Paint.setFilterQuality(SkFilterQuality::kMedium_SkFilterQuality);
 
     this->listenSourceEvents(m_Video);
 }
@@ -101,8 +102,8 @@ void JSVideo::setSize(int width, int height)
         return;
     }
 
-    int canvasWidth  = m_CanvasCtx->getHandler()->getPropWidth();
-    int canvasHeight = m_CanvasCtx->getHandler()->getPropHeight();
+    int canvasWidth  = m_CanvasCtx->getHandler()->getComputedWidth();
+    int canvasHeight = m_CanvasCtx->getHandler()->getComputedHeight();
 
     // Invalid dimension, force size to canvas
     if (width == 0) width = -1;

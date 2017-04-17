@@ -862,7 +862,7 @@ void CanvasHandler::scroll(int x, int y)
 {
     if (m_ScrollableY) {
         int pos = m_Content.scrollTop - (y - m_CurrentScroll.y);
-        int max = this->getContentHeight(true) - this->getComputedHeight();
+        int max = this->getContentHeight() - this->getComputedHeight();
 
         pos = nidium_clamp(pos, 0, max);
 
@@ -871,7 +871,7 @@ void CanvasHandler::scroll(int x, int y)
 
     if (m_ScrollableX) {
         int pos = m_Content.scrollLeft - (x - m_CurrentScroll.x);
-        int max = this->getContentWidth(true) - this->getComputedWidth();
+        int max = this->getContentWidth() - this->getComputedWidth();
 
         pos = nidium_clamp(pos, 0, max);
 
