@@ -192,11 +192,12 @@ uint32_t CanvasContext::CreatePassThroughVertex()
           "attribute vec4 Position;\n"
           "attribute vec2 TexCoordIn;\n"
           "attribute vec2 Modifier;\n"
-          "varying vec2 TexCoordOut;\n"
+          "varying vec2 n_TexCoord;\n"
           "uniform mat4 u_projectionMatrix;\n"
           "void main(void) {\n"
-          "    gl_Position = u_projectionMatrix * Position + vec4(Modifier,0., 0.);\n"
-          "    TexCoordOut = TexCoordIn;\n"
+          "    gl_Position = u_projectionMatrix * Position + vec4(Modifier, "
+          "0., 0.);\n"
+          "    n_TexCoord = TexCoordIn;\n"
           "}";
 
     uint32_t vertexshader
@@ -211,9 +212,9 @@ uint32_t CanvasContext::CreatePassThroughFragment()
         = NIDIUM_GL_SHADER_PREAMBLE
           "uniform sampler2D Texture;\n"
           "uniform float u_opacity;\n"
-          "varying vec2 TexCoordOut;\n"
+          "varying vec2 n_TexCoord;\n"
           "void main(void) {\n"
-          "    gl_FragColor = texture2D(Texture, TexCoordOut.xy) * u_opacity;\n"
+          "    gl_FragColor = texture2D(Texture, n_TexCoord.xy) * u_opacity;\n"
           "}";
 
     uint32_t fragmentshader = CanvasContext::CompileShader(&fragment_s, 1, GL_FRAGMENT_SHADER);
