@@ -56,7 +56,7 @@ public:
     void seek(size_t pos, void *arg = NULL);
     void listFiles(void *arg = NULL);
     void rmrf();
-    int mkdir();
+    int mkDir();
     int rm();
 
     /*

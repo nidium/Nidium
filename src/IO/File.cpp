@@ -91,7 +91,7 @@ void File::checkRead(bool async, void *arg)
     }
 }
 
-int File::mkdir()
+int File::mkDir()
 {
 
     int ret = mkdir(m_Path);

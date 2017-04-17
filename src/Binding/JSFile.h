@@ -77,7 +77,7 @@ protected:
     NIDIUM_DECL_JSCALL(writeSync);
     NIDIUM_DECL_JSCALL(isDir);
     NIDIUM_DECL_JSCALL(listFiles);
-    NIDIUM_DECL_JSCALL(mkdir);
+    NIDIUM_DECL_JSCALL(mkDir);
     NIDIUM_DECL_JSCALL(rm);
     NIDIUM_DECL_JSCALL(rmrf);
 

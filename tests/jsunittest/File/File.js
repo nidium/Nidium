@@ -141,9 +141,9 @@ Tests.register("File.isDir",  function() {
 
 });
 
-Tests.register("File.mkdir", function() {
+Tests.register("File.mkDir", function() {
 
-    var result = File.mkdir('File/dir_to_create');
+    var result = File.mkDir('File/dir_to_create');
     if (result === true) {
 
         var check = new File('File/dir_to_create');

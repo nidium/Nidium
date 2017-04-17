@@ -287,12 +287,12 @@ bool JSFile::JS_isDir(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
-bool JSFile::JS_mkdir(JSContext *cx, JS::CallArgs &args)
+bool JSFile::JS_mkDir(JSContext *cx, JS::CallArgs &args)
 {
 
     File *file = this->getFile();
 
-    int val = file->mkdir();
+    int val = file->mkDir();
     if (val == 0) {
         args.rval().setBoolean(true);
     } else {
@@ -837,7 +837,7 @@ JSFunctionSpec *JSFile::ListMethods()
         CLASSMAPPER_FN(JSFile, isDir, 0),
         CLASSMAPPER_FN(JSFile, listFiles, 1),
 
-        CLASSMAPPER_FN(JSFile, mkdir, 0);
+        CLASSMAPPER_FN(JSFile, mkDir, 0);
         CLASSMAPPER_FN(JSFile, rm, 0),
         CLASSMAPPER_FN(JSFile, rmrf, 0),
         JS_FS_END
