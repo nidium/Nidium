@@ -106,14 +106,16 @@ bool JSCanvas::JS_setScale(JSContext *cx, JS::CallArgs &args)
 
 bool JSCanvas::JS_getDimensions(JSContext *cx, JS::CallArgs &args)
 {
-    int width, height;
+    int width, height, left, top;
 
-    m_CanvasHandler->getDimenions(&width, &height);
+    m_CanvasHandler->getDimensions(&width, &height, &left, &top);
 
     JS::RootedObject out(cx, JS_NewPlainObject(cx));
 
     NIDIUM_JSOBJ_SET_PROP_INT(out, "width", width);
     NIDIUM_JSOBJ_SET_PROP_INT(out, "height", height);
+    NIDIUM_JSOBJ_SET_PROP_INT(out, "left", left);
+    NIDIUM_JSOBJ_SET_PROP_INT(out, "top", top);
 
     args.rval().setObject(*out);
     
@@ -907,28 +909,6 @@ bool JSCanvas::JSSetter_id(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
-bool JSCanvas::JSSetter_fluidWidth(JSContext *cx, JS::MutableHandleValue vp)
-{
-    if (!vp.isBoolean()) {
-        return true;
-    }
-
-    m_CanvasHandler->setFluidWidth(vp.toBoolean());
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_fluidHeight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    if (!vp.isBoolean()) {
-        return true;
-    }
-
-    m_CanvasHandler->setFluidHeight(vp.toBoolean());
-
-    return true;
-}
-
 bool JSCanvas::JSSetter_cursor(JSContext *cx, JS::MutableHandleValue vp)
 {
     if (!vp.isString()) {
@@ -968,7 +948,7 @@ bool JSCanvas::JSGetter_cursor(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_clientWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getPropWidth() +
+    vp.setInt32(m_CanvasHandler->p_Width.getAlternativeValue() +
         (m_CanvasHandler->p_Coating * 2));
 
     return true;
@@ -976,7 +956,7 @@ bool JSCanvas::JSGetter_clientWidth(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_clientHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getPropHeight() +
+    vp.setInt32(m_CanvasHandler->p_Height.getAlternativeValue() +
         (m_CanvasHandler->p_Coating * 2));
 
     return true;
@@ -996,30 +976,17 @@ bool JSCanvas::JSGetter_clientLeft(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
-bool JSCanvas::JSGetter_contentWidth(JSContext *cx, JS::MutableHandleValue vp)
+
+bool JSCanvas::JSGetter_innerWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setInt32(m_CanvasHandler->getContentWidth());
 
     return true;
 }
 
-bool JSCanvas::JSGetter_contentHeight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setInt32(m_CanvasHandler->getContentHeight());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_innerWidth(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setInt32(m_CanvasHandler->getContentWidth(true));
-
-    return true;
-}
-
 bool JSCanvas::JSGetter_innerHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getContentHeight(true));
+    vp.setInt32(m_CanvasHandler->getContentHeight());
 
     return true;
 }
@@ -1247,20 +1214,6 @@ bool JSCanvas::JSGetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
 bool JSCanvas::JSGetter_visible(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setBoolean(!m_CanvasHandler->isHidden());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_fluidWidth(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setBoolean(m_CanvasHandler->isWidthFluid());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_fluidHeight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setBoolean(m_CanvasHandler->isHeightFluid());
 
     return true;
 }
@@ -1664,8 +1617,6 @@ JSPropertySpec *JSCanvas::ListProperties()
         CLASSMAPPER_PROP_GS(JSCanvas, right),
         CLASSMAPPER_PROP_GS(JSCanvas, bottom),
         CLASSMAPPER_PROP_GS(JSCanvas, visible),
-        CLASSMAPPER_PROP_GS(JSCanvas, fluidHeight),
-        CLASSMAPPER_PROP_GS(JSCanvas, fluidWidth),
         CLASSMAPPER_PROP_GS(JSCanvas, id),
         CLASSMAPPER_PROP_GS(JSCanvas, marginLeft),
         CLASSMAPPER_PROP_GS(JSCanvas, marginRight),
@@ -1696,8 +1647,6 @@ JSPropertySpec *JSCanvas::ListProperties()
         CLASSMAPPER_PROP_G(JSCanvas, clientHeight),
         CLASSMAPPER_PROP_G(JSCanvas, clientTop),
         CLASSMAPPER_PROP_G(JSCanvas, clientLeft),
-        CLASSMAPPER_PROP_G(JSCanvas, contentWidth),
-        CLASSMAPPER_PROP_G(JSCanvas, contentHeight),
         CLASSMAPPER_PROP_G(JSCanvas, innerWidth),
         CLASSMAPPER_PROP_G(JSCanvas, innerHeight),
         CLASSMAPPER_PROP_G(JSCanvas, __visible),

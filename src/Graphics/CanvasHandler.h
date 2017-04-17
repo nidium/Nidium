@@ -205,8 +205,6 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     int, 0, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    int, 0, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Coating,      unsigned int, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(FluidWidth,   bool, false, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(FluidHeight,  bool, false, State::kDefault);
 
     CANVAS_DEF_CLASS_PROPERTY(Flex,         bool, false, State::kDefault);
 
@@ -364,10 +362,51 @@ public:
     /*
         Get the real dimensions computed by Yoga
     */
-    void getDimenions(int *width, int *height)
+    void getDimensions(int *width, int *height,
+        int *left = nullptr, int *top = nullptr)
     {
         *width = ceilf(YGNodeLayoutGetWidth(m_YogaRef));
         *height = ceilf(YGNodeLayoutGetHeight(m_YogaRef));
+
+        if (left) {
+            *left = floorf(YGNodeLayoutGetLeft(m_YogaRef));
+        }
+
+        if (top) {
+            *top = floorf(YGNodeLayoutGetTop(m_YogaRef));
+        }
+    }
+
+    inline int getComputedTop() const {
+        return floorf(YGNodeLayoutGetTop(m_YogaRef));
+    }
+
+    inline int getComputedLeft() const {
+        return floorf(YGNodeLayoutGetLeft(m_YogaRef));
+    }
+
+    inline int getComputedRight() const {
+        return floorf(YGNodeLayoutGetRight(m_YogaRef));
+    }
+
+    inline int getComputedBottom() const {
+        return floorf(YGNodeLayoutGetBottom(m_YogaRef));
+    }
+
+    inline int getComputedWidth() const {
+        return ceilf(YGNodeLayoutGetWidth(m_YogaRef));
+    }
+
+    inline int getComputedHeight() const {
+        return ceilf(YGNodeLayoutGetHeight(m_YogaRef));
+    }
+
+    inline int getComputedAbsoluteLeft() const {
+        return p_Left.getAlternativeValue();
+    }
+
+    inline int getComputedAbsoluteTop() const {
+        return p_Top.getAlternativeValue();
     }
 
     Frontend::Context *getNidiumContext() const
@@ -469,16 +508,6 @@ public:
         return m_CoordPosition;
     }
 
-    bool isHeightFluid() const
-    {
-        return m_FluidHeight;
-    }
-
-    bool isWidthFluid() const
-    {
-        return m_FluidWidth;
-    }
-
     CanvasHandler(int width,
                   int height,
                   Frontend::Context *nctx,
@@ -500,15 +529,11 @@ public:
     void setPropMaxWidth(int width) override;
     void setPropMaxHeight(int height) override;
 
-    bool setFluidHeight(bool val);
-    bool setFluidWidth(bool val);
-
     void setSize(int width, int height, bool redraw = true);
     void setPositioning(CanvasHandler::COORD_POSITION mode);
     void setScrollTop(int value);
     void setScrollLeft(int value);
     void computeAbsolutePosition();
-    void computeContentSize(int *cWidth, int *cHeight, bool inner = false);
     bool isOutOfBound();
     Rect getViewport();
     Rect getVisibleRect();
@@ -521,8 +546,8 @@ public:
     void insertBefore(CanvasHandler *insert, CanvasHandler *ref);
     void insertAfter(CanvasHandler *insert, CanvasHandler *ref);
 
-    int getContentWidth(bool inner = false);
-    int getContentHeight(bool inner = false);
+    int getContentWidth();
+    int getContentHeight();
     void setHidden(bool val);
     bool isDisplayed() const;
     bool isHidden() const;
@@ -580,7 +605,6 @@ public:
     CanvasHandler *m_Prev;
     CanvasHandler *m_Last;
 
-    static void _JobResize(void *arg);
     bool _handleEvent(Frontend::InputEvent *ev);
 
     uint32_t m_Flags;
@@ -593,7 +617,6 @@ protected:
     void propertyChanged(EventsChangedProperty property);
 
 private:
-    void execPending();
     void deviceSetSize(int width, int height);
     void onMouseEvent(Frontend::InputEvent *ev);
     void
@@ -609,7 +632,6 @@ private:
 
     double m_ScaleX, m_ScaleY;
     bool m_AllowNegativeScroll;
-    bool m_FluidWidth, m_FluidHeight;
 
     Frontend::Context *m_NidiumContext;
 
@@ -620,15 +642,7 @@ private:
     } m_Identifier;
 
     void recursiveScale(double x, double y, double oldX, double oldY);
-    void setPendingFlags(int flags, bool append = true);
 
-    enum PENDING_JOBS
-    {
-        kPendingResizeWidth  = 1 << 0,
-        kPendingResizeHeight = 1 << 1,
-    };
-
-    int m_Pending;
     bool m_Loaded;
     int m_Cursor;
     bool m_NeedPaint = true;
