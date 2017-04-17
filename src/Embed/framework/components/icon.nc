@@ -5,8 +5,7 @@
             height: 20,
             fontSize: 20,
             lineHeight: 20,
-            fontFamily: "fontAwesome",
-            color: "#000000"
+            fontFamily: "fontAwesome"
         }
     </nss>
     <layout class="icon">

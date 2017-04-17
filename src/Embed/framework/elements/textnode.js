@@ -36,6 +36,7 @@
         }
 
         set nodeValue(textValue) {
+            if (textValue == this.nodeValue) return this;
             this[s_NodeText] = textValue.trim();
             this.requestPaint();
             this.fireEvent("nodeValueChanged", textValue);
@@ -47,7 +48,8 @@
 
         paint(ctx, width, height) {
             super.paint(ctx, width, height);
-            let p = this.getParent();
+
+            if (!this.nodeValue) return false;
 
             let actualWidth = 1;
 

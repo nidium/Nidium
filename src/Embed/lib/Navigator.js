@@ -31,9 +31,9 @@ class Navigator extends Elements.Element {
 
         var scene = new component(params);
         scene.url = url;
-        this.push(scene);
+        scene.navigator = this;
 
-        this.history.push(scene);
+        this.push(scene);
     }
 
     reset(){
@@ -44,11 +44,11 @@ class Navigator extends Elements.Element {
     push(nextScene) {
 
         if (this.history.length>0) {
-            var currScene = this.history[this.history.length-1];
-            currScene.opacity = 0.95;
 
+            var currScene = this.history[this.history.length-1];
+            currScene.opacity = 1.00;
             setTimeout(()=>{
-                AnimationBlock(500, Easing.Cubic.Out, (c)=>{
+                AnimationBlock(480, Easing.Cubic.Out, (c)=>{
                     c.left = -window.innerWidth;
                     c.opacity = 0.5;
                 }, currScene);
@@ -56,9 +56,9 @@ class Navigator extends Elements.Element {
 
 
             nextScene.left = window.innerWidth;
-            nextScene.opacity = 0.8;
+            nextScene.opacity = 0.2;
             setTimeout(()=>{
-                AnimationBlock(500, Easing.Cubic.Out, (c)=>{
+                AnimationBlock(480, Easing.Cubic.Out, (c)=>{
                     c.left = 0;
                     c.opacity = 1;
                 }, nextScene);
@@ -78,7 +78,7 @@ class Navigator extends Elements.Element {
         currScene.opacity = 1;
 
         setTimeout(()=>{
-            AnimationBlock(300, Easing.Cubic.Out, (c)=>{
+            AnimationBlock(350, Easing.Exponential.InOut, (c)=>{
                 c.left = window.innerWidth;
                 c.opacity = 0.8;
             }, currScene)(()=>{
@@ -91,7 +91,7 @@ class Navigator extends Elements.Element {
         prevScene.left = -window.innerWidth;
         prevScene.opacity = 0.1;
         setTimeout(()=>{
-            AnimationBlock(400, Easing.Cubic.Out, (c)=>{
+            AnimationBlock(480, Easing.Exponential.InOut, (c)=>{
                 c.left = 0;
                 c.opacity = 1;
             }, prevScene);

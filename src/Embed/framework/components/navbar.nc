@@ -8,7 +8,8 @@
             color: "#ffffff",
             fontSize: 13,
             lineHeight: 46,
-            textAlign: "center"
+            textAlign: "center",
+            color: "#ffffff"
         },
 
         icon: {
@@ -18,7 +19,6 @@
             lineHeight: 24,
             flexGrow:1,
             width: 24,
-            color: "#ffffff",
             maxWidth: 24
         },
 
@@ -66,14 +66,14 @@
         }
     </nss>
     <layout class="bar">
-        <span class="flexme left" on:mousedown="this.back()">
+        <span id="back" class="flexme left" on:mousedown="this.back()">
             <icon class="icon il" shape="fa-chevron-left"></icon>
             <span class="icleft">Back</span>
         </span>
         <span class="flexme center">
             <span id="title" class="iccenter">Nidium Kitchen</span>
         </span>
-        <span class="flexme right" on:mousedown="this.next()">
+        <span id="next" class="flexme right" on:mousedown="this.next()">
             <span class="icright">Next</span>
             <icon class="icon ir" shape="fa-chevron-right"></icon>
         </span>
@@ -85,6 +85,16 @@
 
                 var node = this.getElementById("title");
                 node.textContent = attr.title || "";
+
+                if (!attr || !attr['on:back']) {
+                    var left = this.getElementById("back");
+                    left.hide();
+                }
+
+                if (!attr || !attr['on:next']) {
+                    var left = this.getElementById("next");
+                    left.hide();
+                }
             }
 
             back() {
