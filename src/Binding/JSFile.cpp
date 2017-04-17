@@ -837,7 +837,7 @@ JSFunctionSpec *JSFile::ListMethods()
         CLASSMAPPER_FN(JSFile, isDir, 0),
         CLASSMAPPER_FN(JSFile, listFiles, 1),
 
-        CLASSMAPPER_FN(JSFile, mkDir, 0);
+        CLASSMAPPER_FN(JSFile, mkDir, 0),
         CLASSMAPPER_FN(JSFile, rm, 0),
         CLASSMAPPER_FN(JSFile, rmrf, 0),
         JS_FS_END
