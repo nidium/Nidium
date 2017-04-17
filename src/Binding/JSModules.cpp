@@ -367,8 +367,9 @@ JS::Value JSModule::require(char *name)
                     JSUtils::StrToJsval(m_Cx, m_FilePath->path(), strlen(cmodule->m_FilePath->path()), &filename, "utf-8");
 
                     lst.set(Frontend::NML::BuildLST(m_Cx, data));
-                    if (!lst) {
-                        JS_ReportError(m_Cx, "Failed to parse NML");
+                    if (!lst || JS_IsExceptionPending(m_Cx)) {
+                        JS_ReportPendingException(m_Cx);
+                        JS_ReportError(m_Cx, "Failed to load component %s", cmodule->m_FilePath->path());
                         return ret;
                     }
 
