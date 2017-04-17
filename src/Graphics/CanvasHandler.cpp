@@ -623,18 +623,20 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
             layerContext.m_Clip            = &nclip;
             layerContext.m_Clip->m_fLeft   = p_Left.getAlternativeValue();
             layerContext.m_Clip->m_fTop    = p_Top.getAlternativeValue();
-            layerContext.m_Clip->m_fRight  = p_Width + p_Left.getAlternativeValue();
-            layerContext.m_Clip->m_fBottom = p_Height + p_Top.getAlternativeValue();
+            layerContext.m_Clip->m_fRight  = getComputedWidth() + p_Left.getAlternativeValue();
+            layerContext.m_Clip->m_fBottom = getComputedHeight() + p_Top.getAlternativeValue();
             /*
                 if clip is not null, reduce it to intersect the current rect.
                 /!\ clip->intersect changes "clip"
             */
+
         } else if (!layerContext.m_Clip->intersect(
                        p_Left.getAlternativeValue(),
                        p_Top.getAlternativeValue(),
-                       p_Width + p_Left.getAlternativeValue(),
-                       p_Height + p_Top.getAlternativeValue())
+                       p_Width.getAlternativeValue() + p_Left.getAlternativeValue(),
+                       p_Height.getAlternativeValue() + p_Top.getAlternativeValue())
                    && (!m_FluidHeight || !m_FluidWidth)) {
+
             /* don't need to draw children (out of bounds) */
             return;
         }
