@@ -64,3 +64,10 @@
 
 #endif
 
+#define NDM_REPORT_PENDING_EXCEPTION(cx)      \
+    if (JS_IsExceptionPending(cx)) {          \
+        if (!JS_ReportPendingException(cx)) { \
+            JS_ClearPendingException(cx);     \
+        }                                     \
+    }                                         \
+
