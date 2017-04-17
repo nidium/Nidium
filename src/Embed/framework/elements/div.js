@@ -10,10 +10,6 @@
     Elements.div = class extends Elements.Element {
         constructor(attributes) {
             super(attributes);
-            this.style.position = "inline";
-            this.style.staticRight = true;
-            this.style.right = 0;
-            this.style.width = "100%";
         }
 
         paint(ctx) {

@@ -11,8 +11,6 @@
     const s_ShadowHost  = require("../../Symbols.js").ElementShadowHost;
     const VM            = require("VM");
 
-    const s_FnFixStaticRight = Symbol("NodeFunctionFixStaticRight");
-
     Elements.Node = class extends Canvas {
         constructor(attributes = {}) {
             super(attributes.width, attributes.height);
@@ -58,27 +56,6 @@
             this.top      = attributes.top || 0;
             this.coating  = attributes.coating || 20;
 
-            // By default, node take the full width
-            if (!attributes.width) {
-                // XXX : Using staticRight + fluidHeight cause the canvas to only
-                // be displayed on 1px : https://github.com/nidium/Nidium/issues/57
-                /*
-                this.staticRight = true;
-                this.right       = 0;
-                */
-                this._fixStaticRight = true;
-
-                this.addEventListener("load", () => {
-                    this[s_FnFixStaticRight]();
-                    var p = this.getParent();
-                    p.addEventListener("resize", this[s_FnFixStaticRight].bind(this));
-                });
-            }
-
-            // And adjust their height to the content
-            this.height = attributes.height ? attributes.height : "auto";
-            //this.width = attributes.width ? attributes.width : "auto";
-
             this[s_ShadowRoot] = shadowRoot;
             this[s_ShadowRoot].addTag(this.name(), this);
 
@@ -90,91 +67,6 @@
                 this.fireEvent("mount", {});
             });
         }
-
-        [s_FnFixStaticRight]() {
-            var parent = this.getParent();
-            if (!this._fixStaticRight) return;
-
-            super.width = parent.width;
-        }
-
-        // Setting width or height, must disable fluidWidth and
-        // staticRight to allow the sizing of the element.
-        // XXX : Should this be the default for canvas ?
-        // {{{ width & height getter/setter
-        set width(val) {
-            if (val == "auto") {
-                val = 1;
-                this.fluidWidth = true;
-            } else {
-                this.fluidWidth = false;
-            }
-            //this.staticRight = false;
-            this._fixStaticRight = false;
-            super.width = val;
-        }
-
-        get width() {
-            return super.width;
-        }
-
-        set height(val) {
-            if (val == "auto") {
-                this.fluidHeight = true;
-                val = 1;
-            } else {
-                this.fluidHeight = false;
-            }
-            super.height = val;
-        }
-
-        get height() {
-            return super.height;
-        }
-
-        set minWidth(val) {
-            //this.staticRight = false;
-            this._fixStaticRight = false;
-            super.minWidth      = val;
-        }
-
-        get minWidth() {
-            return super.minWidth;
-        }
-
-        set minHeight(val) {
-            this.fluidHeight = false;
-            super.minHeight  = val;
-        }
-
-        get minHeight() {
-            return super.minHeight;
-        }
-
-        set maxWidth(val) {
-            this._fixStaticRight = false;
-            super.maxWidth      = val;
-        }
-
-        get maxWidth() {
-            return super.maxWidth;
-        }
-
-        set maxHeight(val) {
-            this.fluidHeight = false;
-            super.maxHeight  = val;
-        }
-
-        get maxHeight() {
-            return super.maxHeight;
-        }
-
-        // Override setSize so width & height go through Element width & height setter
-        setSize(w, h) {
-            this.width = w;
-            this.height = h;
-        }
-        // }}}
 
         shader(url, callback){
             var self = this;
@@ -309,6 +201,10 @@
             );
         }
 
+        get textContent() {
+            return this._textValue || "";
+        }
+
         cloneNode(deep = true, shadowRoot=this[s_ShadowRoot]) {
             var clone = Elements.Create(this.name(), this.attributes, shadowRoot);
 
@@ -325,10 +221,6 @@
 
         setAttribute(attr, value) {
             switch (attr) {
-                case 'height':
-                    this.height = parseInt(value);
-                    break;
-                
                 default:
                     this[attr] = value;
                     break;
@@ -396,10 +288,6 @@
             return this[s_ShadowHost];
         }
 
-        get textContent() {
-            return this._textValue;
-        }
-
         get text() {
             throw Error("text property doesnt exist");
         }
@@ -434,10 +322,6 @@
 
         get childNodes() {
             return this.getChildren();
-        }
-
-        get textContent() {
-            return this._textValue || "";
         }
 
     }

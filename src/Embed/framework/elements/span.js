@@ -10,11 +10,6 @@
     Elements.span = class extends Elements.Element {
         constructor(attributes) {
             super(attributes);
-            this.style.position = "inline";
-        }
-
-        paint(ctx) {
-            super.paint(ctx)
         }
     }
 }

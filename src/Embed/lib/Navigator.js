@@ -21,11 +21,11 @@ class Navigator extends Elements.Node {
             currScene.opacity = 0.95;
 
             setTimeout(()=>{
-                AnimationBlock(600, Easing.Cubic.Out, (c)=>{
+                AnimationBlock(500, Easing.Cubic.Out, (c)=>{
                     c.left = -window.innerWidth;
                     c.opacity = 0.5;
                 }, currScene);
-            }, 50);
+            }, 100);
 
 
             nextScene.left = window.innerWidth;
@@ -51,11 +51,11 @@ class Navigator extends Elements.Node {
             currScene.opacity = 1;
 
             setTimeout(()=>{
-                AnimationBlock(400, Easing.Cubic.Out, (c)=>{
+                AnimationBlock(300, Easing.Cubic.Out, (c)=>{
                     c.left = window.innerWidth;
                     c.opacity = 0.8;
                 }, currScene);
-            }, 0);
+            }, 100);
 
             var prevScene = this.scenes[this.scenes.length-1];
             prevScene.left = -window.innerWidth;

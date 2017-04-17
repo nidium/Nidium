@@ -10,8 +10,9 @@
     Elements.layout = class extends Elements.Element {
         constructor(attr) {
             super(attr);
-            this.style.width = "100%";
-            this.style.height = "100%";
+            this.style.flexGrow = 1;
+            this.style.flexDirection = "column";
+            this.style.backgroundColor = "#f0f0f0";
         }
     }
 }

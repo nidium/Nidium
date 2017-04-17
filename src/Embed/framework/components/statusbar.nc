@@ -2,25 +2,26 @@
     <nss>
         clean: {
             backgroundColor: "#03387e",
-            height: "20px",
-            width: "100%",
+            height: 20,
+            flexDirection: "row",
+            flexGrox: 1,
             color: "#ffffff",
             fontSize: 10,
             lineHeight: 20
         },
 
         left: {
-            width: "25%",
+            flexGrow: 1,
             textAlign: "left"
         },
 
         center: {
-            width: "50%",
+            flexGrow: 3,
             textAlign: "center"
         },
 
         right: {
-            width: "25%",
+            flexGrow: 1,
             textAlign: "right"
         }
     </nss>
@@ -33,7 +34,8 @@
         module.exports = class extends Component {
             constructor(attr) {
                 super(attr);
-                console.log(JSON.stringify(attr.data));
+
+                console.log("--->", this.style.backgroundColor, this.height);
 
                 this.timer = null;
                 this.timeNode = this.getElementById("time");
@@ -60,7 +62,6 @@
 
             onmount() {
                 this.start();
-                console.log("mounted", this.id);
             }
         }
     </script>

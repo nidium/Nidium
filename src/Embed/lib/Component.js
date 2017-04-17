@@ -28,12 +28,6 @@ class Component extends Elements.Element {
     constructor(attributes = {}) {
         super(attributes);
 
-        /*
-        if (!attributes.width) {
-            this.style.width = "100%";
-        }
-        */
-
         this.attachShadow({
             "name": "ComponentInstance-" + this.name(),
             "scope": this.constructor[s_ComponentShadow].getJSScope()

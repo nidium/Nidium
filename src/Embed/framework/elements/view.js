@@ -13,7 +13,7 @@
             this.style.position = "absolute";
             this.style.left = 0;
             this.style.top = 20;
-            this.style.width = "100%";
+            this.style.width = 600;
             this.style.height = 400;
             this.style.backgroundColor = "red";
         }

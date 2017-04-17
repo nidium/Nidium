@@ -5,87 +5,10 @@ const inheritedProperties = [
     "fontFamily", "fontSize", "fontWeight"
 ];
 
-const nonNumericProperties = [
-    "color", "textAlign", "position", "fontFamily"
+const redrawingProperties = [
+    "backgroundColor", "color", "fontFamily", "fontSize", "fontWeight"
 ];
 
-function styleProxy(el, key, value) {
-    let p = el.getParent(),
-        numericValue = parseFloat(value);
-
-    /* inherited properties */
-    if (inheritedProperties.includes(key)) {
-        el.inherit[key] = value;
-        el[key] = value;
-        return;
-    }
-
-
-    /* non numeric properties */
-    if (nonNumericProperties.includes(key)) {
-        el[key] = value;
-        return;
-    }
-
-    if (p && numericValue && value[value.length -1] == "%") {
-        let parsed = numericValue*0.01;
-
-        switch (key) {
-            case "width":
-            case "height":
-            case "minWidth":
-            case "minHeight":
-            case "maxWidth":
-            case "maxHeight":
-                el[key] = p[key] * parsed;
-                break;
-        
-            case "left":
-            case "right":
-            case "paddingLeft":
-            case "paddingRight":
-            case "marginLeft":
-            case "marginRight":
-                el[key] = p.width * parsed;
-                break;
-        
-            case "top":
-            case "bottom":
-            case "paddingTop":
-            case "paddingBottom":
-            case "marginTop":
-            case "marginBottom":
-                el[key] = p.height * parsed;
-                break;
-        }
-    } else {
-        el[key] = value == "auto" ? "auto" : numericValue;
-    }
-}
-
-function refreshStyles(el, styles) {
-    let list = [
-        "width", "height", "minWidth", "minHeight", "maxWidth", "maxHeight", 
-
-        "left", "right", "top", "bottom",
-        "paddingLeft", "paddingRight", "paddingTop", "paddingBottom",
-        "marginLeft", "marginRight", "marginTop", "marginBottom",
-        "staticLeft", "staticRight", "staticTop", "staticBottom",
-
-        "position", "coating",
-
-        "color", "textAlign", "lineHeight",
-        "fontFamily", "fontSize", "fontWeight"
-    ];
-
-    for (let key of list) {
-        let value = styles[key];
-
-        if (value) {
-            styleProxy(el, key, value);
-        }
-    }
-}
 
 var drawer = {
     setShadow : function(ctx, style){
@@ -107,14 +30,36 @@ var drawer = {
 
 class ElementStyles {
     constructor(el) {
+        var classes = el.attributes.class;
+
         this.el = el;
         this.style = {};
 
-        el.addEventListener("resize", () => {
-            refreshStyles(el, this.style);
+        var proxyStyle = new Proxy(this.style, {
+            set: (styles, key, value, proxy) => {
+                if (inheritedProperties.includes(key)) {
+                    el.inherit[key] = value;
+                }
+
+                if (redrawingProperties.includes(key)) {
+                    el.requestPaint();
+                }
+
+                styles[key] = value;
+                el[key] = value;
+                return true;
+            },
+
+            get: (styles, name) => {
+                return this.style[name];
+            },
+
+            has: function(styles, prop) {
+                if (prop in styles) { return true; }
+                return false;
+            }
         });
 
-        var classes = el.attributes.class;
         if (classes) {
             let nss;
             if (el.shadowRoot) {
@@ -134,41 +79,17 @@ class ElementStyles {
             tmp.push(Object.assign({}, this.style));
 
             // Merge all style into |this|
-            tmp.unshift(this.style);
+            tmp.unshift(proxyStyle);
             Object.assign.apply(null, tmp);
         }
 
-        el.addEventListener("load", () => {
-            refreshStyles(el, this.style);
-            // Needed to bypass the shadowroot
-            let p = el.getParent();
-            p.addEventListener("resize", () => {
-                refreshStyles(el, this.style);
-            });
-        });
-
         this.style._paint = this.paint.bind(this);
 
-        return new Proxy(this.style, {
-            set: (styles, key, value, proxy) => {
-                styleProxy(el, key, value);
-                styles[key] = value;
-                return true;
-            },
-            get: (styles, name) => {
-                return this.style[name];
-            },
-            has: function(styles, prop) {
-                if (prop in styles) { return true; }
-                return false;
-            }
-        });
+        return proxyStyle;
     }
 
-    paint(ctx) {
-        let s = this.style,
-            w = this.el.width,
-            h = this.el.height;
+    paint(ctx, w, h) {
+        let s = this.style;
 
         if (s.fontSize) {
             ctx.fontSize = s.fontSize;

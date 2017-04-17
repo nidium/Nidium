@@ -17,9 +17,7 @@
                 this.opacity = attributes.opacity;
             }
 
-            //this.style = new StyleContainer(this);
-
-            //this.onload = this.onpaint;
+            this.style = new StyleContainer(this);
             this.onresize = this.onpaint;
         }
 
@@ -77,7 +75,17 @@
 
         }
 
-        paint(ctx) {
+        paint(ctx, width, height) {
+
+            ctx.clearRect(
+                -this.coating,
+                -this.coating, 
+                this.clientWidth,
+                this.clientHeight
+            );
+
+            ctx.clearRect(0, 0, width, height);
+
 /*
             this.style.angle = 0;
             this.style.originOffsetX = 0;
@@ -101,7 +109,7 @@
                 ctx.rotate(rad);
                 ctx.translate(-origin.x, -origin.y);
 */
-                this.style._paint(ctx);
+                this.style._paint(ctx, width, height);
 /*                
                 this.afterpaint();
             ctx.restore();

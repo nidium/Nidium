@@ -5,8 +5,7 @@
             height: 20,
             fontSize: 20,
             lineHeight: 20,
-            color: "#000000",
-            position: "inline"
+            color: "#000000"
         }
     </nss>
     <layout class="icon">
@@ -35,22 +34,23 @@
                 });
             }
 
-            paint(ctx) {
-                super.paint(ctx);
+            paint(ctx, width, height) {
+                super.paint(ctx, width, height);
 
                 var ox = 0;
 
                 var icon = shapes[this.shape];
-                let w = ctx.measureText(icon).width + 5;
+                let w = ctx.measureText(icon).width;
 
                 let lineHeight  = this.inherit.lineHeight || this.style.lineHeight;
                 let offset = Math.ceil(lineHeight/2);
 
                 if (this.inherit.textAlign == "center") {
-                    ox = (this.width-w)*0.5;
+                    ox = (width-w)*0.5;
                 }
                 if (this.inherit.textAlign == "right") {
-                    ox = (this.width-w);
+                    ox = (width-w);
+                    console.log(width, height, w)
                 }
 
                 ctx.fontFamily    = this.font.name;
