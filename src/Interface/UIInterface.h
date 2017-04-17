@@ -411,6 +411,9 @@ protected:
     SystemMenu m_SystemMenu;
 
     bool m_CursorNeedsUpdate = false;
+
+private:
+    bool m_DoRefresh = false;
 };
 // }}}
 

@@ -298,6 +298,11 @@ int UIInterface::HandleEvents(void *arg)
 		uii->handleEvent(&event);
     }
 
+    if (uii->m_DoRefresh) {
+        uii->hitRefresh();
+        uii->m_DoRefresh = false;
+    }
+
     if (ttfps % 300 == 0 && uii->isContextReady()) {
         uii->m_NidiumCtx->getNJS()->gc();
     }
@@ -459,14 +464,9 @@ void UIInterface::setSignalHandler()
 
 void UIInterface::signalHandler(int sig)
 {
-    static bool inRefresh = false;
-
     switch(sig) {
         case SIGHUP:
-            if (inRefresh) break;
-            inRefresh = true;
-            this->hitRefresh();
-            inRefresh = false;
+            this->m_DoRefresh = true;;
             break;
     }
 }
