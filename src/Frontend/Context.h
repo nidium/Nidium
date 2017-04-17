@@ -48,13 +48,6 @@ namespace Frontend {
 
 class NML;
 
-struct JobQueue
-{
-    void (*job)(void *arg);
-    struct JobQueue *next;
-    void *arg;
-};
-
 class LocalContext {
 public:
 
@@ -168,8 +161,6 @@ public:
 
     Core::Hash<Binding::NidiumBytecodeScript *> m_Preload;
 
-    void addJob(void (*job)(void *arg), void *arg);
-
     Graphics::CanvasHandler *getCanvasById(const char *str)
     {
         return m_CanvasList.get(str);
@@ -234,24 +225,19 @@ private:
     void initStats();
     bool initShaderLang();
     void initHandlers(int width, int height);
-    struct
-    {
-        struct JobQueue *head;
-        struct JobQueue *queue;
-    } m_Jobs;
+
 
     /* Hash of all canvases (key: numeric identifier) */
     std::unordered_map<uint64_t, Graphics::CanvasHandler *> m_CanvasListIdx;
     /* Hash of all canvases (key: string identifier) */
     Core::Hash<Graphics::CanvasHandler *> m_CanvasList;
-    /* Hash of all canvases with pending jobs (key: addr) */
-    Core::Hash64<Graphics::CanvasHandler *> m_CanvasPendingJobs;
+
     std::vector<Graphics::CanvasHandler *> m_CanvasOrderedEvents;
 
     ape_pool_list_t m_CanvasEventsCanvas;
 
-    void execJobs();
-    void execPendingCanvasChanges();
+    Graphics::CanvasHandler *m_CurrentClickedHandler;
+
     void triggerEvents();
 
     static bool WriteStructuredCloneOp(JSContext *cx,

@@ -544,7 +544,6 @@ public:
     void setScrollTop(int value);
     void setScrollLeft(int value);
     void computeAbsolutePosition();
-    void computeContentSize(int *cWidth, int *cHeight, bool inner = false);
     bool isOutOfBound();
     Rect getViewport();
     Rect getVisibleRect();
@@ -557,8 +556,8 @@ public:
     void insertBefore(CanvasHandler *insert, CanvasHandler *ref);
     void insertAfter(CanvasHandler *insert, CanvasHandler *ref);
 
-    int getContentWidth(bool inner = false);
-    int getContentHeight(bool inner = false);
+    int getContentWidth();
+    int getContentHeight();
     void setHidden(bool val);
     bool isDisplayed() const;
     bool isHidden() const;
@@ -631,7 +630,6 @@ public:
     CanvasHandler *m_Prev;
     CanvasHandler *m_Last;
 
-    static void _JobResize(void *arg);
     bool _handleEvent(Frontend::InputEvent *ev);
 
     uint32_t m_Flags;
@@ -644,7 +642,6 @@ protected:
     void propertyChanged(EventsChangedProperty property);
 
 private:
-    void execPending();
     void deviceSetSize(int width, int height);
     void onTouch(Frontend::InputEvent *ev, Core::Args &args, CanvasHandler *handler);
     void onInputEvent(Frontend::InputEvent *ev);
@@ -675,15 +672,7 @@ private:
     } m_Identifier;
 
     void recursiveScale(double x, double y, double oldX, double oldY);
-    void setPendingFlags(int flags, bool append = true);
 
-    enum PENDING_JOBS
-    {
-        kPendingResizeWidth  = 1 << 0,
-        kPendingResizeHeight = 1 << 1,
-    };
-
-    int m_Pending;
     bool m_Loaded;
     int m_Cursor;
     bool m_NeedPaint = true;
