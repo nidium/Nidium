@@ -48,17 +48,17 @@ class Navigator extends Elements.Element {
             var currScene = this.history[this.history.length-1];
             currScene.opacity = 1.00;
             setTimeout(()=>{
-                AnimationBlock(480, Easing.Cubic.Out, (c)=>{
+                AnimationBlock(480, Easing.Exponential.Out, (c)=>{
                     c.left = -window.innerWidth;
                     c.opacity = 0.5;
                 }, currScene);
-            }, 100);
+            }, 0);
 
 
             nextScene.left = window.innerWidth;
             nextScene.opacity = 0.2;
             setTimeout(()=>{
-                AnimationBlock(480, Easing.Cubic.Out, (c)=>{
+                AnimationBlock(480, Easing.Exponential.Out, (c)=>{
                     c.left = 0;
                     c.opacity = 1;
                 }, nextScene);
