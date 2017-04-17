@@ -21,6 +21,7 @@
         ],
         'msvs_settings': {
             'VCLinkerTool': {
+                'SubSystem': '2',  # windows app
                 "AdditionalOptions": [
                 ],
             },

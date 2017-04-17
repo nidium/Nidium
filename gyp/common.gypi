@@ -29,7 +29,6 @@
             'VCLinkerTool': {
                 'LinkTimeCodeGeneration': 0,
                 'SuppressStartupBanner': 'true',
-                'SubSystem': '1',  # console app
                 'LinkIncremental': 0,
                 "AdditionalLibraryDirectories": [
                     "<(libapenetwork_output_third_party_path)",
