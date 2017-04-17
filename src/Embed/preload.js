@@ -27,6 +27,7 @@ function __nidiumPreload(options, lst) {
     load("embed://additions/Canvas.js");
     load("embed://additions/NML.js");
     load("embed://additions/HTTP.js");
+    load("embed://additions/document.js");
     /*
      * Native UI Controls and NML tags
      */

@@ -12,10 +12,9 @@
             super(attributes);
             this.style.position = "absolute";
             this.style.left = 0;
-            this.style.top = 20;
-            this.style.width = 600;
-            this.style.height = 400;
-            this.style.backgroundColor = "red";
+            this.style.top = 0;
+            this.style.right = 0;
+            this.style.bottom = 0;
         }
     }
 }

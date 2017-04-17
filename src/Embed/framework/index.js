@@ -17,6 +17,7 @@ load("embed://framework/elements/span.js");
 load("embed://framework/elements/img.js");
 load("embed://framework/elements/section.js");
 load("embed://framework/elements/textnode.js");
+load("embed://framework/elements/navigator.js");
 
 load("embed://framework/elements/nss.js");
 load("embed://framework/elements/script.js");
@@ -30,3 +31,8 @@ load("embed://framework/elements/slot.js");
 require("./components/icon.nc");
 require("./components/statusbar.nc");
 require("./components/button.nc");
+
+/**
+ * Fonts
+ */
+window.fontShapes = require('./fonts/fontawesome.js');

@@ -6,18 +6,45 @@
 
 const Elements = require("Elements");
 
-class Navigator extends Elements.Node {
+class Navigator extends Elements.Element {
     constructor(attributes) {
         super(attributes);
-
-        this.scenes = [];
+        this.routes = {};
+        this.history = [];
+        this.style.flexGrow = 1;
     }
 
-    push(view, params) {
-        var nextScene = new view(params);
+    set(routes) {
+        this.routes = {};
+        for (var url in routes) {
+            if (routes.hasOwnProperty(url)) this.routes[url] = routes[url];
+        }
+    }
 
-        if (this.scenes.length>0) {
-            var currScene = this.scenes[this.scenes.length-1];
+    go(url, params){
+        var component = this.routes[url];
+        if (!component) return false;
+
+        for (var i=0, len=this.history.length; i<len; i++) {
+           // if ()
+        }
+
+        var scene = new component(params);
+        scene.url = url;
+        this.push(scene);
+
+        this.history.push(scene);
+    }
+
+    reset(){
+        this.empty();
+        this.history = [];
+    }
+
+    push(nextScene) {
+
+        if (this.history.length>0) {
+            var currScene = this.history[this.history.length-1];
             currScene.opacity = 0.95;
 
             setTimeout(()=>{
@@ -31,48 +58,44 @@ class Navigator extends Elements.Node {
             nextScene.left = window.innerWidth;
             nextScene.opacity = 0.8;
             setTimeout(()=>{
-                AnimationBlock(600, Easing.Cubic.Out, (c)=>{
+                AnimationBlock(500, Easing.Cubic.Out, (c)=>{
                     c.left = 0;
                     c.opacity = 1;
                 }, nextScene);
             }, 0);
         }
 
-        this.scenes.push(nextScene);
-        document.canvas.add(nextScene);
-
+        this.history.push(nextScene);
+        this.add(nextScene);
     }
 
-    back() {
-        if (this.scenes.length<=1) return false;
+    back(callback) {
+        var callback = callback || function(){};
 
+        if (this.history.length<=1) return false;
 
-            var currScene = this.scenes.pop();
-            currScene.opacity = 1;
+        var currScene = this.history.pop();
+        currScene.opacity = 1;
 
-            setTimeout(()=>{
-                AnimationBlock(300, Easing.Cubic.Out, (c)=>{
-                    c.left = window.innerWidth;
-                    c.opacity = 0.8;
-                }, currScene);
-            }, 100);
+        setTimeout(()=>{
+            AnimationBlock(300, Easing.Cubic.Out, (c)=>{
+                c.left = window.innerWidth;
+                c.opacity = 0.8;
+            }, currScene)(()=>{
+                currScene.removeFromParent();
+                callback.call(this);
+            });
+        }, 100);
 
-            var prevScene = this.scenes[this.scenes.length-1];
-            prevScene.left = -window.innerWidth;
-            prevScene.opacity = 0.1;
-            setTimeout(()=>{
-                AnimationBlock(400, Easing.Cubic.Out, (c)=>{
-                    c.left = 0;
-                    c.opacity = 1;
-                }, prevScene);
-            }, 0);
-
-
-/*
-        var currScene = this.scenes.pop();
-        currScene.removeFromParent();
-*/
-
+        var prevScene = this.history[this.history.length-1];
+        prevScene.left = -window.innerWidth;
+        prevScene.opacity = 0.1;
+        setTimeout(()=>{
+            AnimationBlock(400, Easing.Cubic.Out, (c)=>{
+                c.left = 0;
+                c.opacity = 1;
+            }, prevScene);
+        }, 0);
 
     }
 }

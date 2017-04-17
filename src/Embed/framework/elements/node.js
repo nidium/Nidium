@@ -13,45 +13,17 @@
 
     Elements.Node = class extends Canvas {
         constructor(attributes = {}) {
-            super(attributes.width, attributes.height);
+            super();
 
             const shadowRoot = Elements.currentShadow || document.canvas.shadowRoot;
 
-            for (let attr of Object.getOwnPropertyNames(attributes)) {
-                if (attr.length < 5 || attr[2] != ":") continue;
-
-                const isJS = attr[0] == "j" && attr[1] == "s";
-                const isOn = attr[0] == "o" && attr[1] == "n";
-
-                if (isJS || isOn) {
-                    let value = attributes[attr];
-                    const options = {};
-                    const clampedAttr = attr.substring(3);
-
-                    if (shadowRoot && shadowRoot.jsScope) {
-                        options.scope = shadowRoot.jsScope["this"];
-                    }
-
-                    if (isOn) {
-                        value = "function(){"+value+"}";
-                    }
-
-                    value = "(" + value + ")";
-
-                    const result = VM.run(value, options);
-
-                    if (isOn) {
-                        this["on" + clampedAttr] = function(){ result.apply(arguments[0]); };
-                    } else {
-                        attributes[clampedAttr] = result;
-                    }
-                }
+            for (let k of Object.getOwnPropertyNames(attributes)) {
+                this.parseComposedAttribute(k, attributes, shadowRoot);
             }
 
             this.attributes         = attributes;
             this.computedAttributes = {};
 
-            this.position = "inline";
             this.left     = attributes.left || 0;
             this.top      = attributes.top || 0;
             this.coating  = attributes.coating || 20;
@@ -66,6 +38,46 @@
             this.addEventListener("load", () => {
                 this.fireEvent("mount", {});
             });
+        }
+
+
+        /*
+           parse selector:attr attributes (i.e: js:data='foobar')
+        */
+        parseComposedAttribute(k, attributes, shadowRoot) {
+            const options = {};
+            const parts = k.split(':');
+            const selector = parts[0];
+
+            if (parts.length<2) return false;
+
+            const attr = parts[1];
+
+            const isJS = selector == 'js';
+            const isOn = selector == 'on';
+
+            var value = attributes[k];
+
+            if (isJS || isOn) {
+
+                if (shadowRoot && shadowRoot.jsScope) {
+                    options.scope = shadowRoot.jsScope["this"];
+                }
+
+                if (isOn) {
+                    value = "function(){"+value+"}.bind(this)";
+                }
+
+                value = "(" + value + ")";
+
+                const result = VM.run(value, options);
+
+                if (isOn) {
+                    this["on" + attr] = result;
+                } else {
+                    attributes[attr] = result;
+                }
+            }
         }
 
         shader(url, callback){

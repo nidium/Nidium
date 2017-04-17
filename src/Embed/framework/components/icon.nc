@@ -5,6 +5,7 @@
             height: 20,
             fontSize: 20,
             lineHeight: 20,
+            fontFamily: "fontAwesome",
             color: "#000000"
         }
     </nss>
@@ -14,51 +15,38 @@
         module.exports = class extends Component {
             constructor(attr) {
                 super(attr);
-                this.font = attr.data.font;
 
-                if (attr.shape) {
-                    this.shape = attr.shape;
-                }
+                this.shape = attr.shape || "";
 
                 if (!this.style.lineHeight) {
                     this.style.lineHeight = this.style.height+1;
                 }
-
-                this.on("mousedown", (e)=>{
-                    /*
-                    this.emit("toto", {
-                        k:5,
-                        m:6
-                    });
-                    */
-                });
             }
 
             paint(ctx, width, height) {
                 super.paint(ctx, width, height);
 
-                var ox = 0;
-
-                var icon = shapes[this.shape];
+                let ox = 0;
+                let icon = window.fontShapes[this.shape];
                 let w = ctx.measureText(icon).width;
 
                 let lineHeight  = this.inherit.lineHeight || this.style.lineHeight;
-                let offset = Math.ceil(lineHeight/2);
+                let oy = Math.ceil(lineHeight*0.5);
 
                 if (this.inherit.textAlign == "center") {
                     ox = (width-w)*0.5;
                 }
+
                 if (this.inherit.textAlign == "right") {
                     ox = (width-w);
-                    console.log(width, height, w)
                 }
 
-                ctx.fontFamily    = this.font.name;
+                ctx.fontFamily    = this.inherit.fontFamily || this.style.fontFamily;
                 ctx.fontSize      = this.inherit.fontSize || this.style.fontSize;
                 ctx.fillStyle     = this.inherit.color || this.style.color;
                 ctx.textBaseline  = "middle";
                 
-                ctx.fillText(icon, ox, offset);
+                ctx.fillText(icon, ox, oy);
             }
         }
     </script>

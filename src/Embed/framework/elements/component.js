@@ -70,7 +70,6 @@
                                 }
                             default:
                                 return document[key].bind(document);
-                                //throw new Error(`Components does not have access to document.${key}`);
                         }
                     },
 
@@ -86,13 +85,9 @@
                         case "addEventListener":
                         case "fireEvent":
                             return window[key];
-                            /*
-                            default:
-                                throw new Error(`Components does not have access to window.${key}`);
-                            */
+                        default:
+                            return window[key];
                     }
-
-                    return object[key];
                 },
 
                 set: (object, key, value, proxy) => {

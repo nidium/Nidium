@@ -30,7 +30,39 @@
                 return;
             }
 
+            /*
+            let ctx = this._ctx;
+            let { width, height } = this.getDimensions();
+
+            this.style.angle = 0;
+            this.style.originOffsetX = 0;
+            this.style.originOffsetY = 0;
+            this.style.alpha = 1;
+
+            ctx.save();
+                if (this.style.alpha) {
+                    ctx.globalAlpha = this.style.alpha;
+                } else {
+                    this.clear();
+                }
+
+                if (this.style.angle) {
+                    var origin = {
+                        x : width*0.5 + this.style.originOffsetX,
+                        y : height*0.5 + this.style.originOffsetY
+                    };
+
+                    ctx.translate(origin.x, origin.y);
+                    ctx.rotate(this.style.angle * (Math.PI/180));
+                    ctx.translate(-origin.x, -origin.y);
+                }
+
+                this.paint(ctx, width, height);
+            ctx.restore();
+            */
+
             let dimensions = this.getDimensions();
+
             this._ctx.save();
             this.clear();
             this.paint(this._ctx, dimensions.width, dimensions.height);
@@ -76,44 +108,7 @@
         }
 
         paint(ctx, width, height) {
-
-            ctx.clearRect(
-                -this.coating,
-                -this.coating, 
-                this.clientWidth,
-                this.clientHeight
-            );
-
-            ctx.clearRect(0, 0, width, height);
-
-/*
-            this.style.angle = 0;
-            this.style.originOffsetX = 0;
-            this.style.originOffsetY = 0;
-            this.style.alpha = 1;
-
-            var rad = this.style.angle * (Math.PI/180);
-
-            var origin = {
-                x : this.style.width/2 + this.style.originOffsetX,
-                y : this.style.height/2 + this.style.originOffsetY
-            };
-
-            this.clear();
-
-            this.beforepaint();
-
-            ctx.save();
-                ctx.globalAlpha = this.style.alpha;
-                ctx.translate(origin.x, origin.y);
-                ctx.rotate(rad);
-                ctx.translate(-origin.x, -origin.y);
-*/
-                this.style._paint(ctx, width, height);
-/*                
-                this.afterpaint();
-            ctx.restore();
-*/
+            this.style._paint(ctx, width, height);
         }
 
         afterpaint(ctx){

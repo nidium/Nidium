@@ -12,7 +12,6 @@
             super(attr);
             this.style.flexGrow = 1;
             this.style.flexDirection = "column";
-            this.style.backgroundColor = "#f0f0f0";
         }
     }
 }

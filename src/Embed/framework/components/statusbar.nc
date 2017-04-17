@@ -3,11 +3,10 @@
         clean: {
             backgroundColor: "#03387e",
             height: 20,
+            lineHeight: 20,
             flexDirection: "row",
-            flexGrox: 1,
             color: "#ffffff",
-            fontSize: 10,
-            lineHeight: 20
+            fontSize: 10
         },
 
         left: {

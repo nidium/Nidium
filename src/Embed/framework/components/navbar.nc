@@ -1,6 +1,6 @@
 <component name="navbar">
     <nss>
-        clean: {
+        bar: {
             backgroundColor: "#3388EE",
             flexDirection: "row",
             flexGrow:1,
@@ -65,36 +65,34 @@
             flexGrow:1
         }
     </nss>
-    <layout class="clean">
-        <span id="a" class="left flexme" on:mousedown="back()">
-            <icon js:data="{font:font}" class="icon il" shape="fa-chevron-left"></icon>
+    <layout class="bar">
+        <span class="flexme left" on:mousedown="this.back()">
+            <icon class="icon il" shape="fa-chevron-left"></icon>
             <span class="icleft">Back</span>
         </span>
-        <span id="b" class="center flexme">
-            <span class="iccenter">Nidium Kitchen</span>
+        <span class="flexme center">
+            <span id="title" class="iccenter">Nidium Kitchen</span>
         </span>
-        <span id="c" class="right flexme" on:mousedown="next()">
+        <span class="flexme right" on:mousedown="this.next()">
             <span class="icright">Next</span>
-            <icon js:data="{font:font}" on:mousedown="" class="icon ir" shape="fa-chevron-right"></icon>
+            <icon class="icon ir" shape="fa-chevron-right"></icon>
         </span>
     </layout>
     <script>
-
-        var back = function(){
-            console.log("back");
-        };
-
-        var next = function(){
-            console.log("next");
-        };
-
         module.exports = class extends Component {
             constructor(attr) {
                 super(attr);
+
+                var node = this.getElementById("title");
+                node.textContent = attr.title || "";
             }
 
-            kk() {
+            back() {
+                this.emit("back", {});
+            }
 
+            next() {
+                this.emit("next", {});
             }
         }
     </script>
