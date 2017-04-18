@@ -83,6 +83,7 @@ public:
 protected:
     NIDIUM_DECL_JSCALL(readDir);
     NIDIUM_DECL_JSCALL(isDir);
+    NIDIUM_DECL_JSCALL(isFile);
 };
 
 } // namespace Binding
