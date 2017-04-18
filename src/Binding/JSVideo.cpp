@@ -209,14 +209,22 @@ bool JSVideo::JSGetter_canvas(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSVideo::JSGetter_width(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(this->m_Video->m_CodecCtx->width);
+    if (m_Video->m_CodecCtx) {
+        vp.setInt32(m_Video->m_CodecCtx->width);
+    } else {
+        vp.setInt32(-1);
+    }
 
     return true;
 }
 
 bool JSVideo::JSGetter_height(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(this->m_Video->m_CodecCtx->height);
+    if (m_Video->m_CodecCtx) {
+        vp.setInt32(this->m_Video->m_CodecCtx->height);
+    } else {
+        vp.setInt32(-1);
+    }
 
     return true;
 }
