@@ -23,6 +23,8 @@ bool JSNML::JSStatic_parse(JSContext *cx, JS::CallArgs &args)
 
     JS::RootedObject tree(cx, Frontend::NML::BuildLST(cx, str.ptr()));
 
+    NDM_REPORT_PENDING_EXCEPTION(cx)
+
     args.rval().setObjectOrNull(tree);
 
     return true;

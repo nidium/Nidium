@@ -321,6 +321,7 @@ void NML::onGetContent(const char *data, size_t len)
 
         if (m_Layout) {
             m_JSObjectLayout = this->buildLayoutTree(*m_Layout);
+            NDM_REPORT_PENDING_EXCEPTION(m_Njs->m_Cx)
             Binding::NidiumLocalContext::RootObjectUntilShutdown(m_JSObjectLayout);
         }
     } else {
