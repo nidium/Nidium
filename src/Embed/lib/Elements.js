@@ -419,8 +419,6 @@ Elements.flexcanvas = class extends NidiumNode {
         ctx.fillStyle = "black";
         ctx.fillText(this.idx, 0, 10);
         ctx.fillText(`${width}x${height}`, 0, 20);
-
-        console.log("Client width", this.idx, this.clientWidth, this.clientHeight);
     }
 }
 

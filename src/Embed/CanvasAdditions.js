@@ -4,6 +4,9 @@
    that can be found in the LICENSE file.
 */
 
+
+const { setAnimation, Easing } = require("AnimationBlock");
+
 {
 
     Canvas.prototype.addMultiple = function(...canvases) {
@@ -85,10 +88,10 @@
             canvas = Canvas.currentHightLight;
             //canvas.setSize(this.width, this.height);
 
-            AnimationBlock(200, Easing.Back.Out, (canvas) => {
+            setAnimation((canvas) => {
                 canvas.width = this.width;
                 canvas.height = this.height;
-            },  canvas);
+            }, 200, Easing.Back.Out, canvas);
 
             canvas.on("resize", () => {
                 draw(canvas);
@@ -106,10 +109,10 @@
         document.canvas.add(canvas);
         canvas.position = "absolute";
 
-        AnimationBlock(200, Easing.Back.Out, (canvas) => {
+        setAnimation((canvas) => {
             canvas.left = this.__left;
             canvas.top = this.__top;
-        },  canvas);
+        }, 200, Easing.Back.Out, canvas);
     }
 }
 
