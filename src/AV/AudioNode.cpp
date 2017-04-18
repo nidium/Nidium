@@ -815,9 +815,8 @@ AudioSource::AudioSource(int out, Audio *audio, bool external)
 
 int AudioSource::open(const char *src)
 {
-#define RETURN_WITH_ERROR(err)                       \
-    this->sendEvent(SOURCE_EVENT_ERROR, err);        \
-    this->closeInternal(true);                       \
+#define RETURN_WITH_ERROR(err) \
+    this->closeInternal(true); \
     return err;
     // If a previous file has been opened, close it
     if (m_Container != NULL) {
@@ -925,7 +924,7 @@ int AudioSource::initStream()
         char error[1024];
         av_strerror(ret, error, 1024);
         fprintf(stderr, "Couldn't open file : %s\n", error);
-        return ERR_INTERNAL;
+        return ERR_FAILED_OPEN;
     }
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);

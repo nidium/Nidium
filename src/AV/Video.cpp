@@ -74,9 +74,8 @@ Video::Video(ape_global *n)
 }
 
 // {{{ Open
-#define RETURN_WITH_ERROR(err)                \
-    this->sendEvent(SOURCE_EVENT_ERROR, err); \
-    this->closeInternal(true);                \
+#define RETURN_WITH_ERROR(err) \
+    this->closeInternal(true); \
     return err;
 
 int Video::open(void *buffer, int size)
