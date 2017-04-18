@@ -724,8 +724,8 @@ bool Canvas2DContext::JS_setTransform(JSContext *cx, JS::CallArgs &args)
     }
 
     m_Skia->transform(scalex, skewx, skewy, scaley,
-                       translatex + m_Handler->m_Padding.global,
-                       translatey + m_Handler->m_Padding.global, 1);
+                       translatex + m_Handler->p_Coating,
+                       translatey + m_Handler->p_Coating, 1);
 
     return true;
 }
@@ -1627,6 +1627,7 @@ char *Canvas2DContext::genModifiedFragmentShader(const char *data, const char *g
 {
     const char *prologue =
         "vec4 _nm_gl_FragCoord;\n"
+        "void main(void);\n"
         "#define main _nm_main\n"
         "#define gl_FragCoord _nm_gl_FragCoord\n";
 
@@ -1863,6 +1864,9 @@ Canvas2DContext::Canvas2DContext(CanvasHandler *handler,
 
     this->pushNewState();
 
+    width = nidium_max(width, 1);
+    height = nidium_max(height, 1);
+
     m_Skia = SkiaContext::CreateWithTextureBackend(ui->getNidiumContext(), width, height);
 
     /* Vertex buffers were unbound by parent constructor */
@@ -1874,6 +1878,9 @@ Canvas2DContext::Canvas2DContext(
     : CanvasContext(handler), m_SetterDisabled(false)
 {
     m_Mode = CONTEXT_2D;
+
+    width = nidium_max(width, 1);
+    height = nidium_max(height, 1);
 
     if (isGL) {
         m_Skia = SkiaContext::CreateWithFBOBackend(ui->getNidiumContext(), width, height);

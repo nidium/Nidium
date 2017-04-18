@@ -37,7 +37,8 @@
             '<(third_party_path)/libzip/lib',
             '<(third_party_path)/rapidxml',
             '<(third_party_path)/ffmpeg/',
-            '<(third_party_path)/angle/include/'
+            '<(third_party_path)/angle/include/',
+            '<(third_party_path)/yoga/',
         ],
 
         'conditions': [
@@ -142,7 +143,12 @@
             '<(nidium_src_path)/Binding/JSCanvas.cpp',
             '<(nidium_src_path)/Binding/JSCanvas2DContext.cpp',
             '<(nidium_src_path)/Binding/JSNML.cpp',
-            '<(nidium_src_path)/IO/SystemStream.cpp'
+            '<(nidium_src_path)/IO/SystemStream.cpp',
+            '<(third_party_path)/yoga/Yoga.c',
+            '<(third_party_path)/yoga/YGNodeList.c',
+            '<(third_party_path)/yoga/YGNodeList.c',
+            '<(third_party_path)/yoga/YGEnums.c',
+            '<(third_party_path)/yoga/YGStringEnums.c',
         ],
     }],
 }

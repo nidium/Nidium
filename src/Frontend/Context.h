@@ -25,6 +25,8 @@
 #include "Core/Context.h"
 #include "Frontend/InputHandler.h"
 
+#include <Yoga.h>
+
 class GrContext;
 
 namespace Nidium {
@@ -45,13 +47,6 @@ class JSWindow;
 namespace Frontend {
 
 class NML;
-
-struct JobQueue
-{
-    void (*job)(void *arg);
-    struct JobQueue *next;
-    void *arg;
-};
 
 class LocalContext {
 public:
@@ -166,8 +161,6 @@ public:
 
     Core::Hash<Binding::NidiumBytecodeScript *> m_Preload;
 
-    void addJob(void (*job)(void *arg), void *arg);
-
     Graphics::CanvasHandler *getCanvasById(const char *str)
     {
         return m_CanvasList.get(str);
@@ -203,6 +196,8 @@ public:
     void logShow() override;
     void logHide() override;
 
+    YGConfigRef m_YogaConfig;
+    uint64_t m_CanvasCreatedIdx = 8;
 private:
     Graphics::GLResources m_Resources;
     Graphics::CanvasHandler *m_RootHandler;
@@ -241,26 +236,19 @@ private:
     void initStats();
     bool initShaderLang();
     void initHandlers(int width, int height);
-    struct
-    {
-        struct JobQueue *head;
-        struct JobQueue *queue;
-    } m_Jobs;
+
 
     /* Hash of all canvases (key: numeric identifier) */
     std::unordered_map<uint64_t, Graphics::CanvasHandler *> m_CanvasListIdx;
     /* Hash of all canvases (key: string identifier) */
     Core::Hash<Graphics::CanvasHandler *> m_CanvasList;
-    /* Hash of all canvases with pending jobs (key: addr) */
-    Core::Hash64<Graphics::CanvasHandler *> m_CanvasPendingJobs;
+
     std::vector<Graphics::CanvasHandler *> m_CanvasOrderedEvents;
 
     ape_pool_list_t m_CanvasEventsCanvas;
 
     Graphics::CanvasHandler *m_CurrentClickedHandler;
 
-    void execJobs();
-    void execPendingCanvasChanges();
     void triggerEvents();
 
     static bool WriteStructuredCloneOp(JSContext *cx,

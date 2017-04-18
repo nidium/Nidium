@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <math.h>
 
-
+#include "Interface/SystemInterface.h"
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSDocument.h"
 #include "Binding/JSCanvas.h"
@@ -127,6 +127,10 @@ Context::Context(ape_global *net)
       m_JSWindow(NULL), m_SizeDirty(false), m_CurrentClickedHandler(NULL)
 {
 
+    m_YogaConfig = YGConfigNew();
+    YGConfigSetPointScaleFactor(m_YogaConfig,
+        Interface::SystemInterface::GetInstance()->backingStorePixelRatio());
+
     Binding::NidiumLocalContext *nlc = Binding::NidiumLocalContext::Get();
     nlc->ptr = (void *)new LocalContext();
 
@@ -148,10 +152,6 @@ Context::Context(ape_global *net)
                                      Context::ReadStructuredCloneOp);
 
     JS::RootedObject globalObj(m_JS->m_Cx, JS::CurrentGlobalOrNull(m_JS->m_Cx));
-    //JS_InitReflect(m_JS->m_Cx, globalObj);
-
-    m_Jobs.head  = NULL;
-    m_Jobs.queue = NULL;
 }
 
 
@@ -194,7 +194,7 @@ void Context::loadNativeObjects(int width, int height)
 
 
 #if DEBUG
-    createDebug2Canvas();
+    //createDebug2Canvas();
 #endif
 }
 
@@ -255,8 +255,8 @@ void Context::createDebugCanvas()
 
     m_RootHandler->addChild(m_DebugHandler);
 
-    m_DebugHandler->setRight(0);
-    m_DebugHandler->setOpacity(0.6);
+    m_DebugHandler->setPropRight(0);
+    m_DebugHandler->setPropOpacity(0.6);
     ctx2d->getSkiaContext()->setFontType("monospace");
 }
 
@@ -275,9 +275,8 @@ void Context::createDebug2Canvas()
     ctx2d->setGLState(this->getGLState());
 
     m_RootHandler->addChild(m_Debug2Handler);
-    m_Debug2Handler->unsetTop();
-    m_Debug2Handler->setRight(0);
-    m_Debug2Handler->setBottom(0);
+    m_Debug2Handler->setPropRight(0);
+    m_Debug2Handler->setPropBottom(0);
 }
 #endif
 
@@ -291,8 +290,8 @@ void Context::postDraw()
         m_DebugHandler->bringToFront();
 
         s->setFillColor(0xFF000000u);
-        s->drawRect(0, 0, m_DebugHandler->getWidth(),
-                    m_DebugHandler->getHeight(), 0);
+        s->drawRect(0, 0, m_DebugHandler->getPropWidth(),
+                    m_DebugHandler->getPropHeight(), 0);
         s->setFillColor(0xFFEEEEEEu);
 
         s->drawTextf(5, 12, "Nidium build %s %s", __DATE__, __TIME__);
@@ -309,12 +308,12 @@ void Context::postDraw()
             // s->drawLine(300 + i * 3, 55, 300 + i * 3, (40 / 60) *
             // m_Stats.samples[i]);
             s->setStrokeColor(0xFF004400u);
-            s->drawLine(m_DebugHandler->getWidth() - 20 - i * 3, 55,
-                        m_DebugHandler->getWidth() - 20 - i * 3, 20.f);
+            s->drawLine(m_DebugHandler->getPropWidth() - 20 - i * 3, 55,
+                        m_DebugHandler->getPropWidth() - 20 - i * 3, 20.f);
             s->setStrokeColor(0xFF00BB00u);
             s->drawLine(
-                m_DebugHandler->getWidth() - 20 - i * 3, 55,
-                m_DebugHandler->getWidth() - 20 - i * 3,
+                m_DebugHandler->getPropWidth() - 20 - i * 3, 55,
+                m_DebugHandler->getPropWidth() - 20 - i * 3,
                 nidium_min(60 - ((40.f / 62.f)
                                  * static_cast<float>(m_Stats.samples[i])),
                            55));
@@ -399,23 +398,14 @@ void Context::rendered(uint8_t *pdata, int width, int height)
 void Context::frame(bool draw)
 {
     LayerizeContext ctx;
-    LayerSiblingContext sctx;
     Canvas2DContext *rootctx;
     std::vector<ComposeContext> compList;
 
     ctx.reset();
-    ctx.m_SiblingCtx = &sctx;
 
     rootctx = (Canvas2DContext *)m_RootHandler->m_Context;
 
     assert(m_UI != NULL);
-    // this->execJobs();
-    /*
-        Pending canvas events.
-        (e.g. resize events requested between frames,
-        Canvas that need to be resized because of a fluidheight)
-    */
-    this->execPendingCanvasChanges();
 
     /* Call requestAnimationFrame */
     this->callFrame();
@@ -427,9 +417,9 @@ void Context::frame(bool draw)
         Exec the pending events a second time in case
         there are resize in the requestAnimationFrame
     */
-    this->execPendingCanvasChanges();
     m_CanvasOrderedEvents.clear();
 
+    m_RootHandler->computeLayoutPositions();
     /* Build the composition list */
     m_RootHandler->layerize(ctx, compList, draw);
 
@@ -732,62 +722,13 @@ void Context::initHandlers(int width, int height)
 
     m_RootHandler = new CanvasHandler(width, height, this);
 
+    m_RootHandler->setPositioning(CanvasHandler::COORD_RELATIVE);
+    //m_RootHandler->p_Flex = false;
+
     m_RootHandler->setContext(
         new Canvas2DContext(m_RootHandler, width, height, m_UI));
     m_RootHandler->getContext()->setGLState(this->getGLState());
 }
-
-void Context::addJob(void (*job)(void *arg), void *arg)
-{
-    struct JobQueue *obj
-        = static_cast<struct JobQueue *>(malloc(sizeof(struct JobQueue)));
-
-    obj->job  = job;
-    obj->arg  = arg;
-    obj->next = NULL;
-
-    if (m_Jobs.head == NULL) {
-        m_Jobs.head = obj;
-    }
-    if (m_Jobs.queue == NULL) {
-        m_Jobs.queue = obj;
-    } else {
-        m_Jobs.queue->next = obj;
-    }
-}
-
-void Context::execJobs()
-{
-    if (m_Jobs.head == NULL) {
-        return;
-    }
-
-    struct JobQueue *obj, *tObj;
-
-    for (obj = m_Jobs.head; obj != NULL; obj = tObj) {
-        tObj = obj->next;
-
-        obj->job(obj->arg);
-
-        free(obj);
-    }
-
-    m_Jobs.head  = NULL;
-    m_Jobs.queue = NULL;
-}
-
-void Context::execPendingCanvasChanges()
-{
-    ape_htable_item_t *item, *tmpItem;
-    for (item = m_CanvasPendingJobs.accessCStruct()->first; item != NULL;
-         item = tmpItem) {
-        tmpItem = item->lnext;
-        CanvasHandler *handler
-            = static_cast<CanvasHandler *>(item->content.addrs);
-        handler->execPending();
-    }
-}
-
 
 bool Context::WriteStructuredCloneOp(JSContext *cx,
                                      JSStructuredCloneWriter *w,

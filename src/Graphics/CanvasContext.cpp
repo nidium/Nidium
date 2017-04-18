@@ -373,7 +373,7 @@ void CanvasContext::setupShader(float opacity,
             NIDIUM_GL_CALL_MAIN(
                 Uniform1f(m_GLState->m_GLObjects.uniforms.u_opacity, opacity));
         }
-        float padding = this->getHandler()->m_Padding.global * ratio;
+        float padding = this->getHandler()->p_Coating * ratio;
 
         if (m_GLState->m_GLObjects.uniforms.u_resolution != -1)
             NIDIUM_GL_CALL_MAIN(
@@ -435,8 +435,8 @@ void CanvasContext::preComposeOn(Canvas2DContext *layer,
     this->getSize(&width, &height);
 
     this->setupShader(static_cast<float>(opacity), width, height, left, top,
-                      static_cast<int>(layer->getHandler()->getWidth()),
-                      static_cast<int>(layer->getHandler()->getHeight()));
+                      static_cast<int>(layer->getHandler()->getComputedWidth()),
+                      static_cast<int>(layer->getHandler()->getComputedHeight()));
 
     this->updateMatrix(left * ratio, top * ratio, layerSize.width(),
                        layerSize.height(), layer->m_GLState);
