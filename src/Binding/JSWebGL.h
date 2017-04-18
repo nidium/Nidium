@@ -14,11 +14,6 @@
 #include <OpenGL/gl3ext.h>
 #endif
 
-#ifndef NIDIUM_OPENGLES2
-#include <GL/glx.h>
-#include <GL/glxext.h>
-#endif
-
 #include "Graphics/CanvasContext.h"
 #include "Graphics/Canvas3DContext.h"
 #include "Graphics/CanvasHandler.h"
