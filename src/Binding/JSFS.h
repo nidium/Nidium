@@ -82,6 +82,7 @@ public:
     static JSFunctionSpec *ListMethods();
 protected:
     NIDIUM_DECL_JSCALL(readDir);
+    NIDIUM_DECL_JSCALL(isDir);
 };
 
 } // namespace Binding

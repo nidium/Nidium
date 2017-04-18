@@ -273,20 +273,6 @@ bool JSFile::JSGetter_filename(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
-bool JSFile::JS_isDir(JSContext *cx, JS::CallArgs &args)
-{
-    File *file = this->getFile();
-
-    if (!file->isOpen()) {
-        JS_ReportError(cx, "File has not been opened");
-        return false;
-    }
-
-    args.rval().setBoolean(file->isDir());
-
-    return true;
-}
-
 bool JSFile::JS_rm(JSContext *cx, JS::CallArgs &args)
 {
     this->getFile()->rm();
@@ -811,7 +797,6 @@ JSFunctionSpec *JSFile::ListMethods()
         CLASSMAPPER_FN(JSFile, write, 2),
         CLASSMAPPER_FN(JSFile, writeSync, 1),
 
-        CLASSMAPPER_FN(JSFile, isDir, 0),
         CLASSMAPPER_FN(JSFile, listFiles, 1),
 
         CLASSMAPPER_FN(JSFile, rm, 0),

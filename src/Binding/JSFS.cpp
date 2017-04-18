@@ -104,6 +104,36 @@ public:
 // }}}
 
 // {{{ Implementation
+bool JSFS::JS_isDir(JSContext *cx, JS::CallArgs &args)
+{
+    JS::RootedString path(cx);
+
+    if (!JS_ConvertArguments(cx, args, "S", path.address())) {
+
+        args.rval().setBoolean(false);
+
+        return true;
+
+    }
+
+    JSAutoByteString cpath(cx, path);
+
+    struct stat statbuf;
+
+    if (stat(strdup(cpath.ptr()), &statbuf) == -1) {
+
+        args.rval().setBoolean(false);
+
+        return true;
+
+    }
+
+    args.rval().setBoolean(S_ISDIR(statbuf.st_mode));
+
+    return true;
+
+}
+
 bool JSFS::JS_readDir(JSContext *cx, JS::CallArgs &args)
 {
     JS::RootedString path(cx);
@@ -134,6 +164,7 @@ JSFunctionSpec *JSFS::ListMethods()
 {
     static JSFunctionSpec funcs[] = {
         CLASSMAPPER_FN(JSFS, readDir, 2),
+        CLASSMAPPER_FN(JSFS, isDir, 1),
 
         JS_FS_END
     };
