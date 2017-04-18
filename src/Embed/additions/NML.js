@@ -6,22 +6,25 @@
 {
     const Elements = require("Elements");
 
-    function walk(elems, parent, shadowRoot) {
-        if (!elems) {
+    function walk(elements, parent, shadowRoot) {
+        if (!elements) {
             return [];
         }
 
         let ret = [];
 
-        for (let elem of elems) {
-            let name = elem.type;
+        for (let node of elements) {
+            let name = node.type;
 
             /*
                ES6 destructuring object default value doesnt work
                https://bugzilla.mozilla.org/show_bug.cgi?id=932080
             */
-            let {id} = elem.attributes || {id: null};
-            let el = Elements.Create(elem.type, elem.attributes || elem.text, shadowRoot);
+            let {id} = node.attributes || {id: null};
+
+            let el = Elements.Create(
+                node.type, node.attributes || node.text, shadowRoot
+            );
 
             if (parent) {
                 parent.add(el);
@@ -29,7 +32,7 @@
                 ret.push(el);
             }
 
-            el.createTree(elem.children);
+            el.createTree(node.children);
             el.fireEvent("ready", {});
         }
 

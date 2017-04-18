@@ -17,8 +17,8 @@
             this.style.flexWrap = "nowrap";
         }
 
-        paint(ctx) {
-            super.paint(ctx)
+        paint(ctx, w, h) {
+            super.paint(ctx, w, h);
         }
     }
 }

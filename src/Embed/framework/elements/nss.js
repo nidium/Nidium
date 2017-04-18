@@ -41,11 +41,7 @@
         }
 
         createTree(children) {
-            let nss = this.data;
-            
-            if (!nss) {
-                nss = children[0].text;
-            }
+            let nss = this.data || children[0].text;
             this.nss = new NSS(this[s_ShadowRoot], nss, this.filename);
         }
     }

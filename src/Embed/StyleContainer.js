@@ -128,6 +128,11 @@ class ElementStyles {
                 s.radius + s.borderWidth*0.5
             );
         }
+
+        /* border bottom
+            ctx.fillRect(0, h-0.5, w, 0.5);
+        */
+
     }
 }
 

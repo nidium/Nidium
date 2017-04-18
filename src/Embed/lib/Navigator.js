@@ -6,6 +6,11 @@
 
 const Elements = require("Elements");
 
+const __opacity_lo__ = 0.4;
+const __opacity_hi__ = 1.0;
+const __next_duration__ = 450;
+const __back_duration__ = 420;
+
 class Navigator extends Elements.Element {
     constructor(attributes) {
         super(attributes);
@@ -46,23 +51,19 @@ class Navigator extends Elements.Element {
         if (this.history.length>0) {
 
             var currScene = this.history[this.history.length-1];
-            currScene.opacity = 1.00;
-            setTimeout(()=>{
-                AnimationBlock(480, Easing.Exponential.Out, (c)=>{
-                    c.left = -window.innerWidth;
-                    c.opacity = 0.5;
-                }, currScene);
-            }, 0);
+            currScene.opacity = __opacity_hi__;
+            AnimationBlock(__next_duration__, Easing.Exponential.Out, (c)=>{
+                c.left = -window.innerWidth;
+                c.opacity = __opacity_lo__;
+            }, currScene);
 
 
             nextScene.left = window.innerWidth;
-            nextScene.opacity = 0.2;
-            setTimeout(()=>{
-                AnimationBlock(480, Easing.Exponential.Out, (c)=>{
-                    c.left = 0;
-                    c.opacity = 1;
-                }, nextScene);
-            }, 0);
+            nextScene.opacity = __opacity_lo__;
+            AnimationBlock(__next_duration__, Easing.Exponential.Out, (c)=>{
+                c.left = 0;
+                c.opacity = __opacity_hi__;
+            }, nextScene);
         }
 
         this.history.push(nextScene);
@@ -75,27 +76,23 @@ class Navigator extends Elements.Element {
         if (this.history.length<=1) return false;
 
         var currScene = this.history.pop();
-        currScene.opacity = 1;
+        currScene.opacity = __opacity_hi__;
 
-        setTimeout(()=>{
-            AnimationBlock(350, Easing.Exponential.InOut, (c)=>{
-                c.left = window.innerWidth;
-                c.opacity = 0.8;
-            }, currScene)(()=>{
-                currScene.removeFromParent();
-                callback.call(this);
-            });
-        }, 100);
+        AnimationBlock(__back_duration__, Easing.Exponential.Out, (c)=>{
+            c.left = window.innerWidth;
+            c.opacity = __opacity_lo__;
+        }, currScene)(()=>{
+            currScene.removeFromParent();
+            callback.call(this);
+        });
 
         var prevScene = this.history[this.history.length-1];
         prevScene.left = -window.innerWidth;
-        prevScene.opacity = 0.1;
-        setTimeout(()=>{
-            AnimationBlock(480, Easing.Exponential.InOut, (c)=>{
-                c.left = 0;
-                c.opacity = 1;
-            }, prevScene);
-        }, 0);
+        prevScene.opacity = __opacity_lo__;
+        AnimationBlock(__back_duration__, Easing.Exponential.Out, (c)=>{
+            c.left = 0;
+            c.opacity = __opacity_hi__;
+        }, prevScene);
 
     }
 }
