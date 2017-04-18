@@ -123,7 +123,7 @@ void AndroidUIInterface::onMessage(const Core::SharedMessages::Message &msg)
 
     switch (msg.event()) {
         case kAndroidMessage_scroll: {
-            InputEvent ev(InputEvent::kScroll_type,
+            InputEvent ev(InputEvent::kTouchScroll_type,
                           info->x / pixelRatio,
                           info->y / pixelRatio);
 
@@ -143,7 +143,7 @@ void AndroidUIInterface::onMessage(const Core::SharedMessages::Message &msg)
             int x = info->x / pixelRatio;
             int y = info->y / pixelRatio;
 
-            handler->onScroll(x, y, 0, 0, info->state);
+            handler->onTouchScroll(x, y, 0, 0, info->state);
         } break;
     }
 

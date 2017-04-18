@@ -51,6 +51,7 @@ public:
         kTouchStart_Type,
         kTouchEnd_Type,
         kTouchMove_Type,
+        kTouchScroll_type,
         kScroll_type
     };
 

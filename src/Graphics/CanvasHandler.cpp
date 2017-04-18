@@ -882,7 +882,7 @@ void CanvasHandler::scroll(int x, int y)
     m_CurrentScroll.y = y;
 }
 
-void CanvasHandler::onScroll(int x, int y,
+void CanvasHandler::onTouchScroll(int x, int y,
                              int velocityX, int velocityY,
                              InputEvent::ScrollState state)
 {
@@ -900,7 +900,7 @@ void CanvasHandler::onScroll(int x, int y,
             if (!m_CurrentScroll.active) {
                 // Scroll has been enabled while user was already scrolling
                 // Fake a scroll start event
-                this->onScroll(x, y,
+                this->onTouchScroll(x, y,
                                velocityX, velocityY,
                                InputEvent::kScrollState_start);
             }
@@ -1125,7 +1125,7 @@ void CanvasHandler::onInputEvent(InputEvent *ev)
     InputHandler *inputHandler = m_NidiumContext->getInputHandler();
 
     switch (ev->getType()) {
-        case InputEvent::kScroll_type: {
+        case InputEvent::kTouchScroll_type: {
             int consumed = ev->m_Origin->m_data[3];
             Graphics::CanvasHandler *scrollHandler
                 = inputHandler->getCurrentScrollHandler();
@@ -1136,9 +1136,9 @@ void CanvasHandler::onInputEvent(InputEvent *ev)
 
             ev->m_Origin->m_data[3] = 1;
 
-            scrollHandler->onScroll(ev->m_x, ev->m_y,
-                                    ev->m_data[0], ev->m_data[1],
-                                    state);
+            scrollHandler->onTouchScroll(ev->m_x, ev->m_y,
+                                         ev->m_data[0], ev->m_data[1],
+                                         state);
 
             if (state == InputEvent::kScrollState_end) {
                 inputHandler->setCurrentScrollHandler(nullptr);
@@ -1249,8 +1249,8 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                 arg[6].set(ev->m_y - p_Top.getAlternativeValue());  // layerY
                 arg[7].set(this);              // target
                 break;
-            case InputEvent::kScroll_type: {
-                if (!handler->isScrollable() || ev->m_Origin->m_data[3]) {
+            case InputEvent::kTouchScroll_type: {
+                if (!handler->isScrollable() || ev->m_Origin->m_data[3] /* consumed */) {
                     continue;
                 }
 
@@ -1273,7 +1273,7 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                 */
                 ev->m_Origin->m_data[3] = 1;
 
-                handler->onScroll(ev->m_x, ev->m_y,
+                handler->onTouchScroll(ev->m_x, ev->m_y,
                                   ev->m_data[0], ev->m_data[1],
                                   state);
             } break;

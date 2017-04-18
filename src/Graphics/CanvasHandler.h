@@ -583,9 +583,9 @@ public:
     }
 
     void scroll(int x, int y);
-    void onScroll(int x, int y,
-                  int velocityX, int velocityY,
-                  Frontend::InputEvent::ScrollState state);
+    void onTouchScroll(int x, int y,
+                       int velocityX, int velocityY,
+                       Frontend::InputEvent::ScrollState state);
 
     void invalidate()
     {
