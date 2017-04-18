@@ -123,7 +123,7 @@ public:
     uint8_t *getPixels() override;
     uint32_t getTextureID() const override;
     void flush() override;
-    virtual void setSize(int width, int height, bool redraw = true) override;
+    virtual void setSize(float width, float height, bool redraw = true) override;
 
     void translate(double x, double y) override;
 

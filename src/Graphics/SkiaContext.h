@@ -106,7 +106,7 @@ public:
 
         Size are logical pixels units
     */
-    bool setSize(int width, int height, bool redraw = true);
+    bool setSize(float width, float height, bool redraw = true);
 
     /*
         Ask Skia to reset its internal GL state in case we have altered it

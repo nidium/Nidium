@@ -1843,7 +1843,7 @@ void Canvas2DContext::getSize(int *width, int *height) const
     *height = size.height();
 }
 
-void Canvas2DContext::setSize(int width, int height, bool redraw)
+void Canvas2DContext::setSize(float width, float height, bool redraw)
 {
     m_Skia->setSize(width, height, redraw);
 }
