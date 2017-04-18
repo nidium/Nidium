@@ -76,8 +76,6 @@ protected:
     NIDIUM_DECL_JSCALL(write);
     NIDIUM_DECL_JSCALL(writeSync);
     NIDIUM_DECL_JSCALL(listFiles);
-    NIDIUM_DECL_JSCALL(rm);
-    NIDIUM_DECL_JSCALL(rmrf);
 
     NIDIUM_DECL_JSCALL_STATIC(read);
     NIDIUM_DECL_JSCALL_STATIC(readSync);

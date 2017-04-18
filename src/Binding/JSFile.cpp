@@ -273,20 +273,6 @@ bool JSFile::JSGetter_filename(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
-bool JSFile::JS_rm(JSContext *cx, JS::CallArgs &args)
-{
-    this->getFile()->rm();
-
-    return true;
-}
-
-bool JSFile::JS_rmrf(JSContext *cx, JS::CallArgs &args)
-{
-    this->getFile()->rmrf();
-
-    return true;
-}
-
 bool JSFile::JS_listFiles(JSContext *cx, JS::CallArgs &args)
 {
     File *file = this->getFile();
@@ -799,8 +785,6 @@ JSFunctionSpec *JSFile::ListMethods()
 
         CLASSMAPPER_FN(JSFile, listFiles, 1),
 
-        CLASSMAPPER_FN(JSFile, rm, 0),
-        CLASSMAPPER_FN(JSFile, rmrf, 0),
         JS_FS_END
     };
 
