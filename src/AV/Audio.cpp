@@ -57,7 +57,7 @@ Audio::Audio(ape_global *n,
     : m_Net(n), m_SourcesCount(0), m_PlaybackStartTime(0),
       m_PlaybackConsumedFrame(0), m_Output(NULL), m_InputStream(NULL),
       m_OutputStream(NULL), m_rBufferOutData(NULL), m_volume(1),
-      m_SourceNeedWork(false), m_QueueFreeLock(false), m_SharedMsgFlush(false),
+      m_QueueFreeLock(false), m_SharedMsgFlush(false),
       m_ThreadShutdown(false), m_Sources(NULL)
 {
     NIDIUM_PTHREAD_VAR_INIT(&m_QueueHaveData);
@@ -345,8 +345,6 @@ void *Audio::decodeThread(void *args)
         SPAM(("Waitting for queueNeedData"));
         NIDIUM_PTHREAD_WAIT(&audio->m_QueueNeedData);
         SPAM(("QueueNeedData received\n"));
-
-        audio->m_SourceNeedWork = false;
 
         NIDIUM_AUDIO_CHECK_EXIT_THREAD
     }

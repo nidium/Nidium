@@ -804,10 +804,9 @@ AudioSource::AudioSource(int out, Audio *audio, bool external)
       m_PacketConsumed(true), m_SamplesConsumed(0), m_AudioStream(-1),
       m_FailedDecoding(0), m_SwrCtx(NULL), m_sCvt(NULL), m_fCvt(NULL),
       m_AvioBuffer(NULL), m_fBufferInData(NULL), m_fBufferOutData(NULL),
-      m_rBufferOutData(NULL), m_Buffering(false)
+      m_rBufferOutData(NULL)
 {
     m_DoSemek = false;
-    m_Seeking = false;
 
     m_TmpFrame.size      = 0;
     m_TmpFrame.data      = NULL;

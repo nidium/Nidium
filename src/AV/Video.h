@@ -163,7 +163,6 @@ public:
 private:
     AVReader *m_Reader;
     Audio *m_Audio;
-    bool m_Buffering;
     bool m_ThreadCreated;
     bool m_SourceNeedWork;
     bool m_DoSetSize;

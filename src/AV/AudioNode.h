@@ -347,7 +347,6 @@ public:
     int open(void *buffer, int size) override;
     int openInit() override;
     int openInitInternal();
-    static void openInitCoro(void *arg);
     int initStream();
     int initInternal();
     void seek(double time) override;
@@ -355,7 +354,6 @@ public:
     int avail();
     virtual bool buffer();
     void buffer(AVPacket *pkt);
-    static void bufferCoro(void *arg);
     bool bufferInternal();
 
     virtual bool process() override;
@@ -379,7 +377,6 @@ private:
     } m_TmpFrame;
     AVPacket *m_TmpPacket;
 
-    static void seekCoro(void *arg);
     void seekInternal(double time);
 
     double m_Clock;
@@ -397,7 +394,6 @@ private:
     float *m_fBufferInData, *m_fBufferOutData;
     void *m_rBufferOutData;
 
-    bool m_Buffering;
     char *m_Filename = nullptr;
 };
 // }}}

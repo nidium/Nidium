@@ -22,7 +22,6 @@ extern "C" {
 #include <libavutil/time.h>
 }
 
-struct Coro;
 struct AVFormatContext;
 struct AVDictionary;
 struct PaUtilRingBuffer;
@@ -31,7 +30,6 @@ namespace Nidium {
 namespace AV {
 
 #define NIDIUM_AVIO_BUFFER_SIZE 32768
-#define CORO_STACK_SIZE 4096
 /* Audio processing buffer multiplier (must be power of 2) */
 #define NIDIUM_AUDIO_BUFFER_MULTIPLIER 4
 /* Max size for the resampling buffer */
@@ -322,10 +320,6 @@ public:
 protected:
     AVFormatContext *m_Container;
 
-    Coro *m_Coro;
-    Coro *m_MainCoro;
-
-    bool m_Seeking;
     bool m_DoSemek;
     double m_DoSeekTime;
     int m_SeekFlags;

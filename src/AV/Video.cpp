@@ -13,7 +13,6 @@
 #include <pthread.h>
 
 #include <pa_ringbuffer.h>
-#include <Coro.h>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -48,7 +47,7 @@ Video::Video(ape_global *n)
       m_SwsCtx(NULL), m_CodecCtx(NULL), m_VideoStream(-1), m_AudioStream(-1),
       m_rBuff(NULL), m_Buff(NULL), m_AvioBuffer(NULL), m_FramesIdx(0),
       m_DecodedFrame(NULL), m_ConvertedFrame(NULL), m_Reader(NULL),
-      m_Audio(NULL), m_Buffering(false), m_ThreadCreated(false),
+      m_Audio(NULL), m_ThreadCreated(false),
       m_SourceNeedWork(false), m_DoSetSize(false), m_NewWidth(0),
       m_NewHeight(0), m_NoDisplay(false), m_InDisplay(false)
 {
@@ -66,7 +65,6 @@ Video::Video(ape_global *n)
     m_VideoQueue = new PacketQueue();
 
     m_DoSemek   = false;
-    m_Seeking   = false;
     m_SeekFlags = 0;
 
     for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
@@ -725,9 +723,7 @@ int Video::display(void *custom)
 
     // Read frame from ring buffer
     if (PaUtil_GetRingBufferReadAvailable(v->m_rBuff) < 1) {
-        if (!v->m_Buffering && !v->m_Seeking) {
-            NIDIUM_PTHREAD_SIGNAL(&v->m_BufferCond);
-        }
+        NIDIUM_PTHREAD_SIGNAL(&v->m_BufferCond);
         if (v->m_Eof) {
             DPRINT("No frame, eof reached\n");
             v->sendEvent(SOURCE_EVENT_EOF, 0);
@@ -1030,22 +1026,18 @@ void *Video::decode(void *args)
         }
 
         if (v->m_Opened) {
-            DPRINT("opened buffering=%d\n", v->m_Buffering);
-            if (!v->m_Buffering && !v->m_Seeking) {
-                DPRINT("not buffering and seeking\n");
-                if (v->m_DoSemek == true) {
-                    DPRINT("seeking\n");
-                    v->seekInternal(v->m_DoSeekTime);
-                    v->m_DoSemek = false;
-                    DPRINT("done seeking\n");
-                } else {
-                    DPRINT("buffering\n");
-                    v->buffer();
-                }
+            DPRINT("opened\n");
+            if (v->m_DoSemek == true) {
+                DPRINT("seeking\n");
+                v->seekInternal(v->m_DoSeekTime);
+                v->m_DoSemek = false;
+                DPRINT("done seeking\n");
+            } else {
+                DPRINT("buffering\n");
+                v->buffer();
             }
 
-            DPRINT("doSeek=%d readFlag=%d seeking=%d\n", v->m_DoSemek,
-                   v->m_SourceNeedWork, v->m_Seeking);
+            DPRINT("doSeek=%d\n", v->m_DoSemek);
             if (!v->m_DoSemek) {
                 DPRINT("processing\n");
                 bool videoFailed = !v->processVideo();
