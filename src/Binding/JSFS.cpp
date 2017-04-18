@@ -191,12 +191,36 @@ bool JSFS::JS_readDir(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
+bool JSFS::JS_removeSync(JSContext *cx, JS::CallArgs &args)
+{
+    JS::RootedString path(cx);
+
+    if (!JS_ConvertArguments(cx, args, "S", path.address())) {
+
+        args.rval().setBoolean(false);
+
+        return true;
+
+    }
+
+    JSAutoByteString cpath(cx, path);
+
+    int retval = remove(strdup(cpath.ptr()));
+
+    args.rval().setBoolean(retval == 0);
+
+    return true;
+
+}
+
 JSFunctionSpec *JSFS::ListMethods()
 {
     static JSFunctionSpec funcs[] = {
-        CLASSMAPPER_FN(JSFS, readDir, 2),
         CLASSMAPPER_FN(JSFS, isDir, 1),
         CLASSMAPPER_FN(JSFS, isFile, 1),
+
+        CLASSMAPPER_FN(JSFS, readDir, 2),
+        CLASSMAPPER_FN(JSFS, removeSync, 1),
 
         JS_FS_END
     };

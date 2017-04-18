@@ -81,9 +81,10 @@ public:
     static void RegisterObject(JSContext *cx);
     static JSFunctionSpec *ListMethods();
 protected:
-    NIDIUM_DECL_JSCALL(readDir);
     NIDIUM_DECL_JSCALL(isDir);
     NIDIUM_DECL_JSCALL(isFile);
+    NIDIUM_DECL_JSCALL(readDir);
+    NIDIUM_DECL_JSCALL(removeSync);
 };
 
 } // namespace Binding
