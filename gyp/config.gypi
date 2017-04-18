@@ -22,6 +22,7 @@
         'nidium_interface_path': '../src/Interface/',
         'nidium_network_path': '../src/libapenetwork/',
         'nidium_resources_path': '../resources/',
+        'nidium_tools_path': '../tools/',
         'nidium_tests_path': '../tests/gunittest/',
         'nidium_exec_name': 'nidium',
         'nidium_exec_path': '../bin/',
