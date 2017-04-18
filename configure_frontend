@@ -33,8 +33,6 @@ Deps.set(
     "libzip",
     "lss",
     "breakpad",
-    "basekit",
-    "libcoroutine",
     "SDL2",
     "rapidxml",
     "ffmpeg",
@@ -209,29 +207,6 @@ def depotTools():
     Deps.Gclient.setExec(os.path.join("depot_tools", "gclient"))
     return {
         "location": Deps.GitRepo("https://chromium.googlesource.com/chromium/tools/depot_tools.git", revision="8bf327c")
-    }
-
-@Deps.register("basekit")
-def basekit():
-    return {
-        "location": Deps.GitRepo("https://github.com/stevedekorte/basekit.git", revision="a3e54ba83b85f530dc9442a33d2779240ed96189"),
-        "build": ["make"],
-        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "basekit.patch")],
-        "outputs": ["_build/lib/libbasekit(.a|.lib)"]
-    }
-
-@Deps.register("libcoroutine")
-def libcoro():
-    patchs = [os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.patch")]
-
-    if Konstruct.config("valgrind"):
-        patchs.append(os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.debug.patch"))
-
-    return {
-        "location": Deps.GitRepo("https://github.com/stevedekorte/coroutine.git", revision="b0bf11d8a0ec70bc0f1f5043513d334e1eff15fc"),
-        "patchs": patchs,
-        "build": ["make"],
-        "outputs": [["_build/lib/liblibcoroutine(.a|.lib)", "libcoroutine\\1"]]
     }
 
 @Deps.register("rapidxml")

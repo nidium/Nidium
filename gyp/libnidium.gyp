@@ -37,8 +37,6 @@
             '<(third_party_path)/libzip/lib',
             '<(third_party_path)/rapidxml',
             '<(third_party_path)/ffmpeg/',
-            '<(third_party_path)/libcoroutine/source/',
-            '<(third_party_path)/basekit/source/',
             '<(third_party_path)/angle/include/'
         ],
 

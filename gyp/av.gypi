@@ -8,9 +8,7 @@
         '<(third_party_path)/portaudio/src/common/',
         '<(third_party_path)/portaudio/include/',
         '<(third_party_path)/zita-resampler/libs/',
-        '<(third_party_path)/ffmpeg/',
-        '<(third_party_path)/libcoroutine/source/',
-        '<(third_party_path)/basekit/source/',
+        '<(third_party_path)/ffmpeg/'
     ],
     'sources': [
         '<(nidium_av_path)AV.cpp',
@@ -35,7 +33,6 @@
                         '$(SDKROOT)/System/Library/Frameworks/CoreMedia.framework',
                         '$(SDKROOT)/System/Library/Frameworks/VideoToolbox.framework',
                         '$(SDKROOT)/System/Library/Frameworks/Security.framework',
-                        'libcoroutine.a',
                         'libportaudio.a',
                         'libzita-resampler.a',
                         'libswresample.a',
@@ -52,7 +49,6 @@
                         '-lasound',
                         '-lportaudio',
                         '-lzita-resampler',
-                        '-lcoroutine',
                         '-lswresample',
                         '-lswscale',
                         '-lavformat',
