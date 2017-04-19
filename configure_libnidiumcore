@@ -37,7 +37,7 @@ elif Platform.system == "Windows":
    Platform.setCompiler("cl", "cl")
    Platform.setEnviron("LD=Link")
    Platform.setEnviron("AR=lib")
-   Deps.set('pthreads4w', "icu")
+   Deps.set('pthreads4w')
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
 CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -78,6 +78,8 @@ def leveldb():
 
 @Deps.register("icu")
 def icu():
+    Platform.setEnviron("CXXFLAGS=-MD")
+    Platform.setEnviron("CFLAGS=-MD")
     return {
         "chdir": "./mozilla-central/intl/icu",
         "build": [  Platform.MsBuild("source/common/common.vcxproj"),
@@ -90,13 +92,13 @@ def icu():
 @Deps.register("libnspr4")
 def libnspr():
     ext = '.a'
-    postfix= ''
+    outputs =  []
     if Platform.system == "Windows":
         ext = '.lib'
         postfix= '_s'
         make = "mozmake -j1"
-        configure = "bash ./configure --enable-static-rtl "
-        #make static libs
+        configure = "bash ./configure --disable-static-rtl "
+        outputs + [ "dist/lib/lib%s4%s_s%s" % (l, postfix, ext) for l in ['nspr', 'plc', 'plds']] 
     else:
         make = "make"
         configure = "./configure"
@@ -106,7 +108,7 @@ def libnspr():
                    --enable-optimize \
                    --enable-strip \
                    --disable-nspr-threads"
-    outputs = [ "dist/lib/lib%s4%s%s" % (l, postfix, ext) for l in ['nspr', 'plc', 'plds']]
+    outputs = outputs + [ "dist/lib/lib%s4%s%s" % (l, postfix, ext) for l in ['nspr', 'plc', 'plds']] 
     return {
         "chdir": "mozilla-central/nsprpub/",
         "build": [configure, make],
@@ -119,6 +121,8 @@ def mozilla():
     nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/")).replace('\\', '/')
     nsprFlags = '--with-nspr-cflags="-I%s/dist/include/nspr/"' % (nsprDir)
     if Platform.system == "Windows":
+        Platform.setEnviron("CXXFLAGS=-MD")
+        Platform.setEnviron("CFLAGS=-MD")
         patch = [os.path.join(CONFIGURE_PATH, "patch", "mozilla-central_windows.patch")]
         make = "mozmake"
         configure = "bash ../configure --enable-build-backend=VisualStudio"
@@ -145,6 +149,7 @@ def mozilla():
     if Konstruct.config("valgrind"):
         configure += " --enable-valgrind "
 
+    outputs = outputs + ["intl/icu/target/lib/%s.lib" % (l) for l in ["icuin", "icuuc", "icudt"] ]
     return {
         "chdir": "js/src/obj",
         "location": DEPEDENCY_REPO + "/mozjs-45.5.3.tar.bz2",
