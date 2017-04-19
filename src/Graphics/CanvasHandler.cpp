@@ -1282,17 +1282,19 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
             } break;
         }
 
-        /* fireEvent returns false if a stopPropagation is detected */
         EventState evState;
-        if (!handler->fireEventSync<CanvasHandler>(canvasEvent, arg, &evState)) {
-            break;
-        }
+        handler->fireEventSync<CanvasHandler>(canvasEvent, arg, &evState);
 
         if (canvasEvent == SCROLL_EVENT) {
             if (!evState.defaultPrevented) {
                 handler->scroll(ev->m_data[0], ev->m_data[1]);
             }
             // Scroll event does not bubble
+            break;
+        }
+
+        if (evState.stopped) {
+            // stopPropagation() has been called on the event
             break;
         }
     }
