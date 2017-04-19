@@ -1,36 +1,45 @@
 <component name="button">
     <nss>
         button: {
-            color : "#ecedeb",
-            backgroundColor : "#ffffff",
             overflow : false,
+            backgroundColor : "#3388ee",
+            color : "#ffffff",
+            radius : 4,
+            height : 40,
+            width:80,
+            lineHeight : 30,
+            coating : 20,
 
-            radius : 2,
-            height : 22,
+            paddingTop : 6,
+            paddingBottom : 6,
             paddingLeft : 10,
             paddingRight : 10,
 
+            fontSize : 14,
             textAlign : "center",
             textOffsetY : 0,
 
-            borderWidth : 10,
-            borderColor : "rgba(0, 0, 0, 0.18)",
+            opacity : 1.0,
+            borderWidth : 6,
+            borderColor : "rgba(0, 0, 0, 0.003)",
 
-            shadowBlur : 4,
-            shadowColor : "rgba(0, 0, 0, 0.2)",
+            shadowBlur : 3,
+            shadowColor : "rgba(0, 0, 0, 0.02)",
             shadowOffsetX : 0,
-            shadowOffsetY : 2,
+            shadowOffsetY : 2
         }
     </nss>
-    <layout>
-        <element id="button" class="button">
-            <slot>Button</slot>
-        </element>
+    <layout id="button" class="button">
+        <slot>Button</slot>
     </layout>
     <script>
         module.exports = class extends Component {
             constructor(attr) {
                 super(attr);
+
+                this.on("mousedown", ()=>{
+                    this.emit("click", this);
+                });
             }
         }
     </script>

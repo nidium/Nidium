@@ -344,4 +344,107 @@
 
     }
 
+
+    /* -- click, dblclick, mousehold -- */
+
+    const pointerHoldTreshold = 1500;
+    const doubleClickTreshold = 250;
+
+    const timer = function(fn, ms, loop, execFirst){
+        var t = {
+            loop : loop,
+            tid : loop ? setInterval(function(){fn.call(t);}, ms)
+                        : setTimeout(function(){fn.call(t);}, ms),
+
+            remove : function(){
+                if (this.loop) {
+                    clearInterval(this.tid);
+                } else {
+                    clearTimeout(this.tid);
+                }
+                delete(this.tid);
+            }
+        };
+
+        if (execFirst) {
+            fn.call(t);
+        }
+        
+        return t;
+    };
+
+    const distance = function(x1, y1, x2, y2){
+        var a = y2-y1, b = x2-x1;
+        return Math.sqrt(a*a + b*b);
+    };
+
+    Elements.Node.prototype.onmousedown = function(e){
+        var self = this,
+            o = this.__lastmouseevent__ || {x:0, y:0},
+            dist = distance(o.x, o.y, e.x, e.y) || 0;
+
+        e.time = +new Date();
+        e.duration = null;
+
+        window.mouseX = e.x;
+        window.mouseY = e.y;
+
+        if (e.which == 3) {
+            this.fireEvent("contextmenu", e);
+        }
+        this.__mousedown__ = true;
+
+        this.__mousetimer__ = timer(function(){
+            self.fireEvent("holdstart", e);
+            self.__mousehold__ = true;
+            this.remove();
+        }, pointerHoldTreshold);
+
+        if (this.__lastmouseevent__){
+            e.duration = e.time - this.__lastmouseevent__.time;
+
+            if (dist<4 && e.duration <= doubleClickTreshold) {
+                this.fireEvent("dblclick", e);
+            }
+        }
+
+        this.__lastmouseevent__ = e;
+    };
+
+    Elements.Node.prototype.onmousemove = function(e){
+        window.mouseX = e.x;
+        window.mouseY = e.y;
+
+        if (this.__mousedown__ && this.__mousetimer__){
+            this.__mousetimer__.remove();
+        }
+    };
+
+    Elements.Node.prototype.onmouseup = function(e){
+        var o = this.__lastmouseevent__ || {x:0, y:0},
+            dist = distance(o.x, o.y, e.x, e.y) || 0;
+
+        // mouseup can be fired without a previous mousedown
+        // this prevent mouseup to be fired after (MouseDown + Refresh)
+
+        if (this.__mousedown__ === false) {
+            return false;
+        }
+
+        this.__mousedown__ = false;
+
+        if (this.__mousetimer__) {
+            this.__mousetimer__.remove();
+        }
+
+        if (this.__mousehold__) {
+            this.fireEvent("holdend", e);
+            this.__mousehold__ = false;
+        }
+        if (o && dist<6) {
+            console.log(this.name(), "mouseclick")
+            this.fireEvent("mouseclick", e);
+        }
+    };
+
 }

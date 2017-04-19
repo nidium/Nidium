@@ -38,3 +38,4 @@ require("./components/listview.nc");
  * Fonts
  */
 window.fontShapes = require('./fonts/fontawesome.js');
+

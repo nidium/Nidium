@@ -100,17 +100,10 @@ class ElementStyles {
         }
 
         if (s.backgroundColor) {
-            drawer.setShadow(ctx, s);
+            s.shadowBlur && drawer.setShadow(ctx, s);
             ctx.fillStyle = s.backgroundColor;
-            ctx.fillRect(0, 0, w, h, s.radius || 0);
-            drawer.disableShadow(ctx);
-        }
-
-        if (s.shadowBlur) {
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 0;
-            ctx.shadowColor = 0;
-            ctx.shadowBlur = 0;
+            ctx.fillRect(0, 0, w, h, s.radius);
+            s.shadowBlur && drawer.disableShadow(ctx);
         }
 
         if (s.borderColor && s.borderWidth) {
@@ -128,11 +121,6 @@ class ElementStyles {
                 s.radius + s.borderWidth*0.5
             );
         }
-
-        /* border bottom
-            ctx.fillRect(0, h-0.5, w, 0.5);
-        */
-
     }
 }
 

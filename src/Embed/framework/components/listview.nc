@@ -9,6 +9,7 @@
             lineHeight: 56,
             textAlign: "left",
             overflow:false,
+            maxHeight:400
         },
 
         icon: {
@@ -53,6 +54,11 @@
         module.exports = class extends Component {
             constructor(attr) {
                 super(attr);
+
+                this.currPage = 0;
+                this.items = [];
+                this.viewport = [];
+
                 window._onmousewheel = (e) => {
                     this.scrollTop += -(2*e.yrel);
                 };
@@ -67,7 +73,7 @@
                 let media = item.media;
                 let title = item.title;
 
-                return(`
+                return (`
                     <li id="${id}" class="li" on:mousedown='this.select(${id})'>
                         <icon class="icon media" shape="${media}"></icon>
                         <span class="title">${title}</span>
@@ -77,19 +83,36 @@
             }
 
             addItem(item) {
-                var node = NML.CreateTree(getItemTemplate(item), this, this.shadowRoot);
-                console.log(node);
+                this.shadowRoot.jsScope["this"] = this;
+                var node = NML.CreateTree(
+                    this.getItemTemplate(item), this, this.shadowRoot
+                );
+            }
+
+            renderViewport() {
+                for (var i=0, l=this.viewport.length; i<l; i++) {
+                    let item = this.viewport[i];
+                    this.addItem(item);
+                }
             }
 
             setItems(list) {
                 var nml = [];
 
+                let { w, h } = {w:500, h:400}; //this.getDimensions();
+                let itemHeight = 56;
+
+                this.page_count = Math.floor(h/itemHeight);
+
+                console.log(h, Math.floor(h/56));
+
                 for (var i=0, l=list.length; i<l; i++) {
                     let item = list[i];
-                    nml.push(this.getItemTemplate(item));
+                    //nml.push(this.getItemTemplate(item));
+                    this.addItem(item);
                 }
 
-                NML.CreateTree(nml.join(''), this, this.shadowRoot);
+//                NML.CreateTree(nml.join(''), this, this.shadowRoot);
             }
         }
     </script>

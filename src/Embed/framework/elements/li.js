@@ -16,9 +16,5 @@
             this.style.alignItems = "center";
             this.style.flexWrap = "nowrap";
         }
-
-        paint(ctx, w, h) {
-            super.paint(ctx, w, h);
-        }
     }
 }

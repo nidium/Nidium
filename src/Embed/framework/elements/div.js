@@ -10,10 +10,10 @@
     Elements.div = class extends Elements.Element {
         constructor(attributes) {
             super(attributes);
-        }
 
-        paint(ctx) {
-            super.paint(ctx)
-        }
+            this.style.flexDirection = "row";
+            this.style.justifyContent = "space-between";
+            this.style.alignItems = "center";
+            this.style.flexWrap = "nowrap";        }
     }
 }

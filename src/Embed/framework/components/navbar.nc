@@ -36,7 +36,7 @@
 
         left: {
             flexGrow: 1,
-            backgroundColor: "rgba(0, 30, 0, 0.05)"
+            backgroundColor: "rgba(250, 30, 0, 0.5)"
         },
 
         center: {
@@ -51,7 +51,8 @@
 
         icleft : {
             textAlign:"left",
-            flexGrow:1
+            flexGrow:1,
+            backgroundColor:"red"
         },
 
         iccenter : {
@@ -65,9 +66,9 @@
         }
     </nss>
     <layout class="bar">
-        <span id="back" class="flexme left" on:mousedown="this.back()">
+        <span id="back" class="flexme left" on:mouseclick="this.clicked()" on:dblclick="this.dbl()" on:holdstart="this.holdstart()" on:holdend="this.holdstart()" on:mousedown="this.back()">
             <icon class="icon il" shape="fa-chevron-left"></icon>
-            <span class="icleft">Back</span>
+            <span id="backLabel" class="icleft">Back</span>
         </span>
         <span class="flexme center">
             <span id="title" class="iccenter">Nidium Kitchen</span>
@@ -85,6 +86,26 @@
                 var node = this.getElementById("title");
                 node.textContent = attr.title || "";
 
+                var back = this.getElementById("back");
+
+                back.on("mousedown", function(){
+                    let {width, height} = back.getDimensions();
+                    back.style.backgroundColor = "red";
+                    console.log("back element:", back.id, back.width, back.height, width, height);
+
+                    console.log(textnode.width, textnode.height)
+                });
+
+                var backLabel = this.getElementById("backLabel");
+                var textnode = backLabel.getChildren()[0];
+                textnode.style.backgroundColor = "green";
+
+                /*
+                var g = this.getDimensions();
+                console.log(back.width, back.height, g.width, g.height);
+                */
+
+
                 if (!attr || !attr['on:back']) {
                     var left = this.getElementById("back");
                     left.hide();
@@ -96,7 +117,24 @@
                 }
             }
 
+            clicked() {
+                //console.log("mouse click");
+            }
+
+            dbl() {
+                //console.log("mouse double click");
+            }
+
+            holdstart() {
+                //console.log("mouse hold started");
+            }
+
+            holdend() {
+                //console.log("mouse hold released");
+            }
+
             back() {
+                console.log("BACK")
                 this.emit("back", {});
             }
 
