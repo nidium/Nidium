@@ -257,6 +257,7 @@ void Context::createDebugCanvas()
 
     m_DebugHandler->setPropRight(0);
     m_DebugHandler->setPropOpacity(0.6);
+    m_DebugHandler->p_EventReceiver = false;
     ctx2d->getSkiaContext()->setFontType("monospace");
 }
 
@@ -463,7 +464,6 @@ void NidiumContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
 void Context::triggerEvents()
 {
     void *val;
-
     APE_P_FOREACH((&m_CanvasEventsCanvas), val)
     {
         /* process through the cleaner callback avoiding a complete iteration */

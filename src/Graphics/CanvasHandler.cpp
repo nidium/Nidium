@@ -404,6 +404,10 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
 */
 void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
 {
+    if (!p_EventReceiver) {
+        return;
+    }
+
     InputEvent *ev = m_NidiumContext->getInputHandler()->getEvents();
 
     if (ev == NULL) {

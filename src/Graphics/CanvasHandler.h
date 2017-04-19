@@ -207,6 +207,7 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(Coating,      float, 0, State::kDefault);
 
     CANVAS_DEF_CLASS_PROPERTY(Flex,         bool, false, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(EventReceiver,bool, true, State::kDefault);
 
     CANVAS_DEF_CLASS_PROPERTY(Opacity,      double, 1.0, State::kDefault);
 
