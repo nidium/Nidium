@@ -234,7 +234,9 @@ void UIInterface::handleEvent(const SDL_Event *event)
 
             ev.m_data[0] = wx;
             ev.m_data[1] = wy;
-            // slot 2 to 4 are not used for mousewheel event
+            ev.m_data[2] = 0; // velocityX
+            ev.m_data[3] = 0; // velocityY
+            ev.m_data[4] = InputEvent::kScrollState_move; // state
             ev.m_data[5] = 0; // consumed
 
             inputHandler->pushEvent(ev);

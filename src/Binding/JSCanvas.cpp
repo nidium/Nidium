@@ -1935,15 +1935,14 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
         case NIDIUM_EVENT(CanvasHandler, SCROLL_EVENT): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
 
-            InputEvent::ScrollState state
-                = static_cast<InputEvent::ScrollState>(msg.m_Args[6].toInt());
-
             JSObjectBuilder obj(m_Cx, eventObj);
             obj.set("x", msg.m_Args[2].toInt());
             obj.set("y", msg.m_Args[3].toInt());
-            obj.set("velocityX", msg.m_Args[4].toInt());
-            obj.set("velocityY", msg.m_Args[5].toInt());
-            obj.set("state", state);
+            obj.set("relX", msg.m_Args[4].toInt());
+            obj.set("relY", msg.m_Args[5].toInt());
+            obj.set("velocityX", msg.m_Args[6].toInt());
+            obj.set("velocityY", msg.m_Args[7].toInt());
+            obj.set("state", msg.m_Args[8].toInt());
 
             if (!this->fireInputEvent(msg.m_Args[1].toInt(), eventObj, msg)) {
                 break;
