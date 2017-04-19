@@ -865,9 +865,6 @@ int Video::setSizeInternal()
         NIDIUM_PTHREAD_WAIT(&m_NotInDisplay);
     }
 
-    // Flush buffers & timers to discard old frames
-    this->flushBuffers();
-
     int width  = m_NewWidth == 0 ? m_CodecCtx->width : m_NewWidth;
     int height = m_NewHeight == 0 ? m_CodecCtx->height : m_NewHeight;
 
