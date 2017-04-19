@@ -238,6 +238,8 @@ private:
 
     Graphics::CanvasHandler *m_CurrentClickedHandler;
 
+    uint32_t m_ComposedCanvasCount = 0;
+
     void triggerEvents();
 
     static bool WriteStructuredCloneOp(JSContext *cx,

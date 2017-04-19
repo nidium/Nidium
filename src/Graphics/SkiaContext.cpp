@@ -476,7 +476,7 @@ void SkiaContext::resetGrBackendContext(uint32_t flag)
     context->resetContext(flag);
 }
 
-bool SkiaContext::setSize(int width, int height, bool redraw)
+bool SkiaContext::setSize(float width, float height, bool redraw)
 {
     float ratio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 

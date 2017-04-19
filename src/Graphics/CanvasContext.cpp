@@ -296,15 +296,15 @@ static void dump_Matrix(float *matrix)
 #endif
 
 void CanvasContext::updateMatrix(
-    double left, double top, int layerWidth, int layerHeight, GLState *glstate)
+    float left, float top, float layerWidth, float layerHeight, GLState *glstate)
 {
 
     if (!m_GLState) {
         return;
     }
 
-    float px = static_cast<float>(layerWidth),
-          py = static_cast<float>(layerHeight);
+    float px = layerWidth,
+          py = layerHeight;
     int w, h;
 
     /* get the size in device pixels */
@@ -325,8 +325,8 @@ void CanvasContext::updateMatrix(
           ratioY  = (static_cast<float>(h)) / py;
     float offsetX = -1. + ratioX, offsetY = 1 - ratioY;
 
-    float ratioL = (static_cast<float>(left)) / px;
-    float ratioT = (static_cast<float>(top)) / py;
+    float ratioL = left / px;
+    float ratioT = top / py;
 
     m_Transform.preTranslate(
         /*
@@ -359,10 +359,10 @@ void CanvasContext::updateMatrix(
 void CanvasContext::setupShader(float opacity,
                                 int width,
                                 int height,
-                                int left,
-                                int top,
-                                int wWidth,
-                                int wHeight)
+                                float left,
+                                float top,
+                                float wWidth,
+                                float wHeight)
 {
     uint32_t program = this->getProgram();
     NIDIUM_GL_CALL_MAIN(UseProgram(program));
@@ -379,11 +379,11 @@ void CanvasContext::setupShader(float opacity,
         if (m_GLState->m_GLObjects.uniforms.u_resolution != -1)
             NIDIUM_GL_CALL_MAIN(
                 Uniform2f(m_GLState->m_GLObjects.uniforms.u_resolution,
-                          (width) - (padding * 2), (height) - (padding * 2)));
+                          ((float)width) - (padding * 2), ((float)height) - (padding * 2)));
         if (m_GLState->m_GLObjects.uniforms.u_position != -1)
             NIDIUM_GL_CALL_MAIN(Uniform2f(
                 m_GLState->m_GLObjects.uniforms.u_position, ratio * left,
-                ratio * wHeight - (height + ratio * top)));
+                ratio * wHeight - ((float)height + ratio * top)));
         if (m_GLState->m_GLObjects.uniforms.u_padding != -1)
             NIDIUM_GL_CALL_MAIN(
                 Uniform1f(m_GLState->m_GLObjects.uniforms.u_padding, padding));
@@ -391,8 +391,8 @@ void CanvasContext::setupShader(float opacity,
 }
 
 void CanvasContext::preComposeOn(Canvas2DContext *layer,
-                                 double left,
-                                 double top,
+                                 float left,
+                                 float top,
                                  double opacity,
                                  double zoom,
                                  const Rect *rclip)
@@ -436,8 +436,8 @@ void CanvasContext::preComposeOn(Canvas2DContext *layer,
     this->getSize(&width, &height);
 
     this->setupShader(static_cast<float>(opacity), width, height, left, top,
-                      static_cast<int>(layer->getHandler()->getComputedWidth()),
-                      static_cast<int>(layer->getHandler()->getComputedHeight()));
+                      layer->getHandler()->getComputedWidth(),
+                      layer->getHandler()->getComputedHeight());
 
     this->updateMatrix(left * ratio, top * ratio, layerSize.width(),
                        layerSize.height(), layer->m_GLState);

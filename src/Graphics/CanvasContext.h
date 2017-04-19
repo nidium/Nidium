@@ -132,7 +132,7 @@ public:
     static uint32_t CompileShader(const char *data[], int numdata, int type);
 
     virtual void translate(double x, double y) = 0;
-    virtual void setSize(int width, int height, bool redraw = true) = 0;
+    virtual void setSize(float width, float height, bool redraw = true) = 0;
     virtual void setScale(double x, double y, double px = 1, double py = 1) = 0;
     virtual void clear(uint32_t color = 0x00000000) = 0;
     virtual void flush() = 0;
@@ -161,8 +161,8 @@ public:
 
 
     void preComposeOn(Binding::Canvas2DContext *layer,
-                      double left,
-                      double top,
+                      float left,
+                      float top,
                       double opacity,
                       double zoom,
                       const Rect *rclip);
@@ -175,10 +175,10 @@ protected:
     CanvasHandler *m_Handler;
     GLState *m_GLState;
     GLResources m_Resources;
-    void updateMatrix(double left,
-                      double top,
-                      int layerWidth,
-                      int layerHeight,
+    void updateMatrix(float left,
+                      float top,
+                      float layerWidth,
+                      float layerHeight,
                       GLState *glstate);
 
     /*
@@ -188,10 +188,10 @@ protected:
     void setupShader(float opacity,
                      int width,
                      int height,
-                     int left,
-                     int top,
-                     int wWidth,
-                     int wHeight);
+                     float left,
+                     float top,
+                     float wWidth,
+                     float wHeight);
 };
 
 } // namespace Graphics

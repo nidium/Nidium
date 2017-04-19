@@ -68,7 +68,7 @@ void Canvas3DContext::translate(double x, double y)
     m_CachedPixels.height = 0;
 }
 
-void Canvas3DContext::setSize(int width, int height, bool redraw)
+void Canvas3DContext::setSize(float width, float height, bool redraw)
 {
     if (width == m_Device.width && height == m_Device.height) {
         return;
@@ -78,8 +78,8 @@ void Canvas3DContext::setSize(int width, int height, bool redraw)
 
     float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
-    m_Device.width  = width * ratio;
-    m_Device.height = height * ratio;
+    m_Device.width  = ceilf(width * ratio);
+    m_Device.height = ceilf(height * ratio);
 
     this->createFBO(m_Device.width, m_Device.height);
 }

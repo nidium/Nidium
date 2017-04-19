@@ -106,16 +106,16 @@ bool JSCanvas::JS_setScale(JSContext *cx, JS::CallArgs &args)
 
 bool JSCanvas::JS_getDimensions(JSContext *cx, JS::CallArgs &args)
 {
-    int width, height, left, top;
+    float width, height, left, top;
 
     m_CanvasHandler->getDimensions(&width, &height, &left, &top);
 
     JS::RootedObject out(cx, JS_NewPlainObject(cx));
 
-    NIDIUM_JSOBJ_SET_PROP_INT(out, "width", width);
-    NIDIUM_JSOBJ_SET_PROP_INT(out, "height", height);
-    NIDIUM_JSOBJ_SET_PROP_INT(out, "left", left);
-    NIDIUM_JSOBJ_SET_PROP_INT(out, "top", top);
+    NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "width", width);
+    NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "height", height);
+    NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "left", left);
+    NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "top", top);
 
     args.rval().setObject(*out);
     
@@ -124,9 +124,9 @@ bool JSCanvas::JS_getDimensions(JSContext *cx, JS::CallArgs &args)
 
 bool JSCanvas::JS_setSize(JSContext *cx, JS::CallArgs &args)
 {
-    int width, height;
+    double width, height;
 
-    if (!JS_ConvertArguments(cx, args, "ii", &width, &height)) {
+    if (!JS_ConvertArguments(cx, args, "dd", &width, &height)) {
         return false;
     }
 
@@ -540,13 +540,13 @@ bool JSCanvas::JSSetter_allowNegativeScroll(JSContext *cx, JS::MutableHandleValu
 
 bool JSCanvas::JSSetter_width(JSContext *cx, JS::MutableHandleValue vp)
 {
-    uint32_t dval;
+    double dval;
 
-    if (!JS::ToUint32(cx, vp, &dval)) {
+    if (!JS::ToNumber(cx, vp, &dval)) {
         return true;
     }
 
-    if (!m_CanvasHandler->setWidth(dval)) {
+    if (!m_CanvasHandler->setWidth((float)dval)) {
         // JS_ReportError(cx, "Can't set canvas width (this canvas has a
         // dynamic width)");
 
@@ -558,13 +558,13 @@ bool JSCanvas::JSSetter_width(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSSetter_height(JSContext *cx, JS::MutableHandleValue vp)
 {
-    uint32_t dval;
+    double dval;
 
-    if (!JS::ToUint32(cx, vp, &dval)) {
+    if (!JS::ToNumber(cx, vp, &dval)) {
         return true;
     }
 
-    if (!m_CanvasHandler->setHeight(dval)) {
+    if (!m_CanvasHandler->setHeight((float)dval)) {
         return true;
     }
 
@@ -575,11 +575,17 @@ bool JSCanvas::JSSetter_left(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
+    if (vp.isNullOrUndefined()) {
+        m_CanvasHandler->setPropLeft(NAN);
+        return true;
+    }
+
+
     if (!JS::ToNumber(cx, vp, &dval)) {
         return true;
     }
 
-    m_CanvasHandler->setPropLeft(dval);
+    m_CanvasHandler->setPropLeft((float)dval);
 
     return true;
 }
@@ -597,7 +603,7 @@ bool JSCanvas::JSSetter_right(JSContext *cx, JS::MutableHandleValue vp)
         return true;
     }
 
-    m_CanvasHandler->setPropRight(dval);
+    m_CanvasHandler->setPropRight((float)dval);
 
     return true;
 }
@@ -606,11 +612,16 @@ bool JSCanvas::JSSetter_top(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
+    if (vp.isNullOrUndefined()) {
+        m_CanvasHandler->setPropTop(NAN);
+        return true;
+    }
+
     if (!JS::ToNumber(cx, vp, &dval)) {
         return true;
     }
 
-    m_CanvasHandler->setPropTop(dval);
+    m_CanvasHandler->setPropTop((float)dval);
 
     return true;
 }
@@ -629,59 +640,59 @@ bool JSCanvas::JSSetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
         return true;
     }
 
-    m_CanvasHandler->setPropBottom(dval);
+    m_CanvasHandler->setPropBottom((float)dval);
 
     return true;
 }
 
 bool JSCanvas::JSSetter_minWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
-    uint32_t dval;
+    double dval;
 
-    if (!JS::ToUint32(cx, vp, &dval)) {
+    if (!JS::ToNumber(cx, vp, &dval)) {
         return true;
     }
 
-    m_CanvasHandler->setPropMinWidth(dval);
+    m_CanvasHandler->setPropMinWidth((float)dval);
 
     return true;
 }
 
 bool JSCanvas::JSSetter_minHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
-    uint32_t dval;
+    double dval;
 
-    if (!JS::ToUint32(cx, vp, &dval)) {
+    if (!JS::ToNumber(cx, vp, &dval)) {
         return true;
     }
 
-    m_CanvasHandler->setPropMinHeight(dval);
+    m_CanvasHandler->setPropMinHeight((float)dval);
 
     return true;
 }
 
 bool JSCanvas::JSSetter_maxWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
-    uint32_t dval;
+    double dval;
 
-    if (!JS::ToUint32(cx, vp, &dval)) {
+    if (!JS::ToNumber(cx, vp, &dval)) {
         return true;
     }
 
-    m_CanvasHandler->setPropMaxWidth(dval);
+    m_CanvasHandler->setPropMaxWidth((float)dval);
 
     return true;
 }
 
 bool JSCanvas::JSSetter_maxHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
-    uint32_t dval;
+    double dval;
 
-    if (!JS::ToUint32(cx, vp, &dval)) {
+    if (!JS::ToNumber(cx, vp, &dval)) {
         return true;
     }
 
-    m_CanvasHandler->setPropMaxHeight(dval);
+    m_CanvasHandler->setPropMaxHeight((float)dval);
 
     return true;
 }
