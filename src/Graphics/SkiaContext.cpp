@@ -500,6 +500,10 @@ void SkiaContext::resetGrBackendContext(uint32_t flag)
 
 bool SkiaContext::setSize(float width, float height, bool redraw)
 {
+    if (isnan(width) || isnan(height)) {
+        ndm_logf(NDM_LOG_ERROR, "Canvas", "(BIND_GL) Can't create new surface of size %fx%f", width, height);
+        return false;
+    }
     float ratio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
     width = nidium_max(width, 1);
@@ -510,14 +514,14 @@ bool SkiaContext::setSize(float width, float height, bool redraw)
     if (this->m_CanvasBindMode == BIND_GL) {
         newSurface = CreateGLSurface(width, height, nullptr);
         if (!newSurface) {
-            ndm_logf(NDM_LOG_ERROR, "Canvas", "(BIND_GL) Can't create new surface of size %dx%d", width, height);
+            ndm_logf(NDM_LOG_ERROR, "Canvas", "(BIND_GL) Can't create new surface of size %fx%f", width, height);
             return false;
         }
     } else {
         newSurface = m_Surface->makeSurface(SkImageInfo::MakeN32Premul(ceilf(width * ratio),
                                         ceilf(height * ratio)));
         if (!newSurface) {
-            ndm_logf(NDM_LOG_ERROR, "Canvas", "Can't create new surface of size %dx%d", width, height);
+            ndm_logf(NDM_LOG_ERROR, "Canvas", "Can't create new surface of size %fx%f", width, height);
             return false;
         }
 

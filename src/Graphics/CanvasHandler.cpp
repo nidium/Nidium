@@ -500,6 +500,9 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 
         /* Read the values from Yoga */
         getDimensions(&nwidth, &nheight, &tmpLeft, &tmpTop);
+        if (isnan(nwidth) || isnan(nheight) || isnan(tmpLeft) || isnan(tmpTop)) {
+            return;
+        }
 
         /*
             Check if we need to resize the element.
