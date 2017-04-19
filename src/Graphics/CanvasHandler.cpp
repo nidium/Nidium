@@ -1108,7 +1108,9 @@ void CanvasHandler::onInputEvent(InputEvent *ev)
             Graphics::CanvasHandler *scrollHandler
                 = inputHandler->getCurrentScrollHandler();
 
-            assert(scrollHandler);
+            if (!scrollHandler) {
+                return;
+            }
 
             Args args;
             args[0].set(ev->getType());
