@@ -1215,7 +1215,6 @@ void CanvasHandler::onTouch(InputEvent *ev, Args &args, CanvasHandler *handler)
 bool CanvasHandler::_handleEvent(InputEvent *ev)
 {
     Events canvasEvent = MOUSE_EVENT;
-    bool scrollConsumed = false;
 
     for (CanvasHandler *handler = this; handler != NULL;
          handler = handler->getParent()) {
@@ -1248,7 +1247,6 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                 }
 
                 canvasEvent    = SCROLL_EVENT;
-                scrollConsumed = true;
 
                 arg[0].set(ev->getType());
                 arg[1].set(ev->m_x);
@@ -1265,7 +1263,6 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                 arg[6].set(ev->m_data[3]); // velocityY
                 arg[7].set(ev->m_data[4]); // state
 
-                handler->scroll(ev->m_data[0], ev->m_data[1]);
             } break;
             case InputEvent::kTouchStart_Type:
             case InputEvent::kTouchEnd_Type:
@@ -1286,12 +1283,16 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
         }
 
         /* fireEvent returns false if a stopPropagation is detected */
-        if (!handler->fireEventSync<CanvasHandler>(canvasEvent, arg)) {
+        EventState evState;
+        if (!handler->fireEventSync<CanvasHandler>(canvasEvent, arg, &evState)) {
             break;
         }
 
-        /* Scroll events does not bubble */
-        if (scrollConsumed) {
+        if (canvasEvent == SCROLL_EVENT) {
+            if (!evState.defaultPrevented) {
+                handler->scroll(ev->m_data[0], ev->m_data[1]);
+            }
+            // Scroll event does not bubble
             break;
         }
     }

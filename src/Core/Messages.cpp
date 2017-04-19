@@ -100,10 +100,13 @@ void Messages::postMessage(uint64_t dataint, int event, bool forceAsync)
     Post message in a synchronous way.
     XXX : This method does not ensure FIFO with postMessage() queue
 */
-void Messages::postMessageSync(SharedMessages::Message *msg)
+void Messages::postMessageSync(SharedMessages::Message *msg, bool deleteMsg)
 {
     this->onMessage(*msg);
-    delete msg;
+
+    if (deleteMsg) {
+        delete msg;
+    }
 }
 
 void Messages::postMessageSync(void *dataptr, int event)

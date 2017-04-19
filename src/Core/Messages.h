@@ -45,7 +45,7 @@ public:
     void postMessage(SharedMessages::Message *msg, bool forceAsync = false);
 
     void postMessageSync(void *dataptr, int event);
-    void postMessageSync(SharedMessages::Message *msg);
+    void postMessageSync(SharedMessages::Message *msg, bool deleteMsg = true);
     void delMessages(int event = -1);
 
     bool hasPendingMessages() const {

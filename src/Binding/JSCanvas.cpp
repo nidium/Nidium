@@ -27,6 +27,7 @@ using Nidium::Graphics::CanvasHandler;
 using Nidium::Graphics::Rect;
 using Nidium::Frontend::Context;
 using Nidium::Frontend::InputEvent;
+using Nidium::Core::Events;
 
 namespace Nidium {
 namespace Binding {
@@ -2023,16 +2024,25 @@ bool JSCanvas::fireInputEvent(int ev, JS::HandleObject evObj, const Core::Shared
     JS::RootedValue evVal(m_Cx);
     evVal.setObjectOrNull(evObj);
     if (!this->fireJSEvent(InputEvent::GetName(ev), &evVal)) {
-        return false;
+        // No listeners
+        return true;
     }
+
+    SharedMessages::Message *nonconstmsg = (SharedMessages::Message *)&msg;
+
+    /* TODO: sort out this dirty hack */
 
     JS::RootedValue cancelBubble(m_Cx);
     if (JS_GetProperty(m_Cx, evObj, "cancelBubble", &cancelBubble)) {
         if (cancelBubble.isBoolean() && cancelBubble.toBoolean()) {
-            /* TODO: sort out this dirty hack */
-            SharedMessages::Message *nonconstmsg
-                = (SharedMessages::Message *)&msg;
-            nonconstmsg->m_Priv = 1;
+            nonconstmsg->m_Priv |= Events::kEventStateFlag_stopped;;
+        }
+    }
+
+    JS::RootedValue defaultPrevented(m_Cx);
+    if (JS_GetProperty(m_Cx, evObj, "defaultPrevented", &defaultPrevented)) {
+        if (defaultPrevented.isBoolean() && defaultPrevented.toBoolean()) {
+            nonconstmsg->m_Priv |= Events::kEventStateFlag_prevented;
         }
     }
 
