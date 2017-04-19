@@ -21,7 +21,7 @@
 #include "SDL_keycode_translate.h"
 
 #define NIDIUM_TITLEBAR_HEIGHT 0
-#define NIDIUM_VSYNC 0
+#define NIDIUM_VSYNC 1
 
 uint32_t ttfps = 0;
 
@@ -149,6 +149,10 @@ void UIInterface::handleEvent(const SDL_Event *event)
         case SDL_FINGERMOTION:
         case SDL_FINGERDOWN:
         case SDL_FINGERUP: {
+#ifdef TARGET_OS_MAC
+            // Don't handle touch events on OSX for now
+            return;
+#endif
             int width, height;
             InputHandler *inputHandler        = m_NidiumCtx->getInputHandler();
             InputTouch::TouchID touchID       = event->tfinger.fingerId;
@@ -220,11 +224,20 @@ void UIInterface::handleEvent(const SDL_Event *event)
             break;
         case SDL_MOUSEWHEEL: {
             int cx, cy;
+            InputHandler *inputHandler = m_NidiumCtx->getInputHandler();
+            int wx = event->wheel.x * this->getScrollWheelMultiplier();
+            int wy = event->wheel.y * this->getScrollWheelMultiplier();
+
             SDL_GetMouseState(&cx, &cy);
-            if (window) {
-                window->mouseWheel(event->wheel.x, event->wheel.y, cx,
-                                   cy - NIDIUM_TITLEBAR_HEIGHT);
-            }
+
+            InputEvent ev(InputEvent::kScroll_type, cx, cy);
+
+            ev.m_data[0] = wx;
+            ev.m_data[1] = wy;
+            // slot 2 to 4 are not used for mousewheel event
+            ev.m_data[5] = 0; // consumed
+
+            inputHandler->pushEvent(ev);
             break;
         }
         case SDL_MOUSEBUTTONUP:
@@ -295,7 +308,7 @@ int UIInterface::HandleEvents(void *arg)
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
-		uii->handleEvent(&event);
+        uii->handleEvent(&event);
     }
 
     if (uii->m_DoRefresh) {

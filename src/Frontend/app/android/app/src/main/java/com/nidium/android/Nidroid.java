@@ -28,10 +28,16 @@ import java.lang.reflect.Method;
 import java.security.Key;
 import java.util.Locale;
 
+class ScrollPosition {
+    public float x = 0;
+    public float y = 0;
+}
+
 public class Nidroid implements Flinger.Listener {
     private GestureDetectorCompat mDetector;
     private boolean mIsScrolling = false;
     private Flinger mFlinger = null;
+    private ScrollPosition mScrollPosition = new ScrollPosition();
     Context mCx = null;
     Activity mActivity = null;
     SurfaceView mSurface = null;
@@ -65,7 +71,6 @@ public class Nidroid implements Flinger.Listener {
             public boolean onTouch(View v, MotionEvent event) {
                 if (mFlinger != null) {
                     mFlinger.forceFinished();
-                    mFlinger = null;
                 }
 
                 boolean consumed = mDetector.onTouchEvent(event);
@@ -81,7 +86,7 @@ public class Nidroid implements Flinger.Listener {
 
                 // Android does not send us an end motion when scrolling gesture end without a fling. Workaround that.
                 if ((event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) && mIsScrolling && !consumed) {
-                    Nidroid.onScroll(event.getX(), event.getY(), 0, 0, TouchState.END);
+                    Nidroid.this.scroll(event.getX(), event.getY(), 0, 0, TouchState.END);
                     mIsScrolling = false;
                 }
 
@@ -96,10 +101,10 @@ public class Nidroid implements Flinger.Listener {
                     @Override
                     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
                         if (!mIsScrolling) {
-                            Nidroid.onScroll(e1.getX(), e1.getY(), 0, 0, TouchState.START);
+                            Nidroid.this.scroll(e1.getX(), e1.getY(), 0, 0, TouchState.START);
                         }
 
-                        Nidroid.onScroll(e2.getX(), e2.getY(), 0, 0, TouchState.MOVE);
+                        Nidroid.this.scroll(e2.getX(), e2.getY(), 0, 0, TouchState.MOVE);
 
                         mIsScrolling = true;
 
@@ -115,12 +120,14 @@ public class Nidroid implements Flinger.Listener {
 
                             state = TouchState.MOVE;
 
-                            mFlinger = new Flinger(mCx, mMainHandler);
+                            mFlinger = new Flinger(mCx, Nidroid.this.getPixelRatio(), mMainHandler);
                             mFlinger.setListener(Nidroid.this);
-                            mFlinger.start((int)e2.getX(), (int)e2.getY(), (int)velocityX, (int)velocityY);
+                            mFlinger.start(e2.getX(), e2.getY(), (int)velocityX, (int)velocityY);
+
+                            Nidroid.this.scroll(e2.getX(), e2.getY(), velocityX, velocityY, TouchState.START);
                         }
 
-                        Nidroid.onScroll(e2.getX(), e2.getY(), velocityX, velocityY, state);
+                        Nidroid.this.scroll(e2.getX(), e2.getY(), velocityX, velocityY, state);
 
                         return true;
                     }
@@ -131,13 +138,45 @@ public class Nidroid implements Flinger.Listener {
 
 
     @Override
-    public void onFlingerUpdate(int x, int y, boolean finished) {
+    public void onFlingerUpdate(int relX, int relY, boolean finished) {
+        int startX = mFlinger.getStartX();
+        int startY = mFlinger.getStartY();
+
         if (finished) {
             mIsScrolling = false;
             mFlinger = null;
         }
 
-        Nidroid.onFlingUpdate(x, y, finished);
+        Nidroid.onScroll(startX, startY,
+                         relX, relY,
+                         0, 0, finished ? TouchState.END: TouchState.MOVE);
+    }
+
+    private void scroll(float  x, float y, float velocityX, float velocityY, int state)
+    {
+        float ratio = (float)this.getPixelRatio();
+
+        if (state == TouchState.START) {
+            mScrollPosition.x = x;
+            mScrollPosition.y = y;
+            Nidroid.onScroll(x / ratio, y / ratio, 0, 0, velocityX, velocityY, state);
+            return;
+        }
+
+
+        int relX = (int)((mScrollPosition.x - x) / ratio);
+        int relY = (int)((mScrollPosition.y - y) / ratio);
+
+        if (relX == 0 && relY == 0) {
+            // Position hasn't changed enough, ignore it
+            return;
+        }
+
+        mScrollPosition.x = x;
+        mScrollPosition.y = y;
+
+        Nidroid.onScroll(x / ratio, y / ratio, relX, relY, velocityX, velocityY, state);
+
     }
 
     static void SetKeyboardOptions(int flags)
@@ -227,6 +266,5 @@ public class Nidroid implements Flinger.Listener {
     }
 
     public static native void nidiumInit(Nidroid n);
-    public static native void onScroll(float x, float y, float velocityX, float velocityY, int state);
-    public static native void onFlingUpdate(int scrollX, int scrollY, boolean finished);
+    public static native void onScroll(float x, float y, float relX, float relY, float velocityX, float velocityY, int state);
 }

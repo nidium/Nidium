@@ -29,7 +29,7 @@ namespace Frontend {
 static const char *InputEvent_Names[]
     = { "mousemove", "mousedown", "mouseup", "dblclick", "dragstart",
         "dragend",   "dragover",  "drop",    "drag",     "mousewheel",
-        "touchstart", "touchend", "touchmove", "scroll" };
+        "touchstart", "touchend", "touchmove", "scroll", "scroll"};
 
 class InputTouch;
 

@@ -58,8 +58,10 @@ public:
     }
 
     void initControls() override {};
-    void onScroll(float x, float y, float velocityX, float velocityY, int state);
-    void onFlingUpdate(int scrollX, int scrollY, bool finished);
+    void onScroll(float x, float y,
+                  float relX, float relY,
+                  float velocityX, float velocityY,
+                  int state);
 
     void onMessage(const Core::SharedMessages::Message &msg) override;
 
@@ -73,20 +75,23 @@ private:
     enum AndroidMessage
     {
         kAndroidMessage_scroll,
-        kAndroidMessage_fling,
     };
 
     struct AndroidScrollMessage {
-        int x;
-        int y;
-        int velocityX;
-        int velocityY;
+        float x;
+        float y;
+        float relX;
+        float relY;
+        float velocityX;
+        float velocityY;
         Frontend::InputEvent::ScrollState state;
 
-        AndroidScrollMessage(int x, int y,
-                             int velocityX, int velocityY,
+        AndroidScrollMessage(float x, float y,
+                             float relX, float relY,
+                             float velocityX, float velocityY,
                              Frontend::InputEvent::ScrollState state)
-            : x(x), y(y), velocityX(velocityX), velocityY(velocityY), state(state) { };
+            : x(x), y(y), relX(relX), relY(relY),
+              velocityX(velocityX), velocityY(velocityY), state(state) { };
     };
 
     DummyConsole *m_Console;

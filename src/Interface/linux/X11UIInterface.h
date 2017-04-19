@@ -83,6 +83,10 @@ protected:
 #if 1
     void setSystemCursor(CURSOR_TYPE cursor);
 #endif
+    int getScrollWheelMultiplier() override
+    {
+        return -64;
+    }
     void hitRefresh();
     void onWindowCreated();
 

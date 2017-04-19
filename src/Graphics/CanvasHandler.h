@@ -39,10 +39,6 @@ class UIInterface;
 namespace Binding {
 class JSCanvas;
 }
-namespace Frontend {
-class Context;
-class InputEvent;
-}
 namespace Graphics {
 
 class CanvasHandler;
@@ -324,11 +320,6 @@ public:
     bool m_Overflow;
     bool m_ScrollableX = false;
     bool m_ScrollableY = false;
-    struct CurrentScroll {
-        int x;
-        int y;
-        bool active = false;
-    } m_CurrentScroll;
 
     CanvasContext *getContext() const
     {
@@ -583,9 +574,6 @@ public:
     }
 
     void scroll(int x, int y);
-    void onTouchScroll(int x, int y,
-                       int velocityX, int velocityY,
-                       Frontend::InputEvent::ScrollState state);
 
     void invalidate()
     {

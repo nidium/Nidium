@@ -12,6 +12,7 @@
 
 #include <js/GCAPI.h>
 
+#include "Interface/SystemInterface.h"
 #include "Binding/JSCanvas2DContext.h"
 
 using Nidium::Core::Args;
@@ -862,57 +863,20 @@ int CanvasHandler::getCursor()
     return m_Parent ? m_Parent->getCursor() : UIInterface::ARROW;
 }
 
-void CanvasHandler::scroll(int x, int y)
+void CanvasHandler::scroll(int relX, int relY)
 {
     if (m_ScrollableY) {
-        int pos = m_Content.scrollTop - (y - m_CurrentScroll.y);
-        int max = this->getContentHeight() - this->getComputedHeight();
-
-        pos = nidium_clamp(pos, 0, max);
+        int max  = this->getContentHeight() - this->getComputedHeight();
+        int pos = nidium_clamp(m_Content.scrollTop + relY, 0, max);
 
         this->setScrollTop(pos);
     }
 
     if (m_ScrollableX) {
-        int pos = m_Content.scrollLeft - (x - m_CurrentScroll.x);
-        int max = this->getContentWidth() - this->getComputedWidth();
-
-        pos = nidium_clamp(pos, 0, max);
+        int max  = this->getContentWidth() - this->getComputedWidth();
+        int pos = nidium_clamp(m_Content.scrollLeft + relX, 0, max);
 
         this->setScrollLeft(pos);
-    }
-
-    m_CurrentScroll.x = x;
-    m_CurrentScroll.y = y;
-}
-
-void CanvasHandler::onTouchScroll(int x, int y,
-                             int velocityX, int velocityY,
-                             InputEvent::ScrollState state)
-{
-    InputHandler *inputHandler = m_NidiumContext->getInputHandler();
-
-    switch (state) {
-        case InputEvent::kScrollState_start:
-            m_CurrentScroll.active = true;
-            m_CurrentScroll.x      = x;
-            m_CurrentScroll.y      = y;
-
-            inputHandler->setCurrentScrollHandler(this);
-            break;
-        case InputEvent::kScrollState_move:
-            if (!m_CurrentScroll.active) {
-                // Scroll has been enabled while user was already scrolling
-                // Fake a scroll start event
-                this->onTouchScroll(x, y,
-                               velocityX, velocityY,
-                               InputEvent::kScrollState_start);
-            }
-            this->scroll(x, y);
-            break;
-        case InputEvent::kScrollState_end:
-            m_CurrentScroll.active = false;
-            break;
     }
 }
 // }}}
@@ -1130,23 +1094,46 @@ void CanvasHandler::onInputEvent(InputEvent *ev)
 
     switch (ev->getType()) {
         case InputEvent::kTouchScroll_type: {
-            int consumed = ev->m_Origin->m_data[3];
+            int consumed = ev->m_Origin->m_data[5];
+
+            if (consumed) {
+                InputEvent::ScrollState state
+                    = static_cast<InputEvent::ScrollState>(ev->m_data[4]);
+
+                switch (state) {
+                    case InputEvent::kScrollState_start:
+                        inputHandler->setCurrentScrollHandler(this);
+                        break;
+                    case InputEvent::kScrollState_end:
+                        inputHandler->setCurrentScrollHandler(nullptr);
+                        break;
+                    default:
+                        break;
+
+                }
+                return;
+            }
+
             Graphics::CanvasHandler *scrollHandler
                 = inputHandler->getCurrentScrollHandler();
-            InputEvent::ScrollState state
-                = static_cast<InputEvent::ScrollState>(ev->m_data[2]);
 
-            if (consumed || !scrollHandler) break;
+            assert(scrollHandler);
 
-            ev->m_Origin->m_data[3] = 1;
+            Args args;
+            args[0].set(ev->getType());
+            args[1].set(ev->m_x);
+            args[2].set(ev->m_y);
+            args[3].set(ev->m_data[0]); // scrollX
+            args[4].set(ev->m_data[1]); // scrollY
+            args[5].set(ev->m_data[2]); // velocityX
+            args[6].set(ev->m_data[3]); // velocityY
+            args[7].set(ev->m_data[4]); // state
 
-            scrollHandler->onTouchScroll(ev->m_x, ev->m_y,
-                                         ev->m_data[0], ev->m_data[1],
-                                         state);
+            // Mark the event as consumed
+            ev->m_Origin->m_data[5] = 1;
 
-            if (state == InputEvent::kScrollState_end) {
-                inputHandler->setCurrentScrollHandler(nullptr);
-            }
+            scrollHandler->fireEvent<CanvasHandler>(CanvasHandler::SCROLL_EVENT, args);
+            scrollHandler->scroll(ev->m_data[0], ev->m_data[1]);
         } break;
         case InputEvent::kTouchStart_Type:
             inputHandler->setCurrentTouchedHandler(ev->getTouch()->getIdentifier(), this);
@@ -1243,7 +1230,6 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
             case InputEvent::kMouseDragOver_Type:
             case InputEvent::kMouseDrop_Type:
             case InputEvent::kMouseDrag_Type:
-            case InputEvent::kMouseWheel_Type:
                 arg[0].set(ev->getType());
                 arg[1].set(ev->m_x);
                 arg[2].set(ev->m_y);
@@ -1253,33 +1239,31 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                 arg[6].set(ev->m_y - p_Top.getAlternativeValue());  // layerY
                 arg[7].set(this);              // target
                 break;
-            case InputEvent::kTouchScroll_type: {
-                if (!handler->isScrollable() || ev->m_Origin->m_data[3] /* consumed */) {
+            case InputEvent::kScroll_type: {
+            case InputEvent::kTouchScroll_type:
+                if (!handler->isScrollable() || ev->m_Origin->m_data[5] /* consumed */) {
                     continue;
                 }
 
                 canvasEvent    = SCROLL_EVENT;
                 scrollConsumed = true;
 
-                InputEvent::ScrollState state
-                    = static_cast<InputEvent::ScrollState>(ev->m_data[2]);
-
                 arg[0].set(ev->getType());
                 arg[1].set(ev->m_x);
                 arg[2].set(ev->m_y);
-                arg[3].set(ev->m_data[0]);     // velocityY
-                arg[4].set(ev->m_data[1]);     // velocityY
-                arg[5].set(ev->m_data[2]);     // state
 
                 /*
-                    Set a flag on the event so onInputEvent()
-                    can know if the event has been consumed.
+                    Set a flag on the original event to mark it as consumed
                 */
-                ev->m_Origin->m_data[3] = 1;
+                ev->m_Origin->m_data[5] = 1;
 
-                handler->onTouchScroll(ev->m_x, ev->m_y,
-                                  ev->m_data[0], ev->m_data[1],
-                                  state);
+                arg[3].set(ev->m_data[0]); // scrollX
+                arg[4].set(ev->m_data[1]); // scrollY
+                arg[5].set(ev->m_data[2]); // velocityX
+                arg[6].set(ev->m_data[3]); // velocityY
+                arg[7].set(ev->m_data[4]); // state
+
+                handler->scroll(ev->m_data[0], ev->m_data[1]);
             } break;
             case InputEvent::kTouchStart_Type:
             case InputEvent::kTouchEnd_Type:

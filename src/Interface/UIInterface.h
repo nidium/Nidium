@@ -376,6 +376,10 @@ protected:
     virtual void onWindowCreated(){};
     virtual void onNMLLoaded();
     virtual void setSystemCursor(CURSOR_TYPE cursor)=0;
+    virtual int getScrollWheelMultiplier()
+    {
+        return 1;
+    }
 
     /*
         Ctrl+R action
