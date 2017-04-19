@@ -299,8 +299,8 @@ void Context::postDraw()
                      m_Stats.lastdifftime / 1000000LL);
         s->drawTextf(5, 38, "Time : %lldns",
                      m_Stats.lastmeasuredtime - m_Stats.starttime);
-        s->drawTextf(5, 51, "FPS  : %.2f (%.2f)", m_Stats.fps,
-                     m_Stats.sampleminfps);
+        s->drawTextf(5, 51, "FPS  : %.2f (%.2f) (%d)", m_Stats.fps,
+                     m_Stats.sampleminfps, m_ComposedCanvasCount);
 
         s->setLineWidth(0.0);
 
@@ -429,7 +429,10 @@ void Context::frame(bool draw)
     m_RootHandler->getContext()->resetGLContext();
     /* We draw on the UI fbo */
     glBindFramebuffer(GL_FRAMEBUFFER, m_UI->getFBO());
+
+    m_ComposedCanvasCount = 0;
     for (auto &com : compList) {
+        m_ComposedCanvasCount++;
         com.handler->m_Context->preComposeOn(rootctx, com.left,
             com.top, com.opacity, com.zoom, com.needClip ? &com.clip : nullptr);
     }
