@@ -108,7 +108,9 @@ bool JSCanvas::JS_getDimensions(JSContext *cx, JS::CallArgs &args)
 {
     float width, height, left, top;
 
-    m_CanvasHandler->getDimensions(&width, &height, &left, &top);
+    if (!m_CanvasHandler->getDimensions(&width, &height, &left, &top)) {
+        width = height = left = top = NAN;
+    }
 
     JS::RootedObject out(cx, JS_NewPlainObject(cx));
 
