@@ -266,6 +266,7 @@ def angle():
         outPath = "src/Release_%s/lib/" % (platform)
         Platform.setEnviron('AngleRootPath=%s' % (anglePath))
         build = [Platform.MsBuild("%s/src/angle.sln" % anglePath, options="/p:NODEFAULTLIB=ucrt.lib /p:NODEFAULTLIB=libcpmt.lib")]
+        outputs = outputs + [ 'angle_image_util', 'libANGLE', 'libEGL', 'libGLESv2' ]
     else:
         ext = '.a'
         pref = 'lib'
