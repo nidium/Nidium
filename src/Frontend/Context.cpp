@@ -257,6 +257,7 @@ void Context::createDebugCanvas()
 
     m_DebugHandler->setPropRight(0);
     m_DebugHandler->setPropOpacity(0.6);
+    m_DebugHandler->p_EventReceiver = false;
     ctx2d->getSkiaContext()->setFontType("monospace");
 }
 
@@ -299,8 +300,8 @@ void Context::postDraw()
                      m_Stats.lastdifftime / 1000000LL);
         s->drawTextf(5, 38, "Time : %lldns",
                      m_Stats.lastmeasuredtime - m_Stats.starttime);
-        s->drawTextf(5, 51, "FPS  : %.2f (%.2f)", m_Stats.fps,
-                     m_Stats.sampleminfps);
+        s->drawTextf(5, 51, "FPS  : %.2f (%.2f) (%d)", m_Stats.fps,
+                     m_Stats.sampleminfps, m_ComposedCanvasCount);
 
         s->setLineWidth(0.0);
 
@@ -356,31 +357,26 @@ void Context::callFrame()
     m_Stats.lastmeasuredtime = tmptime;
 
     /* convert to ms */
-    m_Stats.cumultimems += static_cast<float>(m_Stats.lastdifftime) / 1000000.f;
+    m_Stats.cumultimems += (float)m_Stats.lastdifftime / 1000000.f;
     m_Stats.cumulframe++;
 
-    m_Stats.minfps = nidium_min(m_Stats.minfps,
-                                1000.f / (m_Stats.lastdifftime / 1000000.f));
-    // ndm_logf(NDM_LOG_DEBUG, "Context", "FPS : %f", 1000.f/(m_Stats.lastdifftime/1000000.f));
+    m_Stats.minfps = nidium_min(m_Stats.minfps, 1000.f/(m_Stats.lastdifftime/1000000.f));
+    //printf("FPS : %f\n", 1000.f/(m_Stats.lastdifftime/1000000.f));
 
-    // ndm_logf(NDM_LOG_DEBUG, "Context", "Last diff : %f",
-    // static_cast<float>(m_Stats.lastdifftime/1000000.f));
+    //printf("Last diff : %f\n", (float)(m_Stats.lastdifftime/1000000.f));
 
     /* Sample every 1000ms */
     if (m_Stats.cumultimems >= 1000.f) {
-        m_Stats.fps = 1000.f / static_cast<float>(m_Stats.cumultimems)
-                      / static_cast<float>(m_Stats.cumulframe);
-        m_Stats.cumulframe   = 0;
-        m_Stats.cumultimems  = 0.f;
+        m_Stats.fps = 1000.f/(float)(m_Stats.cumultimems/(float)m_Stats.cumulframe);
+        m_Stats.cumulframe = 0;
+        m_Stats.cumultimems = 0.f;
         m_Stats.sampleminfps = m_Stats.minfps;
-        m_Stats.minfps       = UINT32_MAX;
+        m_Stats.minfps = UINT32_MAX;
 
-        memmove(&m_Stats.samples[1], m_Stats.samples,
-                sizeof(m_Stats.samples) - sizeof(float));
+        memmove(&m_Stats.samples[1], m_Stats.samples, sizeof(m_Stats.samples)-sizeof(float));
 
         m_Stats.samples[0] = m_Stats.fps;
     }
-
     m_JSWindow->callFrameCallbacks(tmptime);
 }
 
@@ -424,7 +420,7 @@ void Context::frame(bool draw)
     m_RootHandler->layerize(ctx, compList, draw);
 
     m_UI->makeMainGLCurrent();
-    rootctx->clear(0xFFFFFFFF);
+    rootctx->clear(0xffffffff);
     rootctx->flush();
 
     /*
@@ -434,7 +430,10 @@ void Context::frame(bool draw)
     m_RootHandler->getContext()->resetGLContext();
     /* We draw on the UI fbo */
     glBindFramebuffer(GL_FRAMEBUFFER, m_UI->getFBO());
+
+    m_ComposedCanvasCount = 0;
     for (auto &com : compList) {
+        m_ComposedCanvasCount++;
         com.handler->m_Context->preComposeOn(rootctx, com.left,
             com.top, com.opacity, com.zoom, com.needClip ? &com.clip : nullptr);
     }
@@ -465,7 +464,6 @@ void NidiumContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
 void Context::triggerEvents()
 {
     void *val;
-
     APE_P_FOREACH((&m_CanvasEventsCanvas), val)
     {
         /* process through the cleaner callback avoiding a complete iteration */
@@ -723,7 +721,7 @@ void Context::initHandlers(int width, int height)
     m_RootHandler = new CanvasHandler(width, height, this);
 
     m_RootHandler->setPositioning(CanvasHandler::COORD_RELATIVE);
-    //m_RootHandler->p_Flex = false;
+    m_RootHandler->p_Flex = false;
 
     m_RootHandler->setContext(
         new Canvas2DContext(m_RootHandler, width, height, m_UI));

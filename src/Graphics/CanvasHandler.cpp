@@ -24,8 +24,8 @@ using Nidium::Interface::UIInterface;
 namespace Nidium {
 namespace Graphics {
 
-CanvasHandler::CanvasHandler(int width,
-                             int height,
+CanvasHandler::CanvasHandler(float width,
+                             float height,
                              Context *nctx,
                              bool lazyLoad)
     : m_Context(NULL), m_JsCx(nctx->getNJS()->getJSContext()),
@@ -39,20 +39,24 @@ CanvasHandler::CanvasHandler(int width,
     m_Identifier.idx = ++nctx->m_CanvasCreatedIdx;
     m_NidiumContext->m_CanvasListIdx.insert({m_Identifier.idx, this});
     m_Identifier.str = nullptr;
+    
+    if (!isnan(width)) {
+        p_Width = nidium_max(width, 0);
+        p_Width.setAlternativeValue(p_Width);
+    }
 
-    p_Width     = nidium_max(width, -1);
-    p_Height    = nidium_max(height, -1);
-
-    p_Width.setAlternativeValue(p_Width);
-    p_Height.setAlternativeValue(p_Height);
+    if (!isnan(height)) {
+        p_Height = nidium_max(height, 0);
+        p_Height.setAlternativeValue(p_Height);
+    }
 
     m_YogaRef = YGNodeNewWithConfig(nctx->m_YogaConfig);
 
     YGNodeSetContext(m_YogaRef, this);
 
     YGNodeStyleSetPositionType(m_YogaRef, YGPositionTypeRelative);
-    YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, p_Left);
-    YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, p_Top);
+    //YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, p_Left);
+    //YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, p_Top);
 
 
     if (p_Width >= 0) {
@@ -127,7 +131,7 @@ void CanvasHandler::setId(const char *str)
     m_Identifier.str = strdup(str);
 }
 
-void CanvasHandler::setPropMinWidth(int width)
+void CanvasHandler::setPropMinWidth(float width)
 {
     if (width < 1) width = 1;
 
@@ -136,7 +140,7 @@ void CanvasHandler::setPropMinWidth(int width)
     YGNodeStyleSetMinWidth(m_YogaRef, p_MinWidth);
 }
 
-void CanvasHandler::setPropMinHeight(int height)
+void CanvasHandler::setPropMinHeight(float height)
 {
     if (height < 1) height = 1;
 
@@ -145,7 +149,7 @@ void CanvasHandler::setPropMinHeight(int height)
     YGNodeStyleSetMinHeight(m_YogaRef, p_MinHeight);
 }
 
-void CanvasHandler::setPropMaxWidth(int width)
+void CanvasHandler::setPropMaxWidth(float width)
 {
     if (width < 1) width = 1;
 
@@ -154,7 +158,7 @@ void CanvasHandler::setPropMaxWidth(int width)
     YGNodeStyleSetMaxWidth(m_YogaRef, p_MaxWidth);
 }
 
-void CanvasHandler::setPropMaxHeight(int height)
+void CanvasHandler::setPropMaxHeight(float height)
 {
     if (height < 1) height = 1;
 
@@ -163,47 +167,34 @@ void CanvasHandler::setPropMaxHeight(int height)
     YGNodeStyleSetMaxHeight(m_YogaRef, p_MaxHeight);
 }
 
-bool CanvasHandler::setWidth(int width, bool force)
+bool CanvasHandler::setWidth(float width, bool force)
 {
-    width = p_MaxWidth ? nidium_clamp(width, p_MinWidth, p_MaxWidth)
-                       : nidium_max(width, p_MinWidth);
-
     if (p_Width == width) {
         return true;
     }
 
     p_Width = width;
 
-    YGNodeStyleSetWidth(m_YogaRef, width >= 0 ? width : YGUndefined);
+    YGNodeStyleSetWidth(m_YogaRef, width >= 0 && !isnan(width) ? width : YGUndefined);
 
     return true;
 }
 
-bool CanvasHandler::setHeight(int height, bool force)
+bool CanvasHandler::setHeight(float height, bool force)
 {
-
-    height = p_MaxHeight ? nidium_clamp(height, p_MinHeight, p_MaxHeight)
-                         : nidium_max(height, p_MinHeight);
-
     if (p_Height == height) {
         return true;
     }
 
     p_Height = height;
 
-    YGNodeStyleSetHeight(m_YogaRef, height >= 0 ? height : YGUndefined);
+    YGNodeStyleSetHeight(m_YogaRef, height >= 0 && !isnan(height) ? height : YGUndefined);
 
     return true;
 }
 
-void CanvasHandler::setSize(int width, int height, bool redraw)
+void CanvasHandler::setSize(float width, float height, bool redraw)
 {
-    height = p_MaxHeight ? nidium_clamp(height, p_MinHeight, p_MaxHeight)
-                         : nidium_max(height, p_MinHeight);
-
-    width = p_MaxWidth ? nidium_clamp(width, p_MinWidth, p_MaxWidth)
-                       : nidium_max(width, p_MinWidth);
-
     if (p_Height == height && p_Width == width) {
         return;
     }
@@ -211,11 +202,11 @@ void CanvasHandler::setSize(int width, int height, bool redraw)
     p_Width  = width;
     p_Height = height;
 
-    YGNodeStyleSetWidth(m_YogaRef, width >= 0 ? width : YGUndefined);
-    YGNodeStyleSetHeight(m_YogaRef, height >= 0 ? height : YGUndefined);
+    YGNodeStyleSetWidth(m_YogaRef, width >= 0  && !isnan(width) ? width : YGUndefined);
+    YGNodeStyleSetHeight(m_YogaRef, height >= 0 && !isnan(height) ? height : YGUndefined);
 }
 
-void CanvasHandler::deviceSetSize(int width, int height)
+void CanvasHandler::deviceSetSize(float width, float height)
 {
     if (m_Context) {
         m_Context->setSize(width + (p_Coating * 2),
@@ -231,7 +222,7 @@ void CanvasHandler::deviceSetSize(int width, int height)
 }
 
 
-void CanvasHandler::setPropCoating(unsigned int coating)
+void CanvasHandler::setPropCoating(float coating)
 {
     if (coating == p_Coating) {
         return;
@@ -239,7 +230,7 @@ void CanvasHandler::setPropCoating(unsigned int coating)
 
     int tmppadding = p_Coating;
 
-    p_Coating = coating;
+    p_Coating = nidium_max(coating, 0);
 
     if (m_Context) {
         m_Context->translate(-tmppadding, -tmppadding);
@@ -417,6 +408,10 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
 */
 void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
 {
+    if (!p_EventReceiver) {
+        return;
+    }
+
     InputEvent *ev = m_NidiumContext->getInputHandler()->getEvents();
 
     if (ev == NULL) {
@@ -484,11 +479,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 {
     CanvasHandler *cur;
     Rect nclip;
-#if 0
-        printf("===== YOGA =====\n");
-        YGNodePrint(m_YogaRef, YGPrintOptionsLayout);
-        printf("\n");
-#endif
+
     if (m_Visibility == CANVAS_VISIBILITY_HIDDEN || p_Opacity == 0.0) {
         return;
     }
@@ -496,39 +487,30 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
     // double pzoom = this->zoom * azoom;
     double popacity = p_Opacity * layerContext.m_aOpacity;
 
-    int tmpLeft;
-    int tmpTop;
+    float tmpLeft, tmpTop;
+    float nwidth, nheight;
 
-    if (1 || (m_Parent && m_Parent->p_Flex)) {
-#if 0
-        printf("===== YOGA =====\n");
-        YGNodePrint(m_YogaRef, YGPrintOptionsLayout);
-        printf("\n");
-#endif
-        int nwidth, nheight;
+    /* Read the values from Yoga */
+    if (!getDimensions(&nwidth, &nheight, &tmpLeft, &tmpTop)) {
+        nlog("Could get dimensions");
+        /* Couldn't read one of the value */
+        return;
+    }
 
-        /* Read the values from Yoga */
-        getDimensions(&nwidth, &nheight, &tmpLeft, &tmpTop);
+    /*
+        Check if we need to resize the element.
+        p_Width|Height alternative values hold the last computed Yoga value.
 
-        /*
-            Check if we need to resize the element.
-            p_Width|Height alternative values hold the last computed Yoga value.
+        This will trigger an onResize event on the element
+    */
+    if (nwidth != p_Width.getAlternativeValue()
+        || nheight != p_Height.getAlternativeValue()) {
 
-            This will trigger an onResize event on the element
-        */
-        if (nwidth != p_Width.getAlternativeValue()
-            || nheight != p_Height.getAlternativeValue()) {
-
-            p_Width.setAlternativeValue(nwidth);
-            p_Height.setAlternativeValue(nheight);
+        p_Width.setAlternativeValue(nwidth);
+        p_Height.setAlternativeValue(nheight);
 
 
-            deviceSetSize(nwidth, nheight);
-            
-        }
-    } else {
-        tmpLeft = this->getPropLeft();
-        tmpTop  = this->getPropTop();
+        deviceSetSize(nwidth, nheight);
     }
     
     int maxChildrenWidth  = p_Width.getAlternativeValue(),
@@ -873,7 +855,7 @@ void CanvasHandler::setHidden(bool val)
     m_Visibility = (val ? CANVAS_VISIBILITY_HIDDEN : CANVAS_VISIBILITY_VISIBLE);
 }
 
-void CanvasHandler::setPropOpacity(double val)
+void CanvasHandler::setPropOpacity(float val)
 {
     val = nidium_min(1, nidium_max(0, val));
 
@@ -917,7 +899,7 @@ int32_t CanvasHandler::countChildren() const
     return m_nChildren;
 }
 
-bool CanvasHandler::containsPoint(double x, double y)
+bool CanvasHandler::containsPoint(float x, float y)
 {
     return (x >= getPropLeftAbsolute() && x <= getPropLeftAbsolute() + getComputedWidth()
             && y >= getPropTopAbsolute() && y <= getPropTopAbsolute() + getComputedHeight());

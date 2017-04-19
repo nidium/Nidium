@@ -21,6 +21,16 @@ Tests.registerAsync("Video.open(invalid file)", function(next) {
     video.open("invalid");
 }, 5000);
 
+Tests.register("Video access to uninitialized properties", function() {
+    Assert.strictEqual(video.width, -1, "Video width does not match");
+    Assert.strictEqual(video.height, -1, "Video height does not match");
+    Assert.strictEqual(video.duration, 0, "Video duration is incorrect");
+    Assert.strictEqual(video.bitrate, 0, "Unexpected bitrate");
+    Assert.strictEqual(video.metadata, undefined, "File MetaData does not match");
+    Assert.strictEqual(video.getAudioNode(), null, "Node should not be defined");
+});
+
+
 Tests.registerAsync("Video.open", function(next) {
     video.close();
 
@@ -39,6 +49,11 @@ Tests.registerAsync("Video.open", function(next) {
     });
     video.open("AV/video.ogg");
 }, 5000);
+
+Tests.register("Video.width/height", function() {
+    Assert.strictEqual(video.width, 720, "Video width does not match");
+    Assert.strictEqual(video.height, 400, "Video height does not match");
+});
 
 Tests.register("Video.duration", function() {
     Assert.strictEqual(video.duration, 6, "Video duration is incorrect");

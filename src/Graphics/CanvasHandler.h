@@ -51,8 +51,8 @@ class CanvasContext;
 struct ComposeContext
 {
     CanvasHandler *handler;
-    double left;
-    double top;
+    float left;
+    float top;
     double opacity;
     double zoom;
     bool   needClip;
@@ -62,8 +62,8 @@ struct ComposeContext
 struct LayerizeContext
 {
     CanvasHandler *m_Layer;
-    double m_pLeft;
-    double m_pTop;
+    float m_pLeft;
+    float m_pTop;
     double m_aOpacity;
     double m_aZoom;
     Rect *m_Clip;
@@ -122,6 +122,7 @@ public:
             };
 
         inline T get() const {
+#if 0
             if (m_State == State::kInherit) {
                 if (m_Canvas->getParentBase()) {
                     CanvasProperty<T> *ref =
@@ -131,13 +132,14 @@ public:
                     return ref->get();
                 }
             }
-
+#endif
             return m_Value;
         }
 
         inline T getAlternativeValue() const {
             return m_AlternativeValue;
         }
+
 
         inline operator T() const {
             return get();
@@ -194,21 +196,22 @@ public:
         int position;
     };
 
-    CANVAS_DEF_CLASS_PROPERTY(Right,        double, NAN, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(Bottom,       double, NAN, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(Top,          double, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(Left,         double, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(Width,        int, 1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(Height,       int, 1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     int, -1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    int, -1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     int, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    int, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(Coating,      unsigned int, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Right,        float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Bottom,       float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Top,          float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Left,         float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Width,        float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Height,       float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     float, -1,  State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    float, -1,  State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     float, 0,   State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    float, 0,   State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Coating,      float, 0,   State::kDefault);
 
     CANVAS_DEF_CLASS_PROPERTY(Flex,         bool, false, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(EventReceiver,bool, true, State::kDefault);
 
-    CANVAS_DEF_CLASS_PROPERTY(Opacity,      double, 1.0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Opacity,      float, 1.0, State::kDefault);
 
     virtual CanvasHandlerBase *getParentBase()=0;
 };
@@ -289,18 +292,18 @@ public:
 
     struct
     {
-        double top;
-        double right;
-        double bottom;
-        double left;
+        float top;
+        float right;
+        float bottom;
+        float left;
     } m_Margin;
 
     struct
     {
-        double top;
-        double right;
-        double bottom;
-        double left;
+        float top;
+        float right;
+        float bottom;
+        float left;
     } m_Padding;
 
     struct
@@ -330,19 +333,19 @@ public:
         return m_Zoom;
     }
 
-    inline double getPropLeftAbsolute()
+    inline float getPropLeftAbsolute()
     {
         return p_Left.getAlternativeValue();
     }
 
-    inline double getPropTopAbsolute()
+    inline float getPropTopAbsolute()
     {
         return p_Top.getAlternativeValue();
     }
 
-    double getTopScrolled() 
+    float getTopScrolled() 
     {
-        double top = getPropTop();
+        float top = getPropTop();
         if (m_CoordPosition == COORD_RELATIVE && m_Parent != NULL) {
             top -= m_Parent->m_Content.scrollTop;
         }
@@ -350,9 +353,9 @@ public:
         return top;
     }
 
-    double getLeftScrolled()
+    float getLeftScrolled()
     {
-        double left = getPropLeft();
+        float left = getPropLeft();
         if (m_CoordPosition == COORD_RELATIVE && m_Parent != NULL) {
             left -= m_Parent->m_Content.scrollLeft;
         }
@@ -362,50 +365,62 @@ public:
     /*
         Get the real dimensions computed by Yoga
     */
-    void getDimensions(int *width, int *height,
-        int *left = nullptr, int *top = nullptr)
+    bool getDimensions(float *width, float *height,
+        float *left = nullptr, float *top = nullptr)
     {
-        *width = ceilf(YGNodeLayoutGetWidth(m_YogaRef));
-        *height = ceilf(YGNodeLayoutGetHeight(m_YogaRef));
+        *width = YGNodeLayoutGetWidth(m_YogaRef);
+        *height = YGNodeLayoutGetHeight(m_YogaRef);
+
+        if (isnan(*width) || isnan(*height)) {
+            return false;
+        }
 
         if (left) {
-            *left = floorf(YGNodeLayoutGetLeft(m_YogaRef));
+            *left = YGNodeLayoutGetLeft(m_YogaRef);
+            if (isnan(*left)) {
+                return false;
+            }
         }
 
         if (top) {
-            *top = floorf(YGNodeLayoutGetTop(m_YogaRef));
+            *top = YGNodeLayoutGetTop(m_YogaRef);
+            if (isnan(*top)) {
+                return false;
+            }
         }
+
+        return true;
     }
 
-    inline int getComputedTop() const {
-        return floorf(YGNodeLayoutGetTop(m_YogaRef));
+    inline float getComputedTop() const {
+        return YGNodeLayoutGetTop(m_YogaRef);
     }
 
-    inline int getComputedLeft() const {
-        return floorf(YGNodeLayoutGetLeft(m_YogaRef));
+    inline float getComputedLeft() const {
+        return YGNodeLayoutGetLeft(m_YogaRef);
     }
 
-    inline int getComputedRight() const {
-        return floorf(YGNodeLayoutGetRight(m_YogaRef));
+    inline float getComputedRight() const {
+        return YGNodeLayoutGetRight(m_YogaRef);
     }
 
-    inline int getComputedBottom() const {
-        return floorf(YGNodeLayoutGetBottom(m_YogaRef));
+    inline float getComputedBottom() const {
+        return YGNodeLayoutGetBottom(m_YogaRef);
     }
 
-    inline int getComputedWidth() const {
-        return ceilf(YGNodeLayoutGetWidth(m_YogaRef));
+    inline float getComputedWidth() const {
+        return YGNodeLayoutGetWidth(m_YogaRef);
     }
 
-    inline int getComputedHeight() const {
-        return ceilf(YGNodeLayoutGetHeight(m_YogaRef));
+    inline float getComputedHeight() const {
+        return YGNodeLayoutGetHeight(m_YogaRef);
     }
 
-    inline int getComputedAbsoluteLeft() const {
+    inline float getComputedAbsoluteLeft() const {
         return p_Left.getAlternativeValue();
     }
 
-    inline int getComputedAbsoluteTop() const {
+    inline float getComputedAbsoluteTop() const {
         return p_Top.getAlternativeValue();
     }
 
@@ -414,7 +429,7 @@ public:
         return m_NidiumContext;
     }
 
-    void setMargin(double top, double right, double bottom, double left)
+    void setMargin(float top, float right, float bottom, float left)
     {
         YGNodeStyleSetMargin(m_YogaRef, YGEdgeTop, top);
         YGNodeStyleSetMargin(m_YogaRef, YGEdgeRight, right);
@@ -427,7 +442,7 @@ public:
         m_Margin.left   = left;
     }
 
-    void setPadding(double top, double right, double bottom, double left)
+    void setPadding(float top, float right, float bottom, float left)
     {
         YGNodeStyleSetPadding(m_YogaRef, YGEdgeTop, top);
         YGNodeStyleSetPadding(m_YogaRef, YGEdgeRight, right);
@@ -440,35 +455,35 @@ public:
         m_Padding.left   = left;
     }
 
-    void setPropLeft(double val) override
+    void setPropLeft(float val) override
     {
         p_Left.set(val);
         
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, val);
+        YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, isnan(val) ? YGUndefined : val);
     }
 
-    void setPropTop(double val) override
+    void setPropTop(float val) override
     {
         p_Top.set(val);
 
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, val);
+        YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, isnan(val) ? YGUndefined : val);
     }
 
-    void setPropRight(double val) override
+    void setPropRight(float val) override
     {
         p_Left.set(val);
         
         YGNodeStyleSetPosition(m_YogaRef, YGEdgeRight, isnan(val) ? YGUndefined : val);
     }
 
-    void setPropBottom(double val) override
+    void setPropBottom(float val) override
     {
         p_Top.set(val);
 
         YGNodeStyleSetPosition(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
     }
 
-    void setPropCoating(unsigned int value) override;
+    void setPropCoating(float value) override;
 
     void setScale(double x, double y);
 
@@ -508,8 +523,8 @@ public:
         return m_CoordPosition;
     }
 
-    CanvasHandler(int width,
-                  int height,
+    CanvasHandler(float width,
+                  float height,
                   Frontend::Context *nctx,
                   bool lazyLoad = false);
 
@@ -520,16 +535,16 @@ public:
 
     void setContext(CanvasContext *context);
 
-    bool setWidth(int width, bool force = false);
-    bool setHeight(int height, bool force = false);
+    bool setWidth(float width, bool force = false);
+    bool setHeight(float height, bool force = false);
 
-    void setPropMinWidth(int width) override;
-    void setPropMinHeight(int height) override;
+    void setPropMinWidth(float width) override;
+    void setPropMinHeight(float height) override;
 
-    void setPropMaxWidth(int width) override;
-    void setPropMaxHeight(int height) override;
+    void setPropMaxWidth(float width) override;
+    void setPropMaxHeight(float height) override;
 
-    void setSize(int width, int height, bool redraw = true);
+    void setSize(float width, float height, bool redraw = true);
     void setPositioning(CanvasHandler::COORD_POSITION mode);
     void setScrollTop(int value);
     void setScrollLeft(int value);
@@ -552,7 +567,7 @@ public:
     bool isDisplayed() const;
     bool isHidden() const;
     bool hasAFixedAncestor() const;
-    void setPropOpacity(double val) override;
+    void setPropOpacity(float val) override;
     void setZoom(double val);
     void removeFromParent(bool willBeAdopted = false);
     void getChildren(CanvasHandler **out) const;
@@ -594,7 +609,7 @@ public:
         return m_Prev;
     }
     int32_t countChildren() const;
-    bool containsPoint(double x, double y);
+    bool containsPoint(float x, float y);
     void layerize(LayerizeContext &layerContext,
         std::vector<ComposeContext> &compList, bool draw);
 
@@ -617,10 +632,9 @@ protected:
     void propertyChanged(EventsChangedProperty property);
 
 private:
-    void deviceSetSize(int width, int height);
+    void deviceSetSize(float width, float height);
     void onMouseEvent(Frontend::InputEvent *ev);
-    void
-    onDrag(Frontend::InputEvent *ev, CanvasHandler *target, bool end = false);
+    void onDrag(Frontend::InputEvent *ev, CanvasHandler *target, bool end = false);
     void onDrop(Frontend::InputEvent *ev, CanvasHandler *droped);
 
     int32_t m_nChildren;

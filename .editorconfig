@@ -1,0 +1,23 @@
+root = true
+
+[*]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+
+[{src,tests}/**.js]
+indent_style = space
+indent_size = 4
+
+[{src,tests}/**.{h,cpp}]
+indent_style = space
+indent_size = 4
+
+[{tools,third-party,gyp,resources,patch}/**]
+indent_style = ignore
+indent_size = ignore
+end_of_line = ignore
+trim_trailing_whitespace = ignore
+charset = ignore
