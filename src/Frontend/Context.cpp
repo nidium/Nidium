@@ -356,31 +356,26 @@ void Context::callFrame()
     m_Stats.lastmeasuredtime = tmptime;
 
     /* convert to ms */
-    m_Stats.cumultimems += static_cast<float>(m_Stats.lastdifftime) / 1000000.f;
+    m_Stats.cumultimems += (float)m_Stats.lastdifftime / 1000000.f;
     m_Stats.cumulframe++;
 
-    m_Stats.minfps = nidium_min(m_Stats.minfps,
-                                1000.f / (m_Stats.lastdifftime / 1000000.f));
-    // ndm_logf(NDM_LOG_DEBUG, "Context", "FPS : %f", 1000.f/(m_Stats.lastdifftime/1000000.f));
+    m_Stats.minfps = nidium_min(m_Stats.minfps, 1000.f/(m_Stats.lastdifftime/1000000.f));
+    //printf("FPS : %f\n", 1000.f/(m_Stats.lastdifftime/1000000.f));
 
-    // ndm_logf(NDM_LOG_DEBUG, "Context", "Last diff : %f",
-    // static_cast<float>(m_Stats.lastdifftime/1000000.f));
+    //printf("Last diff : %f\n", (float)(m_Stats.lastdifftime/1000000.f));
 
     /* Sample every 1000ms */
     if (m_Stats.cumultimems >= 1000.f) {
-        m_Stats.fps = 1000.f / static_cast<float>(m_Stats.cumultimems)
-                      / static_cast<float>(m_Stats.cumulframe);
-        m_Stats.cumulframe   = 0;
-        m_Stats.cumultimems  = 0.f;
+        m_Stats.fps = 1000.f/(float)(m_Stats.cumultimems/(float)m_Stats.cumulframe);
+        m_Stats.cumulframe = 0;
+        m_Stats.cumultimems = 0.f;
         m_Stats.sampleminfps = m_Stats.minfps;
-        m_Stats.minfps       = UINT32_MAX;
+        m_Stats.minfps = UINT32_MAX;
 
-        memmove(&m_Stats.samples[1], m_Stats.samples,
-                sizeof(m_Stats.samples) - sizeof(float));
+        memmove(&m_Stats.samples[1], m_Stats.samples, sizeof(m_Stats.samples)-sizeof(float));
 
         m_Stats.samples[0] = m_Stats.fps;
     }
-
     m_JSWindow->callFrameCallbacks(tmptime);
 }
 
@@ -723,7 +718,7 @@ void Context::initHandlers(int width, int height)
     m_RootHandler = new CanvasHandler(width, height, this);
 
     m_RootHandler->setPositioning(CanvasHandler::COORD_RELATIVE);
-    //m_RootHandler->p_Flex = false;
+    m_RootHandler->p_Flex = false;
 
     m_RootHandler->setContext(
         new Canvas2DContext(m_RootHandler, width, height, m_UI));
