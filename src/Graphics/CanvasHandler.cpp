@@ -24,8 +24,8 @@ using Nidium::Interface::UIInterface;
 namespace Nidium {
 namespace Graphics {
 
-CanvasHandler::CanvasHandler(int width,
-                             int height,
+CanvasHandler::CanvasHandler(float width,
+                             float height,
                              Context *nctx,
                              bool lazyLoad)
     : m_Context(NULL), m_JsCx(nctx->getNJS()->getJSContext()),
@@ -40,11 +40,15 @@ CanvasHandler::CanvasHandler(int width,
     m_NidiumContext->m_CanvasListIdx.insert({m_Identifier.idx, this});
     m_Identifier.str = nullptr;
     
-    p_Width     = nidium_max(width, -1);
-    p_Height    = nidium_max(height, -1);
+    if (!isnan(width)) {
+        p_Width = nidium_max(width, 0);
+        p_Width.setAlternativeValue(p_Width);
+    }
 
-    p_Width.setAlternativeValue(p_Width);
-    p_Height.setAlternativeValue(p_Height);
+    if (!isnan(height)) {
+        p_Height = nidium_max(height, 0);
+        p_Height.setAlternativeValue(p_Height);
+    }
 
     m_YogaRef = YGNodeNewWithConfig(nctx->m_YogaConfig);
 
@@ -851,7 +855,7 @@ void CanvasHandler::setHidden(bool val)
     m_Visibility = (val ? CANVAS_VISIBILITY_HIDDEN : CANVAS_VISIBILITY_VISIBLE);
 }
 
-void CanvasHandler::setPropOpacity(double val)
+void CanvasHandler::setPropOpacity(float val)
 {
     val = nidium_min(1, nidium_max(0, val));
 

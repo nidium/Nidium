@@ -122,6 +122,7 @@ public:
             };
 
         inline T get() const {
+#if 0
             if (m_State == State::kInherit) {
                 if (m_Canvas->getParentBase()) {
                     CanvasProperty<T> *ref =
@@ -131,7 +132,7 @@ public:
                     return ref->get();
                 }
             }
-
+#endif
             return m_Value;
         }
 
@@ -139,6 +140,7 @@ public:
             return m_AlternativeValue;
         }
 
+        
         inline operator T() const {
             return get();
         }
@@ -200,11 +202,11 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(Left,         float, NAN, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Width,        float, NAN, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Height,       float, NAN, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     float, -1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    float, -1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     float, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    float, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(Coating,      float, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     float, -1,  State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    float, -1,  State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     float, 0,   State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    float, 0,   State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Coating,      float, 0,   State::kDefault);
 
     CANVAS_DEF_CLASS_PROPERTY(Flex,         bool, false, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(EventReceiver,bool, true, State::kDefault);
@@ -521,8 +523,8 @@ public:
         return m_CoordPosition;
     }
 
-    CanvasHandler(int width,
-                  int height,
+    CanvasHandler(float width,
+                  float height,
                   Frontend::Context *nctx,
                   bool lazyLoad = false);
 

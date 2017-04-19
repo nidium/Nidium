@@ -1117,42 +1117,56 @@ bool JSCanvas::JSGetter_allowNegativeScroll(JSContext *cx, JS::MutableHandleValu
 
 bool JSCanvas::JSGetter_width(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getPropWidth());
+    float width = m_CanvasHandler->getPropWidth();
+    if (isnan(width)) {
+        vp.setUndefined();
+
+        return true;
+    }
+
+    vp.setNumber(m_CanvasHandler->getPropWidth());
 
     return true;
 }
 
 bool JSCanvas::JSGetter_height(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getPropHeight());
+    float height = m_CanvasHandler->getPropHeight();
+    if (isnan(height)) {
+        vp.setUndefined();
+
+        return true;
+    }
+
+    vp.setNumber(m_CanvasHandler->getPropHeight());
 
     return true;
 }
 
 bool JSCanvas::JSGetter_maxWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getPropMaxWidth());
+    vp.setNumber(m_CanvasHandler->getPropMaxWidth());
 
     return true;
 }
 
 bool JSCanvas::JSGetter_maxHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getPropMaxHeight());
+    vp.setNumber(m_CanvasHandler->getPropMaxHeight());
 
     return true;
 }
 
 bool JSCanvas::JSGetter_minWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getPropMinWidth());
+    vp.setNumber(m_CanvasHandler->getPropMinWidth());
 
     return true;
 }
 
 bool JSCanvas::JSGetter_minHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getPropMinHeight());
+    vp.setNumber(m_CanvasHandler->getPropMinHeight());
 
     return true;
 }
@@ -1198,28 +1212,56 @@ bool JSCanvas::JSGetter_position(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_top(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setDouble(m_CanvasHandler->getPropTop());
+    float top = m_CanvasHandler->getPropTop();
+    if (isnan(top)) {
+        vp.setUndefined();
+
+        return true;
+    }
+
+    vp.setNumber(m_CanvasHandler->getPropTop());
 
     return true;
 }
 
 bool JSCanvas::JSGetter_left(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setDouble(m_CanvasHandler->getPropLeft());
+    float left = m_CanvasHandler->getPropLeft();
+    if (isnan(left)) {
+        vp.setUndefined();
+
+        return true;
+    }
+
+    vp.setNumber(m_CanvasHandler->getPropLeft());
 
     return true;
 }
 
 bool JSCanvas::JSGetter_right(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setDouble(m_CanvasHandler->getPropRight());
+    float right = m_CanvasHandler->getPropRight();
+    if (isnan(right)) {
+        vp.setUndefined();
+
+        return true;
+    }
+
+    vp.setNumber(m_CanvasHandler->getPropRight());
 
     return true;
 }
 
 bool JSCanvas::JSGetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setDouble(m_CanvasHandler->getPropBottom());
+    float bottom = m_CanvasHandler->getPropBottom();
+    if (isnan(bottom)) {
+        vp.setUndefined();
+
+        return true;
+    }
+
+    vp.setNumber(m_CanvasHandler->getPropBottom());
 
     return true;
 }
@@ -1549,19 +1591,16 @@ bool JSCanvas::JSSetter_aspectRatio(JSContext *cx, JS::MutableHandleValue vp)
 JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
     JS::HandleObject obj)
 {
-    int width = -1, height = -1;
+    double width = NAN, height = NAN;
     CanvasHandler *handler;
 
-    if (args.length() >= 1 && !args[0].isNullOrUndefined() && !JS::ToInt32(cx, args[0], &width)) {
-        width = -1;
+    if (args.length() >= 1 && !args[0].isNullOrUndefined() && !JS::ToNumber(cx, args[0], &width)) {
+        width = NAN;
     }
 
-    if (args.length() >= 2 && !args[1].isNullOrUndefined() && !JS::ToInt32(cx, args[1], &height)) {
-        height = -1;
+    if (args.length() >= 2 && !args[1].isNullOrUndefined() && !JS::ToNumber(cx, args[1], &height)) {
+        height = NAN;
     }
-
-    width = nidium_max(-1, width);
-    height = nidium_max(-1, height);
     
     handler = new CanvasHandler(width, height,
         Context::GetObject<Frontend::Context>(cx), true);
