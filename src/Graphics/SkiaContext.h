@@ -133,8 +133,8 @@ public:
                      int *length = NULL);
 
     int bindOnScreen(int width, int height);
-    static sk_sp<SkSurface>
-        CreateGLSurface(int width, int height, Frontend::Context *nctx);
+    static sk_sp<SkSurface> CreateGLSurface(float width, float height,
+        Frontend::Context *fctx, int fbo = 0);
     int bindGL(int width, int height, Frontend::Context *nctx);
     void flush();
     void unlink();
@@ -289,7 +289,7 @@ private:
         Get Skia GrContext.
         It's lazy created if it's not yet created
     */
-    static GrContext *GetGrContext(Frontend::Context *fctx);
+    static GrContext *GetGrContext(Frontend::Context *fctx = nullptr);
 
     GrContext *getGrContext();
 

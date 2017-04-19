@@ -420,7 +420,7 @@ void Context::frame(bool draw)
     m_RootHandler->layerize(ctx, compList, draw);
 
     m_UI->makeMainGLCurrent();
-    rootctx->clear(0xFFFFFFFF);
+    rootctx->clear(0xffffffff);
     rootctx->flush();
 
     /*
