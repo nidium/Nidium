@@ -48,24 +48,17 @@
                 ],
                 'link_settings': {
                     'libraries': [
-            
-                       'gif.lib',
-                        '-lSDL2',
+                        'SDL2.lib',
+                        'skia.lib',
+                        'translator.lib',
+                        'preprocessor.lib',
+                        'angle_common.lib',
+                        'libANGLE.lib',
+                        'libEGL.lib',
+                        'libGLESv2.lib',
+                        'zip.lib',
+                        'gif.lib',
 
-                        '-lskia',
-                        '-langle_common',
-
-                        '-ltranslator',
-#                        '-ltranslator_lib',
-                        '-lpreprocessor',
-
-#                        '-lGL',
-#                        '-lfreetype',
-#                        '-lrt',
-#                        '-ldl',
-                        '-lzip',
-
-                         'Compression.obj', 'Decimal.obj', #'Unified_cpp_mfbt_staticruntime0.obj',
                         'opengl32.lib',
                     #'usp10.lib',
                     #'kernel32.lib',

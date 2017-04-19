@@ -39,7 +39,8 @@
                 'RuntimeLibrary': 2, #Multithreaded using DLL (msvcrt.lib)
                 'ExceptionHandling': 0,
                 'AdditionalOptions': [
-                    "/EHsc"
+                    "/EHsc",
+                    "-wd4067",
                  ],
             },
         },
@@ -89,7 +90,9 @@
                 }
             },
             'Release': {
-                'defines': [ 'NDEBUG'],
+                'defines': [ 
+                    'NDEBUG'
+                ],
                 'ldflags': [
                     # Skia need to be linked with his own libjpeg
                     # since libjpeg.a require .o files that are in a relative path 

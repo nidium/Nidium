@@ -33,6 +33,10 @@
                 '<(third_party_path)/skia/include/gpu',
                 '<(third_party_path)/opengl/api',
             ],
+            'link_settings': {
+                    'libraries': [
+                ]
+            },
             'defines': [
                     'NOMINMAX', 
             ],

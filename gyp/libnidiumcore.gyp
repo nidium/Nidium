@@ -100,10 +100,18 @@
                     "link_settings": {
                         'libraries': [
                             'mozglue.lib',
+                            'Initialization.obj',
+                            'Compression.obj', 
+                            'Decimal.obj', 
+                            #'Unified_cpp_mfbt_staticruntime0.obj',
                             'js_static.lib',
+
                             'libnspr4.lib',
                             'libplds4.lib',
                             'libplc4.lib',
+                            'libnspr4_s.lib',
+                            'libplds4_s.lib',
+                            'libplc4_s.lib',
                             'icuin.lib',
                             'icuuc.lib',
                             'icudt.lib',
@@ -116,9 +124,6 @@
                             '-ldbghelp',
                             '-ldelayimp',
 
-
-                            #workaround for missing JS_INIT -> causes 616 link warnings
-                            'Initialization.obj',
                             'http_parser.lib',
                             'libleveldb.a',
                        ]

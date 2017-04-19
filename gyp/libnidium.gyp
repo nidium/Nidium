@@ -63,6 +63,10 @@
                 'include_dirs': [
                     '<(third_party_path)/opengl/api/',
                  ],
+                'link_settings': {
+                    'libraries': [
+                    ]
+                },
                 'defines': [
                     'WIN32',
                     '_CONSOLE',
