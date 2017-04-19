@@ -6,6 +6,7 @@
 #ifndef binding_jsmacros_h__
 #define binding_jsmacros_h__
 
+#include <jsapi.h>
 #include <jsfriendapi.h>
 
 #define NidiumJSObj(cx) (Nidium::Binding::NidiumJS::GetObject(cx))

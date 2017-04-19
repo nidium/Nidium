@@ -8,7 +8,7 @@
 
 #include "IO/NFS.h"
 
-#include <jspubtd.h>
+#include <jsapi.h>
 
 namespace Nidium {
 namespace Binding {

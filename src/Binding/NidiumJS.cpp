@@ -18,8 +18,6 @@
 #endif
 
 #include <jsprf.h>
-
-#include <js/TracingAPI.h>
 #include <js/Initialization.h>
 
 #include "Binding/JSSocket.h"

@@ -9,8 +9,6 @@
 #include <string.h>
 
 #include <jsapi.h>
-#include <jspubtd.h>
-
 #include <prlink.h>
 
 #include "Core/Hash.h"

@@ -103,7 +103,11 @@ bool UIInterface::createWindow(int width, int height)
         }
 
         // glViewport(0, 0, width*2, height*2);
-        ndm_logf(NDM_LOG_INFO, "UIInterface", "OpenGL version : %s", glGetString(GL_VERSION));
+/*#ifdef NDEBUG
+        //ndm_logf(NDM_LOG_INFO, "UIInterface", "OpenGL version : %s", glGetString(GL_VERSION));
+#else*/
+            printf("[UIInterface] OpenGL version : %s\n", glGetString(GL_VERSION));
+/*#endif*/
 
         this->onWindowCreated();
 
@@ -485,12 +489,15 @@ uint8_t *UIInterface::readScreenPixel()
     glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[m_PBOs.vram2sys]);
+    uint8_t *ret = NULL;
+#if 0
     uint8_t *ret = (uint8_t *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
     if (!ret) {
         uint32_t err = glGetError();
         ndm_logf(NDM_LOG_ERROR, "UIInterface", "Failed to map buffer: Error %d", err);
         return NULL;
     }
+#endif 
 
     /* Flip Y pixels (row by row) */
     for (uint32_t i = 0; i < height; i++) {

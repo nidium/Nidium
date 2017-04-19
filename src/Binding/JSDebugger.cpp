@@ -7,15 +7,11 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include <jswrapper.h>
-
 #include "Binding/JSDebugger.h"
 #include "Binding/JSConsole.h"
 
-
 namespace Nidium {
 namespace Binding {
-
 
 JSDebuggerCompartment *JSDebuggerCompartment::Constructor(JSContext *cx,
                                                           JS::CallArgs &args,

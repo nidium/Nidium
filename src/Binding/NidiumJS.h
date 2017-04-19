@@ -10,9 +10,7 @@
 #include <stddef.h>
 #include <unordered_map>
 
-#include <jspubtd.h>
 #include <jsapi.h>
-#include <js/StructuredClone.h>
 #include <js/Conversions.h>
 
 #include "Core/Hash.h"

@@ -7,6 +7,7 @@
 
 #include "JSUtils.h"
 #include "JSModules.h"
+
 #ifdef NIDIUM_PRODUCT_FRONTEND
 #include "Interface/SystemInterface.h"
 #endif

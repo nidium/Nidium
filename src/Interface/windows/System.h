@@ -7,13 +7,8 @@
 #ifndef interface_windows_system_h__
 #define interface_windows_system_h__
 
-#include "SystemInterface.h"
-
-#ifndef _MSC_VER
-#error Windows port must be compiled with msvc
-#endif
-
 #include <Port/MSWindows.h>
+#include "SystemInterface.h"
 
 namespace Nidium{
 namespace Interface{

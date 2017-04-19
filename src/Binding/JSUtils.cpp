@@ -3,6 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
+
 #include "Binding/JSUtils.h"
 
 #include <string.h>
@@ -13,14 +14,15 @@
 #include <strings.h>
 #endif
 
+#include <jsprf.h>
 #include <jsfriendapi.h>
 #include <js/CharacterEncoding.h>
 
 #include "Binding/NidiumJS.h"
 
+#ifndef _MSC_VER
 #include <js/RootingAPI.h>
-#include <jsprf.h>
-
+#endif
 
 bool JS_ConvertArgumentsVA(JSContext *cx,
     const JS::CallArgs &args, const char *format, va_list ap);

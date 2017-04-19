@@ -9,17 +9,15 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <Winuser.h>
 
 #include <ape_netlib.h>
 
-#include <Winuser.h>
 #include <SDL_config.h>
-
 #include <SDL.h>
 #include <SDL_syswm.h>
 
 #include "System.h"
-
 
 namespace Nidium {
 namespace Interface {
@@ -181,16 +179,15 @@ void UIWinInterface::processWinPendingEvents()
 
 }
 
-#if 1
 void UIWinInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
 {
+#if 0
     int cursor;
     SDL_SysWMinfo info;
 
     if (cursorvalue != UIInterface::HIDDEN) {
         this->hideCursor(false);
     }
-
     switch (cursorvalue) {
         case UIWinInterface::ARROW:
             cursor = XC_left_ptr;
@@ -227,13 +224,16 @@ void UIWinInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
         XFlush(d);
         XFreeCursor(d, c);
     }
-}
-#endif
 
+#endif
+}
+
+#if 0
 void tray_icon_on_click(GtkStatusIcon *status_icon, gpointer user_data)
 {
     ndm_log(NDM_LOG_DEBUG, "X11UI", "Clicked on tray icon");
 }
+#endif
 
 void UIWinInterface::enableSysTray()
 {
@@ -274,6 +274,7 @@ void UIWinInterface::renderSystemTray()
 void UIWinConsole::log(const char *str)
 {
     if (m_IsOpen) {
+#if 0
         GtkScrolledWindow *scroll = GTK_SCROLLED_WINDOW(m_Scroll);
         GtkTextMark *mark         = gtk_text_buffer_get_insert(m_Buffer);
         GtkTextIter iter;
@@ -287,24 +288,26 @@ void UIWinConsole::log(const char *str)
 
         gtk_adjustment_set_value(adjustment,
                                  gtk_adjustment_get_upper(adjustment));
-
+#endif
         m_Interface->processWinPendingEvents();
+
     } else {
         fprintf(stdout, "%s", str);
         fflush(stdout);
     }
 }
-
+#if 0
 static void consoleHidden(GtkWidget *widget, GdkEvent *ev, gpointer priv)
 {
     UIWinConsole *console = static_cast<UIWinConsole *>(priv);
     console->hide();
 }
+#endif
 
 void UIWinConsole::show()
 {
     if (m_IsOpen) return;
-
+#if 0
     if (!m_Window) {
         GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
@@ -338,15 +341,18 @@ void UIWinConsole::show()
     gtk_widget_show_all(m_Window);
 
     m_IsOpen = true;
+#endif
 }
 
 void UIWinConsole::hide()
 {
+#if 0
     if (!m_Window || !m_IsOpen) return;
 
     ndm_log(NDM_LOG_DEBUG, "WinUI", "Hide");
 
     gtk_widget_hide(m_Window);
+#endif
 }
 // }}}
 

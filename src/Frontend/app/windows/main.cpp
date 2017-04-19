@@ -11,17 +11,14 @@
 #include <process.h>
 #include <sys/types.h>
 
+#include <Port/MSWindows.h>
+
 #ifdef NIDIUM_ENABLE_CRASHREPORTER
 #include <client/windows/handler/exception_handler.h>
 #endif
 
-
-
-#include "System.h"
-#include <Port/MSWindows.h>
 #include "WinUIInterface.h"
-
-#include <windows.h>
+#include "System.h"
 
 extern "C" {
    unsigned long _ape_seed;
@@ -87,7 +84,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdShow
     nml = __argc > 1 ? __argv[1] : "embed://default.nml";
 
     UI.setArguments(__argc, __argv, hInstance );
-
     if (!UI.runApplication(nml)) {
         return 0;
     }

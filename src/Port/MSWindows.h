@@ -6,13 +6,16 @@
 #ifndef port_mswindows_h__
 #define port_mswindows_h__
 
+#ifndef _MSC_VER
+#error Windows port must be compiled with msvc
+#endif
 
 #include <port/windows.h>
+#include <windows.h>
 
 #ifndef PTHREAD_HA
 typedef struct pthread_mutex_t_ * pthread_mutex_t;
 #endif
-
 
 #define ftruncate _chsize
 #define getppid GetCurrentProcessId

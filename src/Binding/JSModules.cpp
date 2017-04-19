@@ -3,6 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
+
 #include "Binding/JSModules.h"
 
 #include <stdio.h>
@@ -23,7 +24,6 @@
 
 #include <prerror.h>
 #include <json/json.h>
-#include <jsfriendapi.h>
 #include <ape_timers_next.h>
 
 #include "Binding/NidiumJS.h"

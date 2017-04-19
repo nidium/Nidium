@@ -9,13 +9,11 @@
 #include <direct.h>
 #include <Shlobj.h>
 #include <locale.h>
-#include <atlstr.h>  
-
+#include <string>
 
 #ifndef MIN
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #endif
-
 
 namespace Nidium {
 namespace Interface {
@@ -160,7 +158,8 @@ const char *System::cwd()
 
     return dir;
 }
-void alert(const char *message, Nidium::Interface::SystemInterface::AlertType type = Nidium::Interface::SystemInterface::AlertType::ALERT_INFO)
+
+void System::alert(const char *message, Nidium::Interface::SystemInterface::AlertType type)
 {
 
     HWND hWnd = NULL;
@@ -185,7 +184,7 @@ void System::sendNotification(const char *title, const char *content, bool sound
 const char *System::execute(const char *cmd)
 {
     // http://stackoverflow.com/questions/478898/how-to-execute-a-command-and-get-output-of-command-within-c-using-posix
-    CStringA strResult;
+    std::string strResult;
     HANDLE hPipeRead, hPipeWrite;
 
     SECURITY_ATTRIBUTES saAttr = { sizeof(SECURITY_ATTRIBUTES) };
@@ -194,7 +193,7 @@ const char *System::execute(const char *cmd)
 
     // Create a pipe to get results from child's stdout.
     if (!CreatePipe(&hPipeRead, &hPipeWrite, &saAttr, 0)) {
-        return strResult;
+        return strResult.c_str();
     }
 
     STARTUPINFOW si = {sizeof(STARTUPINFOW)};
@@ -209,7 +208,7 @@ const char *System::execute(const char *cmd)
     if (!fSuccess) {
        CloseHandle(hPipeWrite);
         CloseHandle(hPipeRead);
-        return strResult;
+        return strResult.c_str();
     }
 
     bool bProcessEnded = false;
@@ -242,7 +241,7 @@ const char *System::execute(const char *cmd)
     CloseHandle(hPipeRead);
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
-    return strResult;
+    return strResult.c_str();
 
 }
 

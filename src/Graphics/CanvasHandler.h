@@ -16,7 +16,6 @@
 #include "Core/Events.h"
 #include "Graphics/Geometry.h"
 
-
 /*
     - Handle a canvas layer.
     - Agnostic to any renderer.

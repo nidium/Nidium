@@ -10,7 +10,6 @@
 #include "NidiumJS.h"
 
 #include <js/CharacterEncoding.h>
-#include <jsfriendapi.h>
 
 namespace Nidium {
 namespace Binding {

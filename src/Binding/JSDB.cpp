@@ -7,7 +7,6 @@
 #include "Binding/JSModules.h"
 
 #include <leveldb/db.h>
-#include <js/StructuredClone.h>
 
 #include "Core/Path.h"
 

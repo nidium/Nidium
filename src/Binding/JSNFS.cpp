@@ -12,8 +12,6 @@
 #include <strings.h>
 #endif
 
-#include <jsapi.h>
-
 #include "Core/Path.h"
 
 using Nidium::Core::PtrAutoDelete;

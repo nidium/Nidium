@@ -6,14 +6,11 @@
 #ifndef binding_jsutils_h__
 #define binding_jsutils_h__
 
-#include <jspubtd.h>
 #include <jsapi.h>
-#include <js/CallArgs.h>
 
 #include "Binding/JSMacros.h"
 
 bool JS_ConvertArguments(JSContext *cx, const JS::CallArgs &args, const char *format, ...);
-
 
 namespace Nidium {
 namespace Binding {
