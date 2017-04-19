@@ -140,7 +140,7 @@ public:
             return m_AlternativeValue;
         }
 
-        
+
         inline operator T() const {
             return get();
         }
@@ -211,7 +211,7 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(Flex,         bool, false, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(EventReceiver,bool, true, State::kDefault);
 
-    CANVAS_DEF_CLASS_PROPERTY(Opacity,      double, 1.0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Opacity,      float, 1.0, State::kDefault);
 
     virtual CanvasHandlerBase *getParentBase()=0;
 };
@@ -567,7 +567,7 @@ public:
     bool isDisplayed() const;
     bool isHidden() const;
     bool hasAFixedAncestor() const;
-    void setPropOpacity(double val) override;
+    void setPropOpacity(float val) override;
     void setZoom(double val);
     void removeFromParent(bool willBeAdopted = false);
     void getChildren(CanvasHandler **out) const;
