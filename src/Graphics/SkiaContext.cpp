@@ -338,6 +338,11 @@ SkiaContext *SkiaContext::CreateWithTextureBackend(Frontend::Context *fctx,
 
     GrContext *gr = GetGrContext(fctx);
 
+    if (!gr) {
+        ndm_log(NDM_LOG_ERROR, "SkiaContext", "Can't resolve GrContext");
+        return nullptr;
+    }
+
     sk_sp<SkSurface> surface = SkSurface::MakeRenderTarget(gr, SkBudgeted::kNo,
         SkImageInfo::MakeN32Premul(ceilf(width * ratio), ceilf(height * ratio)));
 
@@ -349,16 +354,24 @@ SkiaContext *SkiaContext::CreateWithTextureBackend(Frontend::Context *fctx,
 
     skcontext->initWithSurface(surface);
 
+    /* New canvas are transparent */
+    skcontext->getCanvas()->clear(0x00000000);
+
     skcontext->m_CanvasBindMode = SkiaContext::BIND_ONSCREEN;
 
     return skcontext;
 }
 
-SkiaContext *SkiaContext::CreateWithFBOBackend(Frontend::Context *fctx,
-                                               int width, int height, uint32_t fbo)
+sk_sp<SkSurface> SkiaContext::CreateGLSurface(float width, float height,
+    Frontend::Context *fctx, int fbo)
 {
     float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
     GrContext *gr = GetGrContext(fctx);
+
+    if (!gr) {
+        ndm_log(NDM_LOG_ERROR, "SkiaContext", "Can't resolve GrContext");
+        return nullptr;
+    }
 
     GrBackendRenderTargetDesc desc;
 
@@ -371,12 +384,24 @@ SkiaContext *SkiaContext::CreateWithFBOBackend(Frontend::Context *fctx,
 
     desc.fRenderTargetHandle = fbo;
 
-    sk_sp<SkSurface> surface = SkSurface::MakeFromBackendRenderTarget(gr, desc, nullptr);
+    return SkSurface::MakeFromBackendRenderTarget(gr, desc, nullptr);
+}
+
+SkiaContext *SkiaContext::CreateWithFBOBackend(Frontend::Context *fctx,
+                                               int width, int height, uint32_t fbo)
+{
+    sk_sp<SkSurface> surface = CreateGLSurface(width, height, fctx, fbo);
+
+    if (!surface) {
+        ndm_log(NDM_LOG_ERROR, "SkiaContext", "Can't create surface");
+        return nullptr;
+    }
 
     SkiaContext *skcontext = new SkiaContext();
 
     skcontext->initWithSurface(surface);
-
+    /* Base FBO is white */
+    skcontext->getCanvas()->clear(0xffffffff);
     skcontext->m_CanvasBindMode = SkiaContext::BIND_GL;
 
     return skcontext;
@@ -399,9 +424,6 @@ bool SkiaContext::initWithSurface(sk_sp<SkSurface> surface)
     initPaints();
 
     this->setSmooth(true);
-
-    getCanvas()->clear(0x00000000);
-
 
     return true;
 }
@@ -444,7 +466,7 @@ GrContext *SkiaContext::GetGrContext(Frontend::Context *fctx)
     Frontend::LocalContext *lc = Frontend::LocalContext::Get();
     GrContext *gr = lc->getGrContext();
 
-    if (!gr) {
+    if (!gr && fctx != nullptr) {
         gr = CreateGrContext(fctx->getGLState()->getNidiumGLContext());
         lc->setGrContext(gr);
     }
@@ -476,25 +498,32 @@ void SkiaContext::resetGrBackendContext(uint32_t flag)
     context->resetContext(flag);
 }
 
-bool SkiaContext::setSize(int width, int height, bool redraw)
+bool SkiaContext::setSize(float width, float height, bool redraw)
 {
     float ratio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
-    const SkImageInfo &info = SkImageInfo::MakeN32Premul(ceilf(width * ratio),
-                                    ceilf(height * ratio));
+    width = nidium_max(width, 1);
+    height = nidium_max(height, 1);
 
-    // XXX TODO: Resize for fbo
+    sk_sp<SkSurface> newSurface;
 
-    sk_sp<SkSurface> newSurface = m_Surface->makeSurface(info);
+    if (this->m_CanvasBindMode == BIND_GL) {
+        newSurface = CreateGLSurface(width, height, nullptr);
+        if (!newSurface) {
+            ndm_logf(NDM_LOG_ERROR, "Canvas", "(BIND_GL) Can't create new surface of size %dx%d", width, height);
+            return false;
+        }
+    } else {
+        newSurface = m_Surface->makeSurface(SkImageInfo::MakeN32Premul(ceilf(width * ratio),
+                                        ceilf(height * ratio)));
+        if (!newSurface) {
+            ndm_logf(NDM_LOG_ERROR, "Canvas", "Can't create new surface of size %dx%d", width, height);
+            return false;
+        }
 
-    if (!newSurface) {
-        ndm_log(NDM_LOG_ERROR, "Canvas", "Can't create new surface");
-        return false;
+        newSurface->getCanvas()->clear(0x00000000);
     }
 
-    newSurface->getCanvas()->clear(0x00000000);
-
-    // Blit the old surface into the new one
     m_Surface->draw(newSurface->getCanvas(), 0, 0, nullptr);
 
     // Keep the old matrix in place
