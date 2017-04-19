@@ -26,7 +26,7 @@
 
             this.left     = attributes.left || 0;
             this.top      = attributes.top || 0;
-            this.coating  = attributes.coating || 20;
+            this.coating  = attributes.coating || 1;
 
             this[s_ShadowRoot] = shadowRoot;
             this[s_ShadowRoot].addTag(this.name(), this);
@@ -347,7 +347,7 @@
 
     /* -- click, dblclick, mousehold -- */
 
-    const pointerHoldTreshold = 1500;
+    const pointerHoldTreshold = 1200;
     const doubleClickTreshold = 250;
 
     const timer = function(fn, ms, loop, execFirst){
@@ -437,13 +437,14 @@
             this.__mousetimer__.remove();
         }
 
-        if (this.__mousehold__) {
+        if (this.__mousehold__ && dist<10) {
             this.fireEvent("holdend", e);
             this.__mousehold__ = false;
+            return;
         }
-        if (o && dist<6) {
-            console.log(this.name(), "mouseclick")
-            this.fireEvent("mouseclick", e);
+        if (o && dist<10) {
+            //console.log(this.name(), "mouseclick")
+            this.fireEvent("click", e);
         }
     };
 

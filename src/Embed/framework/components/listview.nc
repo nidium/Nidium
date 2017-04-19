@@ -9,7 +9,8 @@
             lineHeight: 56,
             textAlign: "left",
             overflow:false,
-            maxHeight:400
+            maxHeight:400,
+            scrollableY:true
         },
 
         icon: {

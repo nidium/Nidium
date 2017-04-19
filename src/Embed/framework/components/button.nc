@@ -8,7 +8,7 @@
             height : 40,
             width:80,
             lineHeight : 30,
-            coating : 20,
+            coating : 0,
 
             paddingTop : 6,
             paddingBottom : 6,
