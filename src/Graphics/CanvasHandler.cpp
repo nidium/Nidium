@@ -475,11 +475,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 {
     CanvasHandler *cur;
     Rect nclip;
-#if 0
-        printf("===== YOGA =====\n");
-        YGNodePrint(m_YogaRef, YGPrintOptionsLayout);
-        printf("\n");
-#endif
+
     if (m_Visibility == CANVAS_VISIBILITY_HIDDEN || p_Opacity == 0.0) {
         return;
     }
@@ -487,42 +483,30 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
     // double pzoom = this->zoom * azoom;
     double popacity = p_Opacity * layerContext.m_aOpacity;
 
-    float tmpLeft;
-    float tmpTop;
+    float tmpLeft, tmpTop;
+    float nwidth, nheight;
 
-    if (1 || (m_Parent && m_Parent->p_Flex)) {
-#if 0
-        printf("===== YOGA =====\n");
-        YGNodePrint(m_YogaRef, YGPrintOptionsLayout);
-        printf("\n");
-#endif
-        float nwidth, nheight;
+    /* Read the values from Yoga */
+    if (!getDimensions(&nwidth, &nheight, &tmpLeft, &tmpTop)) {
+        nlog("Could get dimensions");
+        /* Couldn't read one of the value */
+        return;
+    }
 
-        /* Read the values from Yoga */
-        getDimensions(&nwidth, &nheight, &tmpLeft, &tmpTop);
-        if (isnan(nwidth) || isnan(nheight) || isnan(tmpLeft) || isnan(tmpTop)) {
-            return;
-        }
+    /*
+        Check if we need to resize the element.
+        p_Width|Height alternative values hold the last computed Yoga value.
 
-        /*
-            Check if we need to resize the element.
-            p_Width|Height alternative values hold the last computed Yoga value.
+        This will trigger an onResize event on the element
+    */
+    if (nwidth != p_Width.getAlternativeValue()
+        || nheight != p_Height.getAlternativeValue()) {
 
-            This will trigger an onResize event on the element
-        */
-        if (nwidth != p_Width.getAlternativeValue()
-            || nheight != p_Height.getAlternativeValue()) {
-
-            p_Width.setAlternativeValue(nwidth);
-            p_Height.setAlternativeValue(nheight);
+        p_Width.setAlternativeValue(nwidth);
+        p_Height.setAlternativeValue(nheight);
 
 
-            deviceSetSize(nwidth, nheight);
-            
-        }
-    } else {
-        tmpLeft = this->getPropLeft();
-        tmpTop  = this->getPropTop();
+        deviceSetSize(nwidth, nheight);
     }
     
     int maxChildrenWidth  = p_Width.getAlternativeValue(),

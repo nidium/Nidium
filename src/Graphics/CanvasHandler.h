@@ -363,19 +363,31 @@ public:
     /*
         Get the real dimensions computed by Yoga
     */
-    void getDimensions(float *width, float *height,
+    bool getDimensions(float *width, float *height,
         float *left = nullptr, float *top = nullptr)
     {
         *width = YGNodeLayoutGetWidth(m_YogaRef);
         *height = YGNodeLayoutGetHeight(m_YogaRef);
 
+        if (isnan(*width) || isnan(*height)) {
+            return false;
+        }
+
         if (left) {
             *left = YGNodeLayoutGetLeft(m_YogaRef);
+            if (isnan(*left)) {
+                return false;
+            }
         }
 
         if (top) {
             *top = YGNodeLayoutGetTop(m_YogaRef);
+            if (isnan(*top)) {
+                return false;
+            }
         }
+
+        return true;
     }
 
     inline float getComputedTop() const {
