@@ -29,20 +29,20 @@
                 let icon = window.fontShapes[this.shape];
                 let w = ctx.measureText(icon).width;
 
-                let lineHeight  = this.inherit.lineHeight || this.style.lineHeight;
+                let lineHeight  = this.style.lineHeight;
                 let oy = Math.ceil(lineHeight*0.5);
 
-                if (this.inherit.textAlign == "center") {
+                if (this.style.textAlign == "center") {
                     ox = (width-w)*0.5;
                 }
 
-                if (this.inherit.textAlign == "right") {
+                if (this.style.textAlign == "right") {
                     ox = (width-w);
                 }
 
-                ctx.fontFamily    = this.inherit.fontFamily || this.style.fontFamily;
-                ctx.fontSize      = this.inherit.fontSize || this.style.fontSize;
-                ctx.fillStyle     = this.inherit.color || this.style.color;
+                ctx.fontFamily    = this.style.fontFamily;
+                ctx.fontSize      = this.style.fontSize;
+                ctx.fillStyle     = this.style.color;
                 ctx.textBaseline  = "middle";
                 
                 ctx.fillText(icon, ox, oy);

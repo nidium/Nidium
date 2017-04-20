@@ -32,4 +32,12 @@
     <layout id="button" class="button">
         <slot>Button</slot>
     </layout>
+    <script>
+        module.exports = class extends Component {
+            constructor(attr) {
+                super(attr);
+
+                console.log("dsqsffd");
+            }
+        </script>
 </component>

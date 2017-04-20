@@ -141,9 +141,15 @@
         );
     });
 
-    ElementStyle.Implement(Elements.Element, new ElementStyle("backgroundColor", { inherit: false, repaint: true }));
-    ElementStyle.Implement(Elements.Element, new ElementStyle("color", { inherit: true, repaint: true }));
-    
+    ElementStyle.Implement(
+        Elements.Element,
+        new ElementStyle("backgroundColor", { inherit: false, repaint: true })
+    );
 
+    ElementStyle.Implement(
+        Elements.Element, 
+        new ElementStyle("color", { inherit: true, repaint: true })
+    );
+    
     ElementStyle.Inherit(Elements.element);
 }
