@@ -8,6 +8,7 @@ const Elements          = require("Elements");
 const s_ComponentShadow = require("../Symbols.js").ComponentShadowRoot;
 const s_ShadowHost      = require("../Symbols.js").ElementShadowHost;
 const s_ShadowRoot      = require("../Symbols.js").ElementShadowRoot;
+const { StyleContainer, ElementStyle } = require("ElementsStyles");
 
 function findUserSlots(children, ret) {
     if (!ret) ret = new Map();
@@ -125,5 +126,7 @@ class Component extends Elements.Element {
         }
     }
 }
+
+ElementStyle.Inherit(Component);
 
 module.exports = Component;

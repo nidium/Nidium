@@ -10,6 +10,7 @@
     const s_ComponentShadow = require("../../Symbols.js").ComponentShadowRoot;
     const s_ComponentName   = Symbol("ComponentName");
     const s_ComponentClass  = Symbol("ComponentClass");
+    const { StyleContainer, ElementStyle } = require("ElementsStyles");
 
     Object.defineProperty(window.require, "ComponentLoader", {
         "configurable": false,
@@ -141,6 +142,8 @@
             let scope   = this.shadowRoot.getJSScope()
 
             let componentClass = scope.module.exports;
+            ElementStyle.Inherit(componentClass);
+
             if (componentClass instanceof ComponentExports) {
                 if (Object.keys(componentClass).length > 0) {
                     throw new Error("You cannot export more than one Component");
