@@ -36,7 +36,6 @@
             });
         }
 
-
         /*
            parse selector:attr attributes (i.e: js:data='foobar')
         */
@@ -65,7 +64,7 @@
                 }
 
                 if (isOn) {
-                    value = "function(){"+value+"}.bind(this)";
+                    value = `function(){${value}}.bind(this)`;
                 } else {
                     //value = `function() { return ${value} }.apply(__this)`
                 }
@@ -198,7 +197,6 @@
             }
 
             this.computedAttributes[attr] = value;
-            this.requestPaint();
         }
 
         name() {
