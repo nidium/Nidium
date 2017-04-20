@@ -79,7 +79,8 @@ class ElementStyle {
     }
 
     readDefault(element) {
-        return element.styles[this.name];
+        if (!element._styleDefault) element._styleDefault = {};
+        return element._styleDefault[this.name];
     }
 
     readInherit(element) {
@@ -97,14 +98,16 @@ class ElementStyle {
         if (this.repaint) {
             element.requestPaint();
         }
+        if (!element._styleDefault) element._styleDefault = {};
 
-        element[this.name] = value;
+        element._styleDefault[this.name] = value;
     }
 
     writeInherit(element, value) {
         if (this.repaint) {
             element.requestPaint();
         }
+
         element.inherit[`_Style_${this.name}`] = value;
     }
 }
