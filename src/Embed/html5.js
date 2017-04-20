@@ -75,50 +75,6 @@
         }
     };
 
-    (function(){
-        let styles = new WeakMap();
-
-        let styleHandler = {
-            get: function(target, name) {
-                switch (name) {
-                    case "width":
-                    case "height":
-                        return target[name];
-                    default:
-                        reportUnsupported("Unsupported " + name + " css property");
-                    break;
-                }
-            },
-
-            set: function(target, name, value) {
-                switch (name) {
-                    case "width":
-                    case "height":
-                        target[name] = parseInt(value);
-                        break;
-                    default:
-                        reportUnsupported("Unsupported assignation of " + name + " css property");
-                    break;
-                }
-            }
-        }
-
-        for (klass of [Canvas, Image]) {
-            Object.defineProperty(klass.prototype, "style", {
-                configurable: false,
-                get: function(target, name) {
-                    let style = styles.get(this);
-                    if (!style) {
-                        style = new Proxy(this, styleHandler);
-                        styles.set(this, style);
-                    }
-
-                    return style;
-                }
-            });
-        }
-    })();
-    //}}}
 
     // {{{ Document
     document.createElement = function(what) {
