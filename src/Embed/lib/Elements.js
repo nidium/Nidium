@@ -82,51 +82,5 @@ Elements.Loader = function(attributes) {
 
 window._onready = function(lst){};
 
-class ElementStyle {
-    constructor(name, options) {
-        this.name = name;
-        this.isNative = options.isNative || false;
-        this.inherit = options.inherit || false;
-        this.repaint = true;
-    }
-
-    read(element) {
-        if (this.isNative) {
-            return element[name];
-        }
-
-        if (!this.inherit) {
-            return element.styles[name];
-        }
-
-        return element.inherit[`_Style_${name}`];
-    }
-
-    write(element, value) {
-        if (this.isNative) {
-            element[name] = value;
-
-            return;
-        }
-
-        if (!this.inherit) {
-            element.styles[name] = value;
-            return;
-        }
-
-        element.inherit[`_Style_${name}`] = value;
-
-        return;
-
-    }
-}
-
-const Styles = new Map();
-
-["left", "top", "right", "bottom", "width", "height"].forEach((stl) => {
-    Styles.set(stl, new ElementStyle(stl, { isNative: true }));
-});
-
-
 module.exports = Elements;
 
