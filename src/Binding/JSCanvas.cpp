@@ -1084,7 +1084,7 @@ bool JSCanvas::JSSetter_opacity(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_overflow(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(m_CanvasHandler->m_Overflow);
+    vp.setBoolean(m_CanvasHandler->canOverflow());
 
     return true;
 }
@@ -1096,7 +1096,7 @@ bool JSCanvas::JSSetter_overflow(JSContext *cx, JS::MutableHandleValue vp)
         return true;
     }
 
-    m_CanvasHandler->m_Overflow = vp.toBoolean();
+    m_CanvasHandler->setOverflow(vp.toBoolean());
 
     return true;
 }
@@ -1754,8 +1754,8 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx,
     handler->setContext(ctx2d);
     handler->getContext()->setGLState(nctx->getGLState());
 
-    /* window.canvas.overflow default to false */
-    handler->m_Overflow = false;
+    /* document.canvas.overflow default to false */
+    handler->setOverflow(false);
 
     JSCanvas *jscanvas = new JSCanvas(handler);
 
