@@ -1,4 +1,5 @@
 const s_ShadowRoot = require("./Symbols").ElementShadowRoot;
+const drawer = require("./framework/core/drawer.js");
 
 const inheritedProperties = [
     "color", "textAlign", "lineHeight",
@@ -8,25 +9,6 @@ const inheritedProperties = [
 const redrawingProperties = [
     "backgroundColor", "color", "fontFamily", "fontSize", "fontWeight"
 ];
-
-
-var drawer = {
-    setShadow : function(ctx, style){
-        ctx.shadowOffsetX = style.shadowOffsetX;
-        ctx.shadowOffsetY = style.shadowOffsetY;
-        ctx.shadowColor = style.shadowColor;
-        ctx.shadowBlur = style.shadowBlur;
-    },
-
-    disableShadow : function(ctx){
-        this.setShadow(ctx, {
-            shadowOffsetX : 0,
-            shadowOffsetY : 0,
-            shadowColor : 0,
-            shadowBlur : 0
-        });
-    }
-};
 
 class ElementStyles {
     constructor(el) {
