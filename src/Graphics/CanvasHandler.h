@@ -207,9 +207,8 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     float, NAN, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    float, NAN, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Coating,      float, 0,   State::kDefault);
-
-    CANVAS_DEF_CLASS_PROPERTY(Flex,         bool, false, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(EventReceiver,bool, true, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Display,      bool, true, State::kDefault);
 
     CANVAS_DEF_CLASS_PROPERTY(Opacity,      float, 1.0, State::kDefault);
 
@@ -320,8 +319,6 @@ public:
         int x, y, xrel, yrel;
         bool consumed;
     } m_MousePosition;
-
-    bool m_Overflow;
 
     CanvasContext *getContext() const
     {
@@ -455,6 +452,13 @@ public:
         m_Padding.left   = left;
     }
 
+    void setPropDisplay(bool state) override
+    {
+        p_Display.set(state);
+
+        YGNodeStyleSetDisplay(m_YogaRef, state ? YGDisplayFlex : YGDisplayNone);
+    }
+
     void setPropLeft(float val) override
     {
         p_Left.set(val);
@@ -497,6 +501,16 @@ public:
         } else {
             YGNodeStyleSetPosition(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
         }
+    }
+
+    void setOverflow(bool state) {
+        m_Overflow = state;
+        /* TODO: We should set YGOverflowScroll only if the view is scrollable */
+        YGNodeStyleSetOverflow(m_YogaRef, state ? YGOverflowScroll : YGOverflowVisible);
+    }
+
+    bool canOverflow() const {
+        return m_Overflow;
     }
 
     void setPropCoating(float value) override;
@@ -673,9 +687,12 @@ private:
 
     void recursiveScale(double x, double y, double oldX, double oldY);
 
+
+    bool m_Overflow;
     bool m_Loaded;
     int m_Cursor;
     bool m_NeedPaint = true;
+
 
     /* Reference to the Yoga node */
     YGNodeRef m_YogaRef;
