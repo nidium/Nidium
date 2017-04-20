@@ -902,13 +902,13 @@ bool JSCanvas::JSSetter_display(JSContext *cx, JS::MutableHandleValue vp)
     }
     JSAutoByteString cdisplay(cx, sdisplay);
 
-    if (strcmp("flex", cdisplay.ptr()) == 0) {
-        m_CanvasHandler->setPropFlex(true);
+    if (strcmp("none", cdisplay.ptr()) == 0) {
+        m_CanvasHandler->setPropDisplay(false);
 
         return true;
     }
 
-    m_CanvasHandler->setPropFlex(false);
+    m_CanvasHandler->setPropDisplay(true);
 
     return true;
 }
@@ -1180,13 +1180,13 @@ bool JSCanvas::JSGetter_minHeight(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_display(JSContext *cx, JS::MutableHandleValue vp)
 {
-    if (m_CanvasHandler->getPropFlex()) {
+    if (m_CanvasHandler->getPropDisplay()) {
         vp.setString(JS_NewStringCopyZ(cx, "flex"));
 
         return true;
     }
 
-    vp.setString(JS_NewStringCopyZ(cx, "default"));
+    vp.setString(JS_NewStringCopyZ(cx, "none"));
 
     return true;
 }

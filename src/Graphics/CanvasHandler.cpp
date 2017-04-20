@@ -75,8 +75,6 @@ CanvasHandler::CanvasHandler(float width,
     memset(&m_MousePosition, 0, sizeof(m_MousePosition));
 
     m_MousePosition.consumed = true;
-    //p_Flex = true;
-
     m_Content.width  = p_Width;
     m_Content.height = p_Height;
 
@@ -85,8 +83,6 @@ CanvasHandler::CanvasHandler(float width,
 
     m_Content.scrollLeft = 0;
     m_Content.scrollTop  = 0;
-
-    p_Flex = true;
 }
 
 void CanvasHandler::computeLayoutPositions()
