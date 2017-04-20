@@ -38,6 +38,15 @@
             this._ctx.restore();
         }
 
+        paint(ctx, width, height) {
+            let bg = this.style.backgroundColor;
+
+            if (bg) {
+                ctx.fillStyle = this.style.backgroundColor;
+                ctx.fillRect(0, 0, width, height);
+            }
+        }
+
         fadein(duration, callback) {
             var callback = callback || function(){};
 
@@ -120,6 +129,10 @@
             new ElementStyle(stl, { isNative: true })
         );
     });
+
+    ElementStyle.Implement(Elements.Element, new ElementStyle("backgroundColor", { inherit: false, repaint: true }));
+    ElementStyle.Implement(Elements.Element, new ElementStyle("color", { inherit: true, repaint: true }));
+    
 
     ElementStyle.Inherit(Elements.element);
 }
