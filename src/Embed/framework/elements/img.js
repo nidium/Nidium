@@ -6,6 +6,7 @@
 
 {
     const Elements = require("Elements");
+    const { StyleContainer, ElementStyle } = require("ElementsStyles");
 
     Elements.img = class extends Elements.Element {
         constructor(attributes) {
@@ -47,4 +48,6 @@ console.log(width, height);
         }
 
     }
+
+    ElementStyle.Inherit(Elements.img);
 }

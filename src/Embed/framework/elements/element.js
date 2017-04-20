@@ -7,7 +7,7 @@
 {
     const { StyleContainer, ElementStyle } = require("ElementsStyles");
     const { setAnimation, Easing } = require("AnimationBlock");
-    const Elements = require("Elements")
+    const Elements = require("Elements");
 
     Elements.Element = class extends Elements.Node {
         constructor(attributes = {}) {

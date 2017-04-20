@@ -6,6 +6,7 @@
 
 {
     const Elements = require("Elements");
+    const { StyleContainer, ElementStyle } = require("ElementsStyles");
 
     Elements.view = class extends Elements.Element {
         constructor(attributes) {
@@ -17,4 +18,6 @@
             this.style.bottom = 0;
         }
     }
+
+    ElementStyle.Inherit(Elements.view);
 }

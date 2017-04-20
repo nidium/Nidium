@@ -6,7 +6,8 @@
 
 {
     const Elements = require("Elements");
-
+    const { StyleContainer, ElementStyle } = require("ElementsStyles");
+    
     Elements.layout = class extends Elements.Element {
         constructor(attr) {
             super(attr);
@@ -14,4 +15,6 @@
             this.style.flexDirection = "column";
         }
     }
+
+    ElementStyle.Inherit(Elements.layout);
 }

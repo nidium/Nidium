@@ -6,6 +6,7 @@
 
 {
     const Elements = require("Elements");
+    const { StyleContainer, ElementStyle } = require("ElementsStyles");
 
     Elements.li = class extends Elements.Element {
         constructor(attributes) {
@@ -17,4 +18,6 @@
             this.style.flexWrap = "nowrap";
         }
     }
+
+    ElementStyle.Inherit(Elements.li);
 }

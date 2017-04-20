@@ -8,6 +8,7 @@
     const Elements = require("Elements");
 
     const s_NodeText = Symbol("NodeText");
+    const { StyleContainer, ElementStyle } = require("ElementsStyles");
 
     Elements.textnode = class extends Elements.Element {
         constructor(textValue) {
@@ -84,4 +85,6 @@
             }
         }
     }
+
+    ElementStyle.Inherit(Elements.textnode);
 }

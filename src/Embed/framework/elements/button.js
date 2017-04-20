@@ -6,6 +6,7 @@
 
 {
     const Elements = require("Elements");
+    const { StyleContainer, ElementStyle } = require("ElementsStyles");
 
     Elements.button = class extends Elements.Element {
         constructor(attributes) {
@@ -24,4 +25,6 @@
             ctx.strokeRect(0, 0, this.width-0.5, this.height-0.5, 15, 15);
         }
     }
+
+    ElementStyle.Inherit(Elements.button);
 }
