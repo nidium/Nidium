@@ -34,6 +34,9 @@
                     "<(libapenetwork_output_third_party_path)",
                     "<(nidium_output_third_party_path)"
                 ],
+                'AdditionalOptions': [
+                    '/IGNORE:4049,4099,4217',
+                ],
             },
             'VCCLCompilerTool': {
                 'ExceptionHandling': 0,
