@@ -12,8 +12,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "IO/FileSystem.h"
+
 using Nidium::Core::SharedMessages;
 using Nidium::Core::Task;
+using Nidium::IO:FileSystem;
 
 namespace Nidium {
 namespace Binding {
@@ -165,6 +168,42 @@ bool JSFS::JS_isFile(JSContext *cx, JS::CallArgs &args)
 
 }
 
+bool JSFS::JS_createDirSync(JSContext *cx, JS::CallArgs &args)
+{
+    JS::RootedString path(cx);
+
+    if (!JS_ConvertArguments(cx, args, "S", path.address())) {
+
+        args.rval().setBoolean(false);
+
+        return true;
+
+    }
+
+
+    JSAutoByteString cpath(cx, path);
+    struct stat statbuf;
+
+    stat(strdup(cpath.ptr()), &statbuf);
+
+    if (S_ISDIR(statbuf.st_mode)) {
+
+        args.rval().setBoolean(true);
+
+        return true;
+
+    }
+
+
+    mkdirp(cpath.ptr());
+    stat(strdup(cpath.ptr()), &statbuf);
+
+    args.rval().setBoolean(S_ISDIR(statbuf.st_mode));
+
+    return false;
+
+}
+
 bool JSFS::JS_readDir(JSContext *cx, JS::CallArgs &args)
 {
     JS::RootedString path(cx);
@@ -216,9 +255,9 @@ bool JSFS::JS_removeSync(JSContext *cx, JS::CallArgs &args)
 JSFunctionSpec *JSFS::ListMethods()
 {
     static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSFS, createDirSync, 1),
         CLASSMAPPER_FN(JSFS, isDir, 1),
         CLASSMAPPER_FN(JSFS, isFile, 1),
-
         CLASSMAPPER_FN(JSFS, readDir, 2),
         CLASSMAPPER_FN(JSFS, removeSync, 1),
 

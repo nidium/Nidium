@@ -120,7 +120,7 @@ bool JSCanvas::JS_getDimensions(JSContext *cx, JS::CallArgs &args)
     NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "top", top);
 
     args.rval().setObject(*out);
-    
+
     return true;
 }
 
@@ -1601,7 +1601,7 @@ JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
     if (args.length() >= 2 && !args[1].isNullOrUndefined() && !JS::ToNumber(cx, args[1], &height)) {
         height = NAN;
     }
-    
+
     handler = new CanvasHandler(width, height,
         Context::GetObject<Frontend::Context>(cx), true);
 
