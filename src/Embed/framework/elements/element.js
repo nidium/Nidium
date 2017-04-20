@@ -18,6 +18,28 @@
             }
 
             this.style = new (StyleContainer.Create(Object.getPrototypeOf(this)))(this);
+
+            const classes = attributes.class;
+            if (classes) {
+                let nss;
+                if (this.shadowRoot) {
+                    // If element is a ShadowRoot, we need to get the styling
+                    // information from the parent ShadowRoot
+                    nss = this.getParent()[s_ShadowRoot].getNSS();
+                } else {
+                    nss = this.el[s_ShadowRoot].getNSS();
+                }
+
+                let tmp = [];
+                for (let c of classes.split(" ")) {
+                    tmp.push(nss[c]);
+                }
+
+                // Merge all style into |this.style|
+                tmp.unshift(this.style);
+                Object.assign.apply(null, tmp);
+            }
+
             this.onresize = this.onpaint;
         }
 
