@@ -52,7 +52,7 @@ void JSVideo::FrameCallback(uint8_t *data, void *custom)
     JSContext *cx          = v->m_Cx;
 
     surface->setFillColor(0xFF000000);
-    surface->drawRect(0, 0, handler->getWidth(), handler->getHeight(), 0);
+    surface->drawRect(0, 0, handler->getComputedWidth(), handler->getComputedHeight(), 0);
     surface->drawPixels(data, v->m_Video->m_Width, v->m_Video->m_Height,
                         v->m_Left, v->m_Top);
 
@@ -78,8 +78,8 @@ void JSVideo::setSize(int width, int height)
         return;
     }
 
-    int canvasWidth  = m_CanvasCtx->getHandler()->getWidth();
-    int canvasHeight = m_CanvasCtx->getHandler()->getHeight();
+    int canvasWidth  = m_CanvasCtx->getHandler()->getComputedWidth();
+    int canvasHeight = m_CanvasCtx->getHandler()->getComputedHeight();
 
     // Invalid dimension, force size to canvas
     if (width == 0) width = -1;
@@ -209,14 +209,22 @@ bool JSVideo::JSGetter_canvas(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSVideo::JSGetter_width(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(this->m_Video->m_CodecCtx->width);
+    if (m_Video->m_CodecCtx) {
+        vp.setInt32(m_Video->m_CodecCtx->width);
+    } else {
+        vp.setInt32(-1);
+    }
 
     return true;
 }
 
 bool JSVideo::JSGetter_height(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(this->m_Video->m_CodecCtx->height);
+    if (m_Video->m_CodecCtx) {
+        vp.setInt32(this->m_Video->m_CodecCtx->height);
+    } else {
+        vp.setInt32(-1);
+    }
 
     return true;
 }

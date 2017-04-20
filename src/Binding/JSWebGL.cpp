@@ -2394,8 +2394,8 @@ bool JSWebGLRenderingContext::JS_texImage2D(JSContext *cx, JS::CallArgs &args)
             Canvas2DContext *ctx
                 = static_cast<Canvas2DContext *>(handler->getContext());
 
-            width  = handler->getWidth();
-            height = handler->getHeight();
+            width  = handler->getComputedWidth();
+            height = handler->getComputedHeight();
 
             // Canvas are always RGBA
             format         = NGL_RGBA;

@@ -8,6 +8,10 @@
 #include <string.h>
 #include <stdbool.h>
 
+#ifndef _MSC_VER
+#include <signal.h>
+#endif
+
 #ifdef NIDIUM_PRODUCT_FRONTEND
 #ifdef _MSC_VER
 #define SK_BUILD_FOR_WIN32
@@ -26,7 +30,7 @@
 #include "SDL_keycode_translate.h"
 
 #define NIDIUM_TITLEBAR_HEIGHT 0
-#define NIDIUM_VSYNC 1
+#define NIDIUM_VSYNC 0
 
 uint32_t ttfps = 0;
 
@@ -40,6 +44,8 @@ using Nidium::Frontend::NML;
 namespace Nidium {
 namespace Interface {
 
+extern UIInterface *__NidiumUI;
+
 // {{{ UIInterface
 UIInterface::UIInterface()
     : m_CurrentCursor(UIInterface::ARROW), m_NidiumCtx(NULL), m_Nml(NULL),
@@ -49,6 +55,7 @@ UIInterface::UIInterface()
       m_FrameBuffer(NULL), m_Console(NULL), m_MainGLCtx(NULL),
       m_SystemMenu(this)
 {
+    this->setSignalHandler();
 }
 
 void UIInterface::setGLContextAttribute()
@@ -247,6 +254,11 @@ int UIInterface::HandleEvents(void *arg)
         }
     }
 
+    if (uii->m_DoRefresh) {
+        uii->hitRefresh();
+        uii->m_DoRefresh = false;
+    }
+
     if (ttfps % 300 == 0 && uii->isContextReady()) {
         uii->m_NidiumCtx->getNJS()->gc();
     }
@@ -386,6 +398,31 @@ void UIInterface::refresh()
     SDL_GL_SwapWindow(this->m_Win);
 
     SDL_GL_SetSwapInterval(oswap);
+}
+
+static void SignalHandler(int sig)
+{
+    UIInterface *iface = Nidium::Interface::__NidiumUI;
+
+    iface->signalHandler(sig);
+}
+
+void UIInterface::setSignalHandler()
+{
+#ifndef _MSC_VER
+    signal(SIGHUP, SignalHandler);
+#endif
+}
+
+void UIInterface::signalHandler(int sig)
+{
+    switch(sig) {
+#ifndef _MSC_VER
+        case SIGHUP:
+            this->m_DoRefresh = true;;
+            break;
+#endif
+    }
 }
 
 void UIInterface::centerWindow()

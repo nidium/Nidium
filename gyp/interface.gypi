@@ -13,6 +13,7 @@
         '<(third_party_path)/angle/include/',
         '<(third_party_path)/rapidxml/',
         '<(third_party_path)/libnotify/',
+        '<(third_party_path)/yoga/',
     ],
     'sources': [
         '<(nidium_interface_path)/UIInterface.cpp',

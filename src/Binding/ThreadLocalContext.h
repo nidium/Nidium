@@ -156,3 +156,4 @@ struct NidiumLocalContext {
 }
 
 #endif
+

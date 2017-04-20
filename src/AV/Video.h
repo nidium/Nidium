@@ -122,6 +122,7 @@ public:
     int m_FramesIdx;
     AVFrame *m_DecodedFrame;
     AVFrame *m_ConvertedFrame;
+    char *m_Filename = nullptr;
 
     pthread_t m_ThreadDecode;
     NIDIUM_PTHREAD_VAR_DECL(m_BufferCond);
@@ -134,7 +135,6 @@ public:
     int open(void *buffer, int size);
     int openInit();
     int openInitInternal();
-    static void openInitCoro(void *arg);
     double getClock();
     void seek(double time)
     {
@@ -175,13 +175,11 @@ private:
     pthread_mutex_t m_DecodeThreadLock;
 
     void closeInternal(bool reset);
-    static void seekCoro(void *arg);
     int64_t seekTarget(double time, int *flags);
     bool seekMethod(int64_t target, int flags);
     void seekInternal(double time);
 
     void buffer();
-    static void bufferCoro(void *arg);
     void bufferInternal();
 
     bool processAudio();

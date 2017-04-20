@@ -1063,6 +1063,9 @@ void JSWindow::createMainCanvas(int width, int height, JS::HandleObject docObj)
         m_Cx, JSCanvas::GenerateJSObject(m_Cx, width, height, &m_Handler));
     Context::GetObject<Frontend::Context>(m_Cx)->getRootHandler()->addChild(
         m_Handler);
+
+    m_Handler->setPositioning(CanvasHandler::COORD_RELATIVE);
+
     JS::RootedValue canval(m_Cx, JS::ObjectValue(*canvas));
     JS_DefineProperty(m_Cx, docObj, "canvas", canval,
                       JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);

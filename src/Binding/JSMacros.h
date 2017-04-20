@@ -63,5 +63,11 @@
 #define NIDIUM_JSOBJ_SET_PROP_INT(where, name, val) \
     NIDIUM_JSOBJ_SET_PROP(where, name, val)
 
+#define NIDIUM_JSOBJ_SET_PROP_FLOAT(where, name, val) \
+    NIDIUM_JSOBJ_SET_PROP(where, name, (double)val)
+
+#define NIDIUM_JSOBJ_SET_PROP_DOUBLE(where, name, val) \
+    NIDIUM_JSOBJ_SET_PROP(where, name, val)
+
 #endif
 

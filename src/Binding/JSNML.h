@@ -6,7 +6,6 @@
 #ifndef binding_jsnml_h__
 #define binding_jsnml_h__
 
-
 #include "Binding/ClassMapper.h"
 
 namespace Nidium {
