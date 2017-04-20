@@ -115,7 +115,7 @@ public:
         static constexpr float kUndefined_Value  = NAN;
 
         CanvasProperty(const char *name, T val, State state, CanvasHandlerBase *h) :
-            m_Name(name), m_Canvas(h), m_Value(val), m_AlternativeValue(val) {
+            m_Name(name), m_Canvas(h), m_Value(val), m_CachedValue(val) {
                 
                 position = m_Canvas->m_PropertyList.size();
                 m_Canvas->m_PropertyList.push_back((void *)this);
@@ -136,8 +136,8 @@ public:
             return m_Value;
         }
 
-        inline T getAlternativeValue() const {
-            return m_AlternativeValue;
+        inline T getCachedValue() const {
+            return m_CachedValue;
         }
 
 
@@ -150,8 +150,8 @@ public:
             m_Value = val;
         }
 
-        inline void setAlternativeValue(T val) {
-            m_AlternativeValue = val;
+        inline void setCachedValue(T val) {
+            m_CachedValue = val;
         }
         
         /* Change the user value */
@@ -187,7 +187,7 @@ public:
         /* Value set by the user */
         T m_UserValue;
 
-        T m_AlternativeValue;
+        T m_CachedValue;
         
         State m_State = State::kDefault;
 
@@ -335,12 +335,12 @@ public:
 
     inline float getPropLeftAbsolute()
     {
-        return p_Left.getAlternativeValue();
+        return p_Left.getCachedValue();
     }
 
     inline float getPropTopAbsolute()
     {
-        return p_Top.getAlternativeValue();
+        return p_Top.getCachedValue();
     }
 
     float getTopScrolled() 
@@ -417,11 +417,11 @@ public:
     }
 
     inline float getComputedAbsoluteLeft() const {
-        return p_Left.getAlternativeValue();
+        return p_Left.getCachedValue();
     }
 
     inline float getComputedAbsoluteTop() const {
-        return p_Top.getAlternativeValue();
+        return p_Top.getCachedValue();
     }
 
     Frontend::Context *getNidiumContext() const

@@ -407,6 +407,11 @@ Elements.flexcanvas = class extends NidiumNode {
         this._color = attributes.color || "red";
     }
 
+    set color(val) {
+        this._color = val;
+        this.requestPaint();
+    }
+
     paint(ctx, width, height) {
         ctx.fillStyle = this._color;
         ctx.fillRect(0, 0, width, height);
