@@ -3,8 +3,6 @@
         icon: {
             width: 20,
             height: 20,
-            fontSize: 20,
-            lineHeight: 20,
             fontFamily: "fontAwesome"
         }
     </nss>

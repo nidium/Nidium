@@ -35,16 +35,21 @@
 
         left: {
             flexGrow: 1,
+            flexShrink: 0,
+            minWidth:90,
             backgroundColor: "rgba(0, 30, 0, 0.0)"
         },
 
         center: {
             flexGrow: 4,
+            flexShrink: 1,
             alignItems:"center"
         },
 
         right: {
             flexGrow: 1,
+            flexShrink: 0,
+            minWidth:90,
             backgroundColor: "rgba(0, 30, 0, 0.0)"
         },
 
