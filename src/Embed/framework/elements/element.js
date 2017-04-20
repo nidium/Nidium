@@ -14,6 +14,7 @@
         let styler = new ElementStyle(property, descriptor);
         ElementStyle.Implement(target, styler);
     };
+    const s_ShadowRoot  = require("../../Symbols.js").ElementShadowRoot;
 
     Elements.Element = class extends Elements.Node {
         constructor(attributes = {}) {
@@ -33,7 +34,7 @@
                     // information from the parent ShadowRoot
                     nss = this.getParent()[s_ShadowRoot].getNSS();
                 } else {
-                    nss = this.el[s_ShadowRoot].getNSS();
+                    nss = this[s_ShadowRoot].getNSS();
                 }
 
                 let tmp = [];
