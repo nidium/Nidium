@@ -6,7 +6,9 @@
 
 {
 
-    load("embed://lib/ElementsStyles");
+    load("embed://lib/ElementsStyles.js");
+
+    const Elements = require("Elements")
 
     Elements.Element = class extends Elements.Node {
         constructor(attributes = {}) {
