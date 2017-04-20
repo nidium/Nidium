@@ -202,10 +202,10 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(Left,         float, NAN, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Width,        float, NAN, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Height,       float, NAN, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     float, -1,  State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    float, -1,  State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     float, 0,   State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    float, 0,   State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    float, NAN, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Coating,      float, 0,   State::kDefault);
 
     CANVAS_DEF_CLASS_PROPERTY(Flex,         bool, false, State::kDefault);
