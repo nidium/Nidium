@@ -8,6 +8,12 @@
     const { StyleContainer, ElementStyle } = require("ElementsStyles");
     const { setAnimation, Easing } = require("AnimationBlock");
     const Elements = require("Elements");
+    const drawer = require("../core/drawer.js");
+
+    const defineStyleProperty = function(target, property, descriptor){
+        let styler = new ElementStyle(property, descriptor);
+        ElementStyle.Implement(target, styler);
+    };
 
     Elements.Element = class extends Elements.Node {
         constructor(attributes = {}) {
@@ -60,12 +66,38 @@
             this._ctx.restore();
         }
 
-        paint(ctx, width, height) {
-            let bg = this.style.backgroundColor;
+        paint(ctx, w, h) {
+            let s = this.style;
 
-            if (bg) {
-                ctx.fillStyle = this.style.backgroundColor;
-                ctx.fillRect(0, 0, width, height);
+            if (s.fontSize) {
+                ctx.fontSize = s.fontSize;
+            }
+
+            if (s.fontFamily) {
+                ctx.fontFamily = s.fontFamily;
+            }
+
+            if (s.backgroundColor) {
+                s.shadowBlur && drawer.setShadow(ctx, s);
+                ctx.fillStyle = s.backgroundColor;
+                ctx.fillRect(0, 0, w, h, s.radius);
+                s.shadowBlur && drawer.disableShadow(ctx);
+            }
+
+            if (s.borderColor && s.borderWidth) {
+                let x = 0;
+                let y = 0;
+
+                ctx.lineWidth = s.borderWidth;
+                ctx.strokeStyle = s.borderColor;
+
+                ctx.strokeRect(
+                    x - s.borderWidth*0.5,
+                    y - s.borderWidth*0.5,
+                    w + s.borderWidth,
+                    h + s.borderWidth,
+                    s.radius + s.borderWidth*0.5
+                );
             }
         }
 
@@ -163,15 +195,19 @@
         );
     });
 
-    ElementStyle.Implement(
-        Elements.Element,
-        new ElementStyle("backgroundColor", { inherit: false, repaint: true })
-    );
+    const properties = {
+        backgroundColor :   { inherit:false,    repaint:true},
+        color :             { inherit:true,     repaint:true},
+        lineHeight :        { inherit:true,     repaint:true},
+        fontFamily :        { inherit:true,     repaint:true},
+        fontSize :          { inherit:true,     repaint:true},
+        fontWeight :        { inherit:true,     repaint:true},
+        textAlign :         { inherit:true,     repaint:true},
+    };
 
-    ElementStyle.Implement(
-        Elements.Element, 
-        new ElementStyle("color", { inherit: true, repaint: true })
-    );
+    for (var k in properties) {
+        defineStyleProperty(Elements.Element, k, properties[k]);
+    }
     
     ElementStyle.Inherit(Elements.element);
 }

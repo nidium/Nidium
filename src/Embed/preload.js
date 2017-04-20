@@ -8,9 +8,9 @@
  * Defer creation of the layout once all assets are ready
  */
 Object.defineProperty(window, "_onready", {
-    "configurable": false,
-    "writable": false,
-    "value": function(lst) {
+    configurable: false,
+    writable: false,
+    value: function(lst) {
         document.canvas.inject(lst);
     }
 });

@@ -36,8 +36,6 @@
         module.exports = class extends Component {
             constructor(attr) {
                 super(attr);
-
-                console.log("dsqsffd");
             }
         }
         </script>
