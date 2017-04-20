@@ -15,7 +15,8 @@
             this.style.flexDirection = "row";
             this.style.justifyContent = "space-between";
             this.style.alignItems = "center";
-            this.style.flexWrap = "nowrap";        }
+            this.style.flexWrap = "nowrap";
+        }
     }
 
     ElementStyle.Inherit(Elements.div);
