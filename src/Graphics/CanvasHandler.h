@@ -9,12 +9,20 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <vector>
 
 #include <jsapi.h>
-#include <vector>
 
 #include "Core/Events.h"
 #include "Graphics/Geometry.h"
+
+#include <Yoga.h>
+#include <YGStringEnums.h>
+
+#ifndef NAN                                                                     
+static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};                 
+#define NAN (*(const float *) __nan)                                            
+#endif                                                                          
 
 
 /*
@@ -40,24 +48,11 @@ class CanvasHandler;
 class SkiaContext;
 class CanvasContext;
 
-
-struct LayerSiblingContext
-{
-    double m_MaxLineHeight;
-    double m_MaxLineHeightPreviousLine;
-
-    LayerSiblingContext()
-        : m_MaxLineHeight(0.0), m_MaxLineHeightPreviousLine(0.0)
-    {
-    }
-};
-
-
 struct ComposeContext
 {
     CanvasHandler *handler;
-    double left;
-    double top;
+    float left;
+    float top;
     double opacity;
     double zoom;
     bool   needClip;
@@ -67,13 +62,11 @@ struct ComposeContext
 struct LayerizeContext
 {
     CanvasHandler *m_Layer;
-    double m_pLeft;
-    double m_pTop;
+    float m_pLeft;
+    float m_pTop;
     double m_aOpacity;
     double m_aZoom;
     Rect *m_Clip;
-
-    struct LayerSiblingContext *m_SiblingCtx;
 
     void reset()
     {
@@ -83,18 +76,163 @@ struct LayerizeContext
         m_aOpacity   = 1.0;
         m_aZoom      = 1.0;
         m_Clip       = NULL;
-        m_SiblingCtx = NULL;
     }
 };
 
-class CanvasHandler : public Core::Events
+#define CANVAS_DEF_CLASS_PROPERTY(name, type, default_value, state) \
+    CanvasProperty<type> p_##name = {#name, default_value, CanvasProperty<type>::state, this}; \
+    virtual void setProp##name(type value) { \
+        this->p_##name.set(value); \
+    } \
+    virtual type getProp##name() { \
+        return this->p_##name.get(); \
+    }
+
+class CanvasHandlerBase
 {
+private:
+    /*
+        This need to be initialized before properties
+    */    
+    std::vector<void *> m_PropertyList;
+
+public:
+    /*
+     * This class holds two different value for the property
+     * - The 'computed' value : the actual value used for the layout
+     * - the 'user' value : the value set by the user */
+    template <typename T>
+    class CanvasProperty
+    {
+    public:
+        enum class State {
+            kDefault,
+            kSet,
+            kInherit,
+            kUndefined
+        };
+
+        static constexpr float kUndefined_Value  = NAN;
+
+        CanvasProperty(const char *name, T val, State state, CanvasHandlerBase *h) :
+            m_Name(name), m_Canvas(h), m_Value(val), m_AlternativeValue(val) {
+                
+                position = m_Canvas->m_PropertyList.size();
+                m_Canvas->m_PropertyList.push_back((void *)this);
+            };
+
+        inline T get() const {
+#if 0
+            if (m_State == State::kInherit) {
+                if (m_Canvas->getParentBase()) {
+                    CanvasProperty<T> *ref =
+                        static_cast<CanvasProperty<T> *>
+                            (m_Canvas->getParentBase()->m_PropertyList.at(position));
+
+                    return ref->get();
+                }
+            }
+#endif
+            return m_Value;
+        }
+
+        inline T getAlternativeValue() const {
+            return m_AlternativeValue;
+        }
+
+
+        inline operator T() const {
+            return get();
+        }
+        
+        /* Change the computed value */
+        inline void set(T val) {
+            m_Value = val;
+        }
+
+        inline void setAlternativeValue(T val) {
+            m_AlternativeValue = val;
+        }
+        
+        /* Change the user value */
+        inline void userSet(T val) {
+            m_UserValue = val;
+            m_State = State::kSet;
+        }
+
+        inline CanvasProperty<T> operator=(const T& val) {
+
+            set(val);
+
+            return *this;
+        }
+
+        void setInherit() {
+            m_State = State::kInherit;
+        }
+
+        void reset() {
+            m_State = State::kDefault;
+        }
+
+    private:
+        /* Used for debug purpose
+         * TODO: ifdef DEBUG */
+        const char *m_Name;
+
+        CanvasHandlerBase *m_Canvas;
+
+        /* Actual value used for computation */
+        T m_Value;
+        /* Value set by the user */
+        T m_UserValue;
+
+        T m_AlternativeValue;
+        
+        State m_State = State::kDefault;
+
+        /* Position of the property in the Canvas properyList
+         * This is used in order to lookup for parent same property */
+        int position;
+    };
+
+    CANVAS_DEF_CLASS_PROPERTY(Right,        float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Bottom,       float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Top,          float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Left,         float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Width,        float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Height,       float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     float, -1,  State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    float, -1,  State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     float, 0,   State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    float, 0,   State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Coating,      float, 0,   State::kDefault);
+
+    CANVAS_DEF_CLASS_PROPERTY(Flex,         bool, false, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(EventReceiver,bool, true, State::kDefault);
+
+    CANVAS_DEF_CLASS_PROPERTY(Opacity,      float, 1.0, State::kDefault);
+
+    virtual CanvasHandlerBase *getParentBase()=0;
+};
+
+
+// {{{ CanvasHandler
+class CanvasHandler : public CanvasHandlerBase, public Core::Events 
+{
+private:
+    /*
+        This need to be initialized before properties
+    */    
+    std::vector<void *> m_PropertyList;
+
 public:
     friend class SkiaContext;
     friend class Nidium::Frontend::Context;
     friend class Binding::JSCanvas;
 
     static const uint8_t EventID = 1;
+    
 
     enum COORD_MODE
     {
@@ -138,17 +276,7 @@ public:
         COORD_RELATIVE,
         COORD_ABSOLUTE,
         COORD_FIXED,
-        COORD_INLINE,
-        COORD_INLINEBREAK
-    };
-
-    enum FLOW_MODE
-    {
-        kFlowDoesntInteract        = 0,
-        kFlowInlinePreviousSibling = 1 << 0,
-        kFlowBreakPreviousSibling  = 1 << 1,
-        kFlowBreakAndInlinePreviousSibling
-        = (kFlowInlinePreviousSibling | kFlowBreakPreviousSibling)
+        COORD_DEFAULT
     };
 
     enum Visibility
@@ -157,39 +285,26 @@ public:
         CANVAS_VISIBILITY_HIDDEN
     };
 
+
     CanvasContext *m_Context;
     JS::TenuredHeap<JSObject *> m_JsObj;
     JSContext *m_JsCx;
 
-    int m_Width, m_Height, m_MinWidth, m_MinHeight, m_MaxWidth, m_MaxHeight;
-    /*
-        left and top are relative to parent
-        a_left and a_top are relative to the root layer
-    */
-    double m_Left, m_Top, m_aLeft, m_aTop, m_Right, m_Bottom;
-
     struct
     {
-        double top;
-        double bottom;
-        double left;
-        double right;
-        int global;
-    } m_Padding;
-
-    struct
-    {
-        double top;
-        double right;
-        double bottom;
-        double left;
+        float top;
+        float right;
+        float bottom;
+        float left;
     } m_Margin;
 
     struct
     {
-        double x;
-        double y;
-    } m_Translate_s;
+        float top;
+        float right;
+        float bottom;
+        float left;
+    } m_Padding;
 
     struct
     {
@@ -213,40 +328,24 @@ public:
         return m_Context;
     }
 
-    double getOpacity() const
-    {
-        return m_Opacity;
-    }
-
     double getZoom() const
     {
         return m_Zoom;
     }
 
-    double getLeft(bool absolute = false) const
+    inline float getPropLeftAbsolute()
     {
-        if (absolute) return m_aLeft;
-
-        if (!(m_CoordMode & kLeft_Coord) && m_Parent) {
-            return m_Parent->getWidth() - (m_Width + m_Right);
-        }
-
-        return m_Left;
-    }
-    double getTop(bool absolute = false) const
-    {
-        if (absolute) return m_aTop;
-
-        if (!(m_CoordMode & kTop_Coord) && m_Parent) {
-            return m_Parent->getHeight() - (m_Height + m_Bottom);
-        }
-
-        return m_Top;
+        return p_Left.getAlternativeValue();
     }
 
-    double getTopScrolled() const
+    inline float getPropTopAbsolute()
     {
-        double top = getTop();
+        return p_Top.getAlternativeValue();
+    }
+
+    float getTopScrolled() 
+    {
+        float top = getPropTop();
         if (m_CoordPosition == COORD_RELATIVE && m_Parent != NULL) {
             top -= m_Parent->m_Content.scrollTop;
         }
@@ -254,86 +353,75 @@ public:
         return top;
     }
 
-    double getLeftScrolled() const
+    float getLeftScrolled()
     {
-        double left = getLeft();
+        float left = getPropLeft();
         if (m_CoordPosition == COORD_RELATIVE && m_Parent != NULL) {
             left -= m_Parent->m_Content.scrollLeft;
         }
         return left;
     }
 
-    double getRight() const
-    {
-        if (hasStaticRight() || !m_Parent) {
-            return m_Right;
-        }
-
-        return m_Parent->getWidth() - (getLeftScrolled() + getWidth());
-    }
-
-    double getBottom() const
-    {
-        if (hasStaticBottom() || !m_Parent) {
-            return m_Bottom;
-        }
-
-        return m_Parent->getHeight() - (getTopScrolled() + getHeight());
-    }
-
     /*
-        Get the width in logical pixels
+        Get the real dimensions computed by Yoga
     */
-    double getWidth() const
+    bool getDimensions(float *width, float *height,
+        float *left = nullptr, float *top = nullptr)
     {
-        if (hasFixedWidth() || m_FluidWidth) {
-            return m_Width;
-        }
-        if (m_Parent == NULL) return 0.;
+        *width = YGNodeLayoutGetWidth(m_YogaRef);
+        *height = YGNodeLayoutGetHeight(m_YogaRef);
 
-        double pwidth = m_Parent->getWidth();
-
-        if (pwidth == 0) return 0.;
-
-        return nidium_max(pwidth - this->getLeft() - this->getRight(), 1);
-    }
-
-    /*
-        Get the height in logical pixels
-    */
-    double getHeight() const
-    {
-        if (hasFixedHeight() || m_FluidHeight) {
-            return m_Height;
+        if (isnan(*width) || isnan(*height)) {
+            return false;
         }
 
-        if (m_Parent == NULL) return 0.;
+        if (left) {
+            *left = YGNodeLayoutGetLeft(m_YogaRef);
+            if (isnan(*left)) {
+                return false;
+            }
+        }
 
-        double pheight = m_Parent->getHeight();
+        if (top) {
+            *top = YGNodeLayoutGetTop(m_YogaRef);
+            if (isnan(*top)) {
+                return false;
+            }
+        }
 
-        if (pheight == 0) return 0.;
-
-        return nidium_max(pheight - this->getTop() - this->getBottom(), 1);
+        return true;
     }
 
-    int getMinWidth() const
-    {
-        return m_MinWidth;
+    inline float getComputedTop() const {
+        return YGNodeLayoutGetTop(m_YogaRef);
     }
 
-    int getMaxWidth() const
-    {
-        return m_MaxWidth;
+    inline float getComputedLeft() const {
+        return YGNodeLayoutGetLeft(m_YogaRef);
     }
 
-    int getMinHeight() const
-    {
-        return m_MinHeight;
+    inline float getComputedRight() const {
+        return YGNodeLayoutGetRight(m_YogaRef);
     }
 
-    int getMaxHeight() const
-    {
-        return m_MaxHeight;
+    inline float getComputedBottom() const {
+        return YGNodeLayoutGetBottom(m_YogaRef);
+    }
+
+    inline float getComputedWidth() const {
+        return YGNodeLayoutGetWidth(m_YogaRef);
+    }
+
+    inline float getComputedHeight() const {
+        return YGNodeLayoutGetHeight(m_YogaRef);
+    }
+
+    inline float getComputedAbsoluteLeft() const {
+        return p_Left.getAlternativeValue();
+    }
+
+    inline float getComputedAbsoluteTop() const {
+        return p_Top.getAlternativeValue();
     }
 
     Frontend::Context *getNidiumContext() const
@@ -341,109 +429,61 @@ public:
         return m_NidiumContext;
     }
 
-    bool hasFixedWidth() const
+    void setMargin(float top, float right, float bottom, float left)
     {
-        return !((m_CoordMode & (kLeft_Coord | kRight_Coord))
-                     == (kLeft_Coord | kRight_Coord)
-                 || m_FluidWidth);
-    }
+        YGNodeStyleSetMargin(m_YogaRef, YGEdgeTop, top);
+        YGNodeStyleSetMargin(m_YogaRef, YGEdgeRight, right);
+        YGNodeStyleSetMargin(m_YogaRef, YGEdgeBottom, bottom);
+        YGNodeStyleSetMargin(m_YogaRef, YGEdgeLeft, left);
 
-    bool hasFixedHeight() const
-    {
-        return !((m_CoordMode & (kTop_Coord | kBottom_Coord))
-                     == (kTop_Coord | kBottom_Coord)
-                 || m_FluidHeight);
-    }
-
-    bool hasStaticLeft() const
-    {
-        return m_CoordMode & kLeft_Coord;
-    }
-
-    bool hasStaticRight() const
-    {
-        return m_CoordMode & kRight_Coord;
-    }
-
-    bool hasStaticTop() const
-    {
-        return m_CoordMode & kTop_Coord;
-    }
-
-    bool hasStaticBottom() const
-    {
-        return m_CoordMode & kBottom_Coord;
-    }
-
-    void unsetLeft()
-    {
-        m_CoordMode &= ~kLeft_Coord;
-    }
-
-    void unsetRight()
-    {
-        m_CoordMode &= ~kRight_Coord;
-    }
-
-    void unsetTop()
-    {
-        m_CoordMode &= ~kTop_Coord;
-    }
-
-    void unsetBottom()
-    {
-        m_CoordMode &= ~kBottom_Coord;
-    }
-
-    void setMargin(double top, double right, double bottom, double left)
-    {
         m_Margin.top    = top;
         m_Margin.right  = right;
         m_Margin.bottom = bottom;
         m_Margin.left   = left;
     }
 
-    void setLeft(double val)
+    void setPadding(float top, float right, float bottom, float left)
     {
-        if (m_FlowMode & kFlowInlinePreviousSibling) {
-            return;
-        }
-        m_CoordMode |= kLeft_Coord;
-        m_Left = val;
-        if (!hasFixedWidth()) {
-            setSize(this->getWidth(), m_Height);
-        }
-    }
-    void setRight(double val)
-    {
-        m_CoordMode |= kRight_Coord;
-        m_Right = val;
-        if (!hasFixedWidth()) {
-            setSize(this->getWidth(), m_Height);
-        }
+        YGNodeStyleSetPadding(m_YogaRef, YGEdgeTop, top);
+        YGNodeStyleSetPadding(m_YogaRef, YGEdgeRight, right);
+        YGNodeStyleSetPadding(m_YogaRef, YGEdgeBottom, bottom);
+        YGNodeStyleSetPadding(m_YogaRef, YGEdgeLeft, left);
+
+        m_Padding.top    = top;
+        m_Padding.right  = right;
+        m_Padding.bottom = bottom;
+        m_Padding.left   = left;
     }
 
-    void setTop(double val)
+    void setPropLeft(float val) override
     {
-        if (m_FlowMode & kFlowInlinePreviousSibling) {
-            return;
-        }
-        m_CoordMode |= kTop_Coord;
-        m_Top = val;
-        if (!hasFixedHeight()) {
-            setSize(m_Width, this->getHeight());
-        }
+        p_Left.set(val);
+        
+        YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, isnan(val) ? YGUndefined : val);
     }
 
-    void setBottom(double val)
+    void setPropTop(float val) override
     {
-        m_CoordMode |= kBottom_Coord;
-        m_Bottom = val;
+        p_Top.set(val);
 
-        if (!hasFixedHeight()) {
-            setSize(m_Width, this->getHeight());
-        }
+        YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, isnan(val) ? YGUndefined : val);
     }
+
+    void setPropRight(float val) override
+    {
+        p_Left.set(val);
+        
+        YGNodeStyleSetPosition(m_YogaRef, YGEdgeRight, isnan(val) ? YGUndefined : val);
+    }
+
+    void setPropBottom(float val) override
+    {
+        p_Top.set(val);
+
+        YGNodeStyleSetPosition(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
+    }
+
+    void setPropCoating(float value) override;
 
     void setScale(double x, double y);
 
@@ -483,53 +523,32 @@ public:
         return m_CoordPosition;
     }
 
-    unsigned int getFlowMode() const
-    {
-        return m_FlowMode;
-    }
-
-    bool isHeightFluid() const
-    {
-        return m_FluidHeight;
-    }
-
-    bool isWidthFluid() const
-    {
-        return m_FluidWidth;
-    }
-
-    CanvasHandler(int width,
-                  int height,
+    CanvasHandler(float width,
+                  float height,
                   Frontend::Context *nctx,
                   bool lazyLoad = false);
 
     virtual ~CanvasHandler();
 
+
     void unrootHierarchy();
 
     void setContext(CanvasContext *context);
 
-    bool setWidth(int width, bool force = false);
-    bool setHeight(int height, bool force = false);
+    bool setWidth(float width, bool force = false);
+    bool setHeight(float height, bool force = false);
 
-    bool setMinWidth(int width);
-    bool setMinHeight(int height);
+    void setPropMinWidth(float width) override;
+    void setPropMinHeight(float height) override;
 
-    bool setMaxWidth(int width);
-    bool setMaxHeight(int height);
+    void setPropMaxWidth(float width) override;
+    void setPropMaxHeight(float height) override;
 
-    bool setFluidHeight(bool val);
-    bool setFluidWidth(bool val);
-
-    void updateChildrenSize(bool width, bool height);
-    void setSize(int width, int height, bool redraw = true);
-    void setPadding(int padding);
+    void setSize(float width, float height, bool redraw = true);
     void setPositioning(CanvasHandler::COORD_POSITION mode);
     void setScrollTop(int value);
     void setScrollLeft(int value);
     void computeAbsolutePosition();
-    void computeContentSize(int *cWidth, int *cHeight, bool inner = false);
-    void translate(double x, double y);
     bool isOutOfBound();
     Rect getViewport();
     Rect getVisibleRect();
@@ -542,13 +561,13 @@ public:
     void insertBefore(CanvasHandler *insert, CanvasHandler *ref);
     void insertAfter(CanvasHandler *insert, CanvasHandler *ref);
 
-    int getContentWidth(bool inner = false);
-    int getContentHeight(bool inner = false);
+    int getContentWidth();
+    int getContentHeight();
     void setHidden(bool val);
     bool isDisplayed() const;
     bool isHidden() const;
     bool hasAFixedAncestor() const;
-    void setOpacity(double val);
+    void setPropOpacity(float val) override;
     void setZoom(double val);
     void removeFromParent(bool willBeAdopted = false);
     void getChildren(CanvasHandler **out) const;
@@ -567,6 +586,12 @@ public:
     {
         return m_Parent;
     }
+
+    CanvasHandlerBase *getParentBase() override
+    {
+        return m_Parent;
+    }    
+
     CanvasHandler *getFirstChild() const
     {
         return m_Children;
@@ -584,7 +609,7 @@ public:
         return m_Prev;
     }
     int32_t countChildren() const;
-    bool containsPoint(double x, double y) const;
+    bool containsPoint(float x, float y);
     void layerize(LayerizeContext &layerContext,
         std::vector<ComposeContext> &compList, bool draw);
 
@@ -595,47 +620,32 @@ public:
     CanvasHandler *m_Prev;
     CanvasHandler *m_Last;
 
-    static void _JobResize(void *arg);
     bool _handleEvent(Frontend::InputEvent *ev);
 
     uint32_t m_Flags;
 
-protected:
-    CanvasHandler *getPrevInlineSibling() const
-    {
-        CanvasHandler *prev;
-        for (prev = m_Prev; prev != NULL; prev = prev->m_Prev) {
-            if (prev->m_FlowMode & kFlowInlinePreviousSibling) {
-                return prev;
-            }
-        }
+    void computeLayoutPositions();
 
-        return NULL;
-    }
+protected:
 
     void paint();
     void propertyChanged(EventsChangedProperty property);
 
 private:
-    void execPending();
-    void deviceSetSize(int width, int height);
+    void deviceSetSize(float width, float height);
     void onMouseEvent(Frontend::InputEvent *ev);
-    void
-    onDrag(Frontend::InputEvent *ev, CanvasHandler *target, bool end = false);
+    void onDrag(Frontend::InputEvent *ev, CanvasHandler *target, bool end = false);
     void onDrop(Frontend::InputEvent *ev, CanvasHandler *droped);
 
     int32_t m_nChildren;
     void dispatchMouseEvents(LayerizeContext &layerContext);
     COORD_POSITION m_CoordPosition;
     Visibility m_Visibility;
-    unsigned m_FlowMode;
-    unsigned m_CoordMode : 16;
-    double m_Opacity;
+
     double m_Zoom;
 
     double m_ScaleX, m_ScaleY;
     bool m_AllowNegativeScroll;
-    bool m_FluidWidth, m_FluidHeight;
 
     Frontend::Context *m_NidiumContext;
 
@@ -646,18 +656,13 @@ private:
     } m_Identifier;
 
     void recursiveScale(double x, double y, double oldX, double oldY);
-    void setPendingFlags(int flags, bool append = true);
 
-    enum PENDING_JOBS
-    {
-        kPendingResizeWidth  = 1 << 0,
-        kPendingResizeHeight = 1 << 1,
-    };
-
-    int m_Pending;
     bool m_Loaded;
     int m_Cursor;
     bool m_NeedPaint = true;
+
+    /* Reference to the Yoga node */
+    YGNodeRef m_YogaRef;
 };
 
 
