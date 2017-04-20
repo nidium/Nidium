@@ -106,10 +106,11 @@ class Component extends Elements.Element {
                         tmp.push(nss[c]);
                     }
 
-                    //tmp.push(Object.assign({}, this.style));
+                    // Give priority to style already defined
+                    tmp.push(this.style);
 
+                    // Merge all style into |this.style|
                     tmp.unshift(this.style);
-
                     Object.assign.apply(null, tmp);
                 }
 
