@@ -32,6 +32,15 @@ public:
                            JS::MutableHandleValue jval,
                            const char *encoding);
 
+    /*
+        Convert a JS::Value to a double and return true if it's a string representing a percentage.
+        e.g.
+
+        val == "90%" returns true  and set out to 90.00
+        val ==  90   returns false and set out to 90.00
+    */
+    static bool ValuePercent(JSContext *cx, JS::HandleValue val, double *out);
+
     static JSString *NewStringWithEncoding(JSContext *cx,
                                            const char *buf,
                                            size_t len,

@@ -115,7 +115,7 @@ public:
         static constexpr float kUndefined_Value  = NAN;
 
         CanvasProperty(const char *name, T val, State state, CanvasHandlerBase *h) :
-            m_Name(name), m_Canvas(h), m_Value(val), m_AlternativeValue(val) {
+            m_Name(name), m_Canvas(h), m_Value(val), m_CachedValue(val) {
                 
                 position = m_Canvas->m_PropertyList.size();
                 m_Canvas->m_PropertyList.push_back((void *)this);
@@ -136,8 +136,8 @@ public:
             return m_Value;
         }
 
-        inline T getAlternativeValue() const {
-            return m_AlternativeValue;
+        inline T getCachedValue() const {
+            return m_CachedValue;
         }
 
 
@@ -150,14 +150,8 @@ public:
             m_Value = val;
         }
 
-        inline void setAlternativeValue(T val) {
-            m_AlternativeValue = val;
-        }
-        
-        /* Change the user value */
-        inline void userSet(T val) {
-            m_UserValue = val;
-            m_State = State::kSet;
+        inline void setCachedValue(T val) {
+            m_CachedValue = val;
         }
 
         inline CanvasProperty<T> operator=(const T& val) {
@@ -175,6 +169,14 @@ public:
             m_State = State::kDefault;
         }
 
+        void setIsPercentageValue(bool val) {
+            m_IsPercentage = val;
+        }
+
+        bool isPercentageValue() const {
+            return m_IsPercentage;
+        }
+
     private:
         /* Used for debug purpose
          * TODO: ifdef DEBUG */
@@ -184,11 +186,9 @@ public:
 
         /* Actual value used for computation */
         T m_Value;
-        /* Value set by the user */
-        T m_UserValue;
+        T m_CachedValue;
 
-        T m_AlternativeValue;
-        
+        bool m_IsPercentage = false;
         State m_State = State::kDefault;
 
         /* Position of the property in the Canvas properyList
@@ -335,12 +335,12 @@ public:
 
     inline float getPropLeftAbsolute()
     {
-        return p_Left.getAlternativeValue();
+        return p_Left.getCachedValue();
     }
 
     inline float getPropTopAbsolute()
     {
-        return p_Top.getAlternativeValue();
+        return p_Top.getCachedValue();
     }
 
     float getTopScrolled() 
@@ -417,11 +417,11 @@ public:
     }
 
     inline float getComputedAbsoluteLeft() const {
-        return p_Left.getAlternativeValue();
+        return p_Left.getCachedValue();
     }
 
     inline float getComputedAbsoluteTop() const {
-        return p_Top.getAlternativeValue();
+        return p_Top.getCachedValue();
     }
 
     Frontend::Context *getNidiumContext() const
@@ -435,7 +435,7 @@ public:
         YGNodeStyleSetMargin(m_YogaRef, YGEdgeRight, right);
         YGNodeStyleSetMargin(m_YogaRef, YGEdgeBottom, bottom);
         YGNodeStyleSetMargin(m_YogaRef, YGEdgeLeft, left);
-
+        
         m_Margin.top    = top;
         m_Margin.right  = right;
         m_Margin.bottom = bottom;
@@ -459,28 +459,44 @@ public:
     {
         p_Left.set(val);
         
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, isnan(val) ? YGUndefined : val);
+        if (p_Left.isPercentageValue()) {
+            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeLeft, isnan(val) ? YGUndefined : val);
+        } else {
+            YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, isnan(val) ? YGUndefined : val);
+        }
     }
 
     void setPropTop(float val) override
     {
         p_Top.set(val);
 
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, isnan(val) ? YGUndefined : val);
+        if (p_Top.isPercentageValue()) {
+            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeTop, isnan(val) ? YGUndefined : val);
+        } else {
+            YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, isnan(val) ? YGUndefined : val);
+        }
     }
 
     void setPropRight(float val) override
     {
-        p_Left.set(val);
+        p_Right.set(val);
         
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeRight, isnan(val) ? YGUndefined : val);
+        if (p_Right.isPercentageValue()) {
+            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeRight, isnan(val) ? YGUndefined : val);
+        } else {
+            YGNodeStyleSetPosition(m_YogaRef, YGEdgeRight, isnan(val) ? YGUndefined : val);
+        }
     }
 
     void setPropBottom(float val) override
     {
-        p_Top.set(val);
+        p_Bottom.set(val);
 
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
+        if (p_Bottom.isPercentageValue()) {
+            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
+        } else {
+            YGNodeStyleSetPosition(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
+        }
     }
 
     void setPropCoating(float value) override;

@@ -415,9 +415,9 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
             case CanvasContext::CONTEXT_2D: {
                 Canvas2DContext *ctx2d = new Canvas2DContext(
                     m_CanvasHandler, cx,
-                    m_CanvasHandler->p_Width.getAlternativeValue()
+                    m_CanvasHandler->p_Width.getCachedValue()
                         + (m_CanvasHandler->p_Coating * 2),
-                    m_CanvasHandler->p_Height.getAlternativeValue()
+                    m_CanvasHandler->p_Height.getCachedValue()
                         + (m_CanvasHandler->p_Coating * 2),
                     ui);
 
@@ -439,9 +439,9 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
             case CanvasContext::CONTEXT_WEBGL:
                 JSWebGLRenderingContext *ctxWebGL = new JSWebGLRenderingContext(
                     m_CanvasHandler, cx,
-                    m_CanvasHandler->p_Width.getAlternativeValue()
+                    m_CanvasHandler->p_Width.getCachedValue()
                         + (m_CanvasHandler->p_Coating * 2),
-                    m_CanvasHandler->p_Height.getAlternativeValue()
+                    m_CanvasHandler->p_Height.getCachedValue()
                         + (m_CanvasHandler->p_Coating * 2),
                     ui);
 
@@ -544,14 +544,15 @@ bool JSCanvas::JSSetter_width(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
-    if (!JS::ToNumber(cx, vp, &dval)) {
+    if (vp.isNullOrUndefined()) {
+        m_CanvasHandler->setWidth(NAN);
         return true;
     }
 
-    if (!m_CanvasHandler->setWidth((float)dval)) {
-        // JS_ReportError(cx, "Can't set canvas width (this canvas has a
-        // dynamic width)");
 
+    m_CanvasHandler->p_Width.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
+
+    if (!m_CanvasHandler->setWidth((float)dval)) {
         return true;
     }
 
@@ -562,9 +563,12 @@ bool JSCanvas::JSSetter_height(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
-    if (!JS::ToNumber(cx, vp, &dval)) {
+    if (vp.isNullOrUndefined()) {
+        m_CanvasHandler->setHeight(NAN);
         return true;
     }
+
+    m_CanvasHandler->p_Height.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
 
     if (!m_CanvasHandler->setHeight((float)dval)) {
         return true;
@@ -583,9 +587,7 @@ bool JSCanvas::JSSetter_left(JSContext *cx, JS::MutableHandleValue vp)
     }
 
 
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
+    m_CanvasHandler->p_Left.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
 
     m_CanvasHandler->setPropLeft((float)dval);
 
@@ -601,9 +603,7 @@ bool JSCanvas::JSSetter_right(JSContext *cx, JS::MutableHandleValue vp)
         return true;
     }
 
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
+    m_CanvasHandler->p_Right.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
 
     m_CanvasHandler->setPropRight((float)dval);
 
@@ -619,9 +619,7 @@ bool JSCanvas::JSSetter_top(JSContext *cx, JS::MutableHandleValue vp)
         return true;
     }
 
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
+    m_CanvasHandler->p_Top.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
 
     m_CanvasHandler->setPropTop((float)dval);
 
@@ -637,10 +635,7 @@ bool JSCanvas::JSSetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
         return true;
     }
 
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
+    m_CanvasHandler->p_Bottom.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
 
     m_CanvasHandler->setPropBottom((float)dval);
 
@@ -651,9 +646,12 @@ bool JSCanvas::JSSetter_minWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
-    if (!JS::ToNumber(cx, vp, &dval)) {
+    if (vp.isNullOrUndefined()) {
+        m_CanvasHandler->setPropMinWidth(NAN);
         return true;
     }
+
+    m_CanvasHandler->p_MinWidth.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
 
     m_CanvasHandler->setPropMinWidth((float)dval);
 
@@ -664,9 +662,12 @@ bool JSCanvas::JSSetter_minHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
-    if (!JS::ToNumber(cx, vp, &dval)) {
+    if (vp.isNullOrUndefined()) {
+        m_CanvasHandler->setPropMinHeight(NAN);
         return true;
     }
+
+    m_CanvasHandler->p_MinHeight.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
 
     m_CanvasHandler->setPropMinHeight((float)dval);
 
@@ -677,9 +678,12 @@ bool JSCanvas::JSSetter_maxWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
-    if (!JS::ToNumber(cx, vp, &dval)) {
+    if (vp.isNullOrUndefined()) {
+        m_CanvasHandler->setPropMaxWidth(NAN);
         return true;
     }
+
+    m_CanvasHandler->p_MaxWidth.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
 
     m_CanvasHandler->setPropMaxWidth((float)dval);
 
@@ -690,9 +694,12 @@ bool JSCanvas::JSSetter_maxHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
-    if (!JS::ToNumber(cx, vp, &dval)) {
+    if (vp.isNullOrUndefined()) {
+        m_CanvasHandler->setPropMaxHeight(NAN);
         return true;
     }
+
+    m_CanvasHandler->p_MaxHeight.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
 
     m_CanvasHandler->setPropMaxHeight((float)dval);
 
@@ -961,7 +968,7 @@ bool JSCanvas::JSGetter_cursor(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_clientWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->p_Width.getAlternativeValue() +
+    vp.setInt32(m_CanvasHandler->p_Width.getCachedValue() +
         (m_CanvasHandler->p_Coating * 2));
 
     return true;
@@ -969,7 +976,7 @@ bool JSCanvas::JSGetter_clientWidth(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_clientHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->p_Height.getAlternativeValue() +
+    vp.setInt32(m_CanvasHandler->p_Height.getCachedValue() +
         (m_CanvasHandler->p_Coating * 2));
 
     return true;

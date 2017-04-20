@@ -79,7 +79,6 @@ Elements.Loader = function(attributes) {
     return data;
 }
 
-
 window._onready = function(lst){};
 
 module.exports = Elements;

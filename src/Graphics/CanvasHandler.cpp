@@ -42,12 +42,12 @@ CanvasHandler::CanvasHandler(float width,
     
     if (!isnan(width)) {
         p_Width = nidium_max(width, 0);
-        p_Width.setAlternativeValue(p_Width);
+        p_Width.setCachedValue(p_Width);
     }
 
     if (!isnan(height)) {
         p_Height = nidium_max(height, 0);
-        p_Height.setAlternativeValue(p_Height);
+        p_Height.setCachedValue(p_Height);
     }
 
     m_YogaRef = YGNodeNewWithConfig(nctx->m_YogaConfig);
@@ -133,36 +133,52 @@ void CanvasHandler::setId(const char *str)
 
 void CanvasHandler::setPropMinWidth(float width)
 {
-    if (width < 1) width = 1;
+    p_MinWidth = width;
 
-    p_MinWidth = p_MaxWidth ? nidium_min(width, p_MaxWidth) : width;
+    if (p_MinWidth.isPercentageValue()) {
+        YGNodeStyleSetMinWidthPercent(m_YogaRef, p_MinWidth);
+
+        return;
+    }
 
     YGNodeStyleSetMinWidth(m_YogaRef, p_MinWidth);
 }
 
 void CanvasHandler::setPropMinHeight(float height)
 {
-    if (height < 1) height = 1;
+    p_MinHeight = height;
 
-    p_MinHeight = p_MaxHeight ? nidium_min(height, p_MaxHeight) : height;
+    if (p_MinHeight.isPercentageValue()) {
+        YGNodeStyleSetMinHeightPercent(m_YogaRef, p_MinHeight);
+
+        return;
+    }
 
     YGNodeStyleSetMinHeight(m_YogaRef, p_MinHeight);
 }
 
 void CanvasHandler::setPropMaxWidth(float width)
 {
-    if (width < 1) width = 1;
+    p_MaxWidth = width;
 
-    p_MaxWidth = nidium_max(p_MinWidth, width);
+    if (p_MaxWidth.isPercentageValue()) {
+        YGNodeStyleSetMaxWidthPercent(m_YogaRef, p_MaxWidth);
+
+        return;
+    }
 
     YGNodeStyleSetMaxWidth(m_YogaRef, p_MaxWidth);
 }
 
 void CanvasHandler::setPropMaxHeight(float height)
 {
-    if (height < 1) height = 1;
+    p_MaxHeight = height;
 
-    p_MaxHeight = nidium_max(p_MinHeight, height);
+    if (p_MaxHeight.isPercentageValue()) {
+        YGNodeStyleSetMaxHeightPercent(m_YogaRef, p_MaxHeight);
+
+        return;
+    }
 
     YGNodeStyleSetMaxHeight(m_YogaRef, p_MaxHeight);
 }
@@ -175,7 +191,16 @@ bool CanvasHandler::setWidth(float width, bool force)
 
     p_Width = width;
 
-    YGNodeStyleSetWidth(m_YogaRef, width >= 0 && !isnan(width) ? width : YGUndefined);
+    if (isnan(width)) {
+        YGNodeStyleSetWidthAuto(m_YogaRef);
+        return true;
+    }
+
+    if (p_Width.isPercentageValue()) {
+        YGNodeStyleSetWidthPercent(m_YogaRef, width >= 0 && !isnan(width) ? width : YGUndefined);
+    } else {
+        YGNodeStyleSetWidth(m_YogaRef, width >= 0 && !isnan(width) ? width : YGUndefined);
+    }
 
     return true;
 }
@@ -188,7 +213,16 @@ bool CanvasHandler::setHeight(float height, bool force)
 
     p_Height = height;
 
-    YGNodeStyleSetHeight(m_YogaRef, height >= 0 && !isnan(height) ? height : YGUndefined);
+    if (isnan(height)) {
+        YGNodeStyleSetHeightAuto(m_YogaRef);
+        return true;
+    }
+
+    if (p_Height.isPercentageValue()) {
+        YGNodeStyleSetHeightPercent(m_YogaRef, height >= 0 && !isnan(height) ? height : YGUndefined);
+    } else {
+        YGNodeStyleSetHeight(m_YogaRef, height >= 0 && !isnan(height) ? height : YGUndefined);
+    }
 
     return true;
 }
@@ -419,10 +453,10 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
     }
 
     Rect actualRect;
-    actualRect.m_fLeft   = p_Left.getAlternativeValue() - p_Coating;
-    actualRect.m_fTop    = p_Top.getAlternativeValue() - p_Coating;
-    actualRect.m_fRight  = p_Width.getAlternativeValue() + p_Left.getAlternativeValue();
-    actualRect.m_fBottom = p_Height.getAlternativeValue() + p_Top.getAlternativeValue();
+    actualRect.m_fLeft   = p_Left.getCachedValue() - p_Coating;
+    actualRect.m_fTop    = p_Top.getCachedValue() - p_Coating;
+    actualRect.m_fRight  = p_Width.getCachedValue() + p_Left.getCachedValue();
+    actualRect.m_fBottom = p_Height.getCachedValue() + p_Top.getCachedValue();
 
     if (layerContext.m_Clip) {
 
@@ -503,18 +537,18 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 
         This will trigger an onResize event on the element
     */
-    if (nwidth != p_Width.getAlternativeValue()
-        || nheight != p_Height.getAlternativeValue()) {
+    if (nwidth != p_Width.getCachedValue()
+        || nheight != p_Height.getCachedValue()) {
 
-        p_Width.setAlternativeValue(nwidth);
-        p_Height.setAlternativeValue(nheight);
+        p_Width.setCachedValue(nwidth);
+        p_Height.setCachedValue(nheight);
 
 
         deviceSetSize(nwidth, nheight);
     }
     
-    int maxChildrenWidth  = p_Width.getAlternativeValue(),
-        maxChildrenHeight = p_Height.getAlternativeValue();
+    int maxChildrenWidth  = p_Width.getCachedValue(),
+        maxChildrenHeight = p_Height.getCachedValue();
             
 
     /*
@@ -533,17 +567,17 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         /*
             Set the absolute position
         */
-        p_Left.setAlternativeValue(cleft + tmpLeft);
-        p_Top.setAlternativeValue(ctop + tmpTop);
+        p_Left.setCachedValue(cleft + tmpLeft);
+        p_Top.setCachedValue(ctop + tmpTop);
 
         /*
             draw current context on top of the root layer
         */
         willDraw = (!layerContext.m_Clip || m_CoordPosition == COORD_ABSOLUTE
                     || (layerContext.m_Clip->checkIntersect(
-                      p_Left.getAlternativeValue() - p_Coating, p_Top.getAlternativeValue() - p_Coating,
-                      p_Left.getAlternativeValue() + p_Coating + YGNodeLayoutGetWidth(m_YogaRef),
-                      p_Top.getAlternativeValue() + p_Coating + YGNodeLayoutGetHeight(m_YogaRef))));
+                      p_Left.getCachedValue() - p_Coating, p_Top.getCachedValue() - p_Coating,
+                      p_Left.getCachedValue() + p_Coating + YGNodeLayoutGetWidth(m_YogaRef),
+                      p_Top.getCachedValue() + p_Coating + YGNodeLayoutGetHeight(m_YogaRef))));
 
         if (willDraw && !m_Loaded) {
             m_Loaded = true;
@@ -554,8 +588,8 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 
             ComposeContext compctx = {
                 .handler  = this,
-                .left     = p_Left.getAlternativeValue() - p_Coating,
-                .top      = p_Top.getAlternativeValue() - p_Coating,
+                .left     = p_Left.getCachedValue() - p_Coating,
+                .top      = p_Top.getCachedValue() - p_Coating,
                 .opacity  = popacity,
                 .zoom     = m_Zoom,
                 .needClip = (m_CoordPosition != COORD_ABSOLUTE && layerContext.m_Clip),
@@ -587,20 +621,20 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
     if (!m_Overflow) {
         if (layerContext.m_Clip == NULL) {
             layerContext.m_Clip            = &nclip;
-            layerContext.m_Clip->m_fLeft   = p_Left.getAlternativeValue();
-            layerContext.m_Clip->m_fTop    = p_Top.getAlternativeValue();
-            layerContext.m_Clip->m_fRight  = getComputedWidth() + p_Left.getAlternativeValue();
-            layerContext.m_Clip->m_fBottom = getComputedHeight() + p_Top.getAlternativeValue();
+            layerContext.m_Clip->m_fLeft   = p_Left.getCachedValue();
+            layerContext.m_Clip->m_fTop    = p_Top.getCachedValue();
+            layerContext.m_Clip->m_fRight  = getComputedWidth() + p_Left.getCachedValue();
+            layerContext.m_Clip->m_fBottom = getComputedHeight() + p_Top.getCachedValue();
             /*
                 if clip is not null, reduce it to intersect the current rect.
                 /!\ clip->intersect changes "clip"
             */
 
         } else if (!layerContext.m_Clip->intersect(
-                       p_Left.getAlternativeValue(),
-                       p_Top.getAlternativeValue(),
-                       p_Width.getAlternativeValue() + p_Left.getAlternativeValue(),
-                       p_Height.getAlternativeValue() + p_Top.getAlternativeValue())) {
+                       p_Left.getCachedValue(),
+                       p_Top.getCachedValue(),
+                       p_Width.getCachedValue() + p_Left.getCachedValue(),
+                       p_Height.getCachedValue() + p_Top.getCachedValue())) {
 
             /* don't need to draw children (out of bounds) */
             return;
@@ -722,8 +756,8 @@ bool CanvasHandler::isDisplayed() const
 void CanvasHandler::computeAbsolutePosition()
 {
     if (m_CoordPosition == COORD_ABSOLUTE) {
-        p_Top.setAlternativeValue(this->getPropTop());
-        p_Left.setAlternativeValue(this->getPropLeft());
+        p_Top.setCachedValue(this->getPropTop());
+        p_Left.setCachedValue(this->getPropLeft());
         return;
     }
 
@@ -743,8 +777,8 @@ void CanvasHandler::computeAbsolutePosition()
         cparent = cparent->getParent();
     }
 
-    p_Top.setAlternativeValue(ctop);
-    p_Left.setAlternativeValue(cleft);
+    p_Top.setCachedValue(ctop);
+    p_Left.setCachedValue(cleft);
 }
 
 bool CanvasHandler::isOutOfBound()
@@ -985,8 +1019,8 @@ void CanvasHandler::onDrag(InputEvent *ev, CanvasHandler *target, bool end)
     arg[2].set(ev->m_y);
     arg[3].set(ev->m_data[0]);
     arg[4].set(ev->m_data[1]);
-    arg[5].set(ev->m_x - p_Left.getAlternativeValue()); // layerX
-    arg[6].set(ev->m_y - p_Top.getAlternativeValue());  // layerY
+    arg[5].set(ev->m_x - p_Left.getCachedValue()); // layerX
+    arg[6].set(ev->m_y - p_Top.getCachedValue());  // layerY
     arg[7].set(target);            // target
 
     if (!end && (m_Flags & kDrag_Flag) == 0) {
@@ -1011,8 +1045,8 @@ void CanvasHandler::onDrop(InputEvent *ev, CanvasHandler *drop)
     arg[2].set(ev->m_y);
     arg[3].set((int64_t)0);
     arg[4].set((int64_t)0);
-    arg[5].set(ev->m_x - p_Left.getAlternativeValue()); // layerX
-    arg[6].set(ev->m_y - p_Top.getAlternativeValue());  // layerY
+    arg[5].set(ev->m_x - p_Left.getCachedValue()); // layerX
+    arg[6].set(ev->m_y - p_Top.getCachedValue());  // layerY
     arg[7].set(drop);
 
     this->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg);
@@ -1078,8 +1112,8 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
         arg[2].set(ev->m_y);
         arg[3].set(ev->m_data[0]);     // xrel
         arg[4].set(ev->m_data[1]);     // yrel
-        arg[5].set(ev->m_x - p_Left.getAlternativeValue()); // layerX
-        arg[6].set(ev->m_y - p_Top.getAlternativeValue());  // layerY
+        arg[5].set(ev->m_x - p_Left.getCachedValue()); // layerX
+        arg[6].set(ev->m_y - p_Top.getCachedValue());  // layerY
         arg[7].set(this);              // target
 
         /* fireEvent returns false if a stopPropagation is detected */
