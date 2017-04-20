@@ -153,12 +153,6 @@ public:
         inline void setCachedValue(T val) {
             m_CachedValue = val;
         }
-        
-        /* Change the user value */
-        inline void userSet(T val) {
-            m_UserValue = val;
-            m_State = State::kSet;
-        }
 
         inline CanvasProperty<T> operator=(const T& val) {
 
@@ -184,9 +178,6 @@ public:
 
         /* Actual value used for computation */
         T m_Value;
-        /* Value set by the user */
-        T m_UserValue;
-
         T m_CachedValue;
         
         State m_State = State::kDefault;
