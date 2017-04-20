@@ -9,9 +9,7 @@
             lineHeight: 56,
             textAlign: "left",
             overflow:false,
-            maxHeight:400,
-            scrollableY:true,
-            allowNegativeScroll:true
+            maxHeight:400
         },
 
         icon: {
@@ -61,6 +59,9 @@
                 this.items = [];
                 this.viewport = [];
 
+                this.scrollableY = true;
+                this.allowNegativeScroll = false;
+
                 this.on("scroll", (e) => {
                    //console.log(e);
                    //this.scrollTop -= 1 //-(2*e.yrel);
@@ -103,12 +104,12 @@
             setItems(list) {
                 var nml = [];
 
-                let { w, h } = {w:500, h:400}; //this.getDimensions();
+                let { width, height } = this.getDimensions();
                 let itemHeight = 56;
 
-                this.page_count = Math.floor(h/itemHeight);
+                this.page_count = Math.floor(height/itemHeight);
 
-                console.log(h, Math.floor(h/56));
+                console.log(height, Math.floor(height/56));
 
                 for (var i=0, l=list.length; i<l; i++) {
                     let item = list[i];

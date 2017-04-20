@@ -11,12 +11,18 @@ const __opacity_hi__ = 1.0;
 const __next_duration__ = 450;
 const __back_duration__ = 420;
 
+const { ElementStyle } = require("ElementsStyles");
+
 class Navigator extends Elements.Element {
     constructor(attributes) {
         super(attributes);
         this.routes = {};
         this.history = [];
+
         this.style.flexGrow = 1;
+        this.style.backgroundColor = "red";
+        this.style.width = "400";
+        this.style.height = "400";
     }
 
     set(routes) {
@@ -96,5 +102,7 @@ class Navigator extends Elements.Element {
 
     }
 }
+
+ElementStyle.Inherit(Navigator);
 
 module.exports = Navigator;

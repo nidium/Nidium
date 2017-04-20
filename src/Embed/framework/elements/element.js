@@ -102,6 +102,11 @@
             }
         }
 
+        shader(file) {
+            var ctx = this.ctx2d();
+            return ctx.setShaderFile(file);
+        }
+
         fadein(duration, callback) {
             var callback = callback || function(){};
 

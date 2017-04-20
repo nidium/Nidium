@@ -7,19 +7,20 @@
 {
     const Elements = require("Elements");
     const drawer = require("../core/drawer.js");
-    const observer = require("../core/observer.js");
+    const { ElementStyle } = require("ElementsStyles");
 
     Elements.radio = class extends Elements.Element {
         constructor(attributes) {
             super(attributes);
 
             this.cursor = "pointer";
+
             this.style.maxWidth = 36;
             this.style.height = 36;
 
             this.style.flexGrow = 1;
 
-            this.style.lineHeight = 2;
+            this.style.lineHeight = 20;
             this.style.borderWidth = 2;
             this.style.borderColor = "#3388EE";
             this.style.selectedColor = "#3388EE";
@@ -99,4 +100,6 @@
             ctx.stroke();
         }
     }
+
+    ElementStyle.Inherit(Elements.radio);
 }

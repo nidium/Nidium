@@ -6,7 +6,7 @@
 
 {
     const Elements = require("Elements");
-    const { StyleContainer, ElementStyle } = require("ElementsStyles");
+    const { ElementStyle } = require("ElementsStyles");
 
     Elements.li = class extends Elements.Element {
         constructor(attributes) {
@@ -16,6 +16,7 @@
             this.style.justifyContent = "space-between";
             this.style.alignItems = "center";
             this.style.flexWrap = "nowrap";
+            this.coating = 1;
         }
     }
 
