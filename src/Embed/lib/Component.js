@@ -105,7 +105,7 @@ class Component extends Elements.Element {
                         tmp.push(nss[c]);
                     }
 
-                    tmp.push(Object.assign({}, this.style));
+                    //tmp.push(Object.assign({}, this.style));
 
                     tmp.unshift(this.style);
 
