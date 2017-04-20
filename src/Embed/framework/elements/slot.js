@@ -7,5 +7,11 @@
 {
     const Elements = require("Elements");
 
-    Elements.slot = class extends Elements.Node { }
+    Elements.slot = class extends Elements.Node {
+        constructor(attr) {
+            super(attr);
+            this.flexGrow = 1;
+        }
+
+    }
 }
