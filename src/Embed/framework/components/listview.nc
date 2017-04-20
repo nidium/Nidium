@@ -10,7 +10,8 @@
             textAlign: "left",
             overflow:false,
             maxHeight:400,
-            scrollableY:true
+            scrollableY:true,
+            allowNegativeScroll:true
         },
 
         icon: {
@@ -60,9 +61,11 @@
                 this.items = [];
                 this.viewport = [];
 
-                window._onmousewheel = (e) => {
-                    this.scrollTop += -(2*e.yrel);
-                };
+                this.on("scroll", (e) => {
+                   //console.log(e);
+                   //this.scrollTop -= 1 //-(2*e.yrel);
+                   //e.preventDefault();
+                });
             }
 
             select(id) {

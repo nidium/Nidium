@@ -39,8 +39,6 @@
         paint(ctx, width, height) {
             ctx.imageSmoothingEnabled = true;
 
-console.log(width, height);
-
             if (this._loaded) {
                 ctx.drawImage(this._img, 0, 0, width, height);
             }

@@ -20,6 +20,8 @@ load("embed://framework/elements/section.js");
 load("embed://framework/elements/textnode.js");
 load("embed://framework/elements/navigator.js");
 
+load("embed://framework/elements/radio.js");
+
 load("embed://framework/elements/nss.js");
 load("embed://framework/elements/script.js");
 load("embed://framework/elements/template.js");
@@ -38,4 +40,3 @@ require("./components/listview.nc");
  * Fonts
  */
 window.fontShapes = require('./fonts/fontawesome.js');
-

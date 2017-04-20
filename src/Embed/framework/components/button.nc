@@ -24,7 +24,7 @@
             borderColor : "rgba(0, 0, 0, 0.003)",
 
             shadowBlur : 3,
-            shadowColor : "rgba(0, 0, 0, 0.02)",
+            shadowColor : "rgba(0, 0, 0, 0.12)",
             shadowOffsetX : 0,
             shadowOffsetY : 2
         }
@@ -32,15 +32,4 @@
     <layout id="button" class="button">
         <slot>Button</slot>
     </layout>
-    <script>
-        module.exports = class extends Component {
-            constructor(attr) {
-                super(attr);
-
-                this.on("mousedown", ()=>{
-                    this.emit("click", this);
-                });
-            }
-        }
-    </script>
 </component>

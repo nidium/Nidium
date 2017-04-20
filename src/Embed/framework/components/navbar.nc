@@ -5,7 +5,6 @@
             flexDirection: "row",
             flexGrow:1,
             maxHeight: 46,
-            fontSize: 13,
             lineHeight: 46,
             textAlign: "center",
             color: "#ffffff"

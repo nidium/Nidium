@@ -95,6 +95,17 @@
             return this.__visible && !this.__outofbound;
         }
 
+        getDrawingBounds() {
+            var {width, height} = this.getDimensions();
+
+            return {
+                x : 0,
+                y : 0,
+                w : width,
+                h : height
+            };
+        }
+
         ctx2d() {
             return this.getContext("2d");
         }
