@@ -39,5 +39,6 @@
 
                 console.log("dsqsffd");
             }
+        }
         </script>
 </component>
