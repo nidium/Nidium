@@ -188,7 +188,11 @@ bool CanvasHandler::setHeight(float height, bool force)
 
     p_Height = height;
 
-    YGNodeStyleSetHeight(m_YogaRef, height >= 0 && !isnan(height) ? height : YGUndefined);
+    if (p_Height.isPercentageValue()) {
+        YGNodeStyleSetHeightPercent(m_YogaRef, height >= 0 && !isnan(height) ? height : YGUndefined);
+    } else {
+        YGNodeStyleSetHeight(m_YogaRef, height >= 0 && !isnan(height) ? height : YGUndefined);
+    }
 
     return true;
 }

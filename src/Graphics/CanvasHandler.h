@@ -169,6 +169,14 @@ public:
             m_State = State::kDefault;
         }
 
+        void setIsPercentageValue(bool val) {
+            m_IsPercentage = val;
+        }
+
+        bool isPercentageValue() const {
+            return m_IsPercentage;
+        }
+
     private:
         /* Used for debug purpose
          * TODO: ifdef DEBUG */
@@ -179,7 +187,8 @@ public:
         /* Actual value used for computation */
         T m_Value;
         T m_CachedValue;
-        
+
+        bool m_IsPercentage = false;
         State m_State = State::kDefault;
 
         /* Position of the property in the Canvas properyList
@@ -450,28 +459,44 @@ public:
     {
         p_Left.set(val);
         
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, isnan(val) ? YGUndefined : val);
+        if (p_Left.isPercentageValue()) {
+            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeLeft, isnan(val) ? YGUndefined : val);
+        } else {
+            YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, isnan(val) ? YGUndefined : val);
+        }
     }
 
     void setPropTop(float val) override
     {
         p_Top.set(val);
 
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, isnan(val) ? YGUndefined : val);
+        if (p_Top.isPercentageValue()) {
+            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeTop, isnan(val) ? YGUndefined : val);
+        } else {
+            YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, isnan(val) ? YGUndefined : val);
+        }
     }
 
     void setPropRight(float val) override
     {
-        p_Left.set(val);
+        p_Right.set(val);
         
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeRight, isnan(val) ? YGUndefined : val);
+        if (p_Right.isPercentageValue()) {
+            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeRight, isnan(val) ? YGUndefined : val);
+        } else {
+            YGNodeStyleSetPosition(m_YogaRef, YGEdgeRight, isnan(val) ? YGUndefined : val);
+        }
     }
 
     void setPropBottom(float val) override
     {
-        p_Top.set(val);
+        p_Bottom.set(val);
 
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
+        if (p_Bottom.isPercentageValue()) {
+            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
+        } else {
+            YGNodeStyleSetPosition(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
+        }
     }
 
     void setPropCoating(float value) override;

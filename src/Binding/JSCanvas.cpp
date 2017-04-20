@@ -549,9 +549,6 @@ bool JSCanvas::JSSetter_width(JSContext *cx, JS::MutableHandleValue vp)
     }
 
     if (!m_CanvasHandler->setWidth((float)dval)) {
-        // JS_ReportError(cx, "Can't set canvas width (this canvas has a
-        // dynamic width)");
-
         return true;
     }
 
@@ -562,9 +559,7 @@ bool JSCanvas::JSSetter_height(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
+    m_CanvasHandler->p_Height.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
 
     if (!m_CanvasHandler->setHeight((float)dval)) {
         return true;
