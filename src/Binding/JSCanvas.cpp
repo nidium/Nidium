@@ -544,9 +544,7 @@ bool JSCanvas::JSSetter_width(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
+    m_CanvasHandler->p_Width.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
 
     if (!m_CanvasHandler->setWidth((float)dval)) {
         return true;

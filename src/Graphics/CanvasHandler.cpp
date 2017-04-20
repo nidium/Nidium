@@ -175,7 +175,11 @@ bool CanvasHandler::setWidth(float width, bool force)
 
     p_Width = width;
 
-    YGNodeStyleSetWidth(m_YogaRef, width >= 0 && !isnan(width) ? width : YGUndefined);
+    if (p_Width.isPercentageValue()) {
+        YGNodeStyleSetWidthPercent(m_YogaRef, width >= 0 && !isnan(width) ? width : YGUndefined);
+    } else {
+        YGNodeStyleSetWidth(m_YogaRef, width >= 0 && !isnan(width) ? width : YGUndefined);
+    }
 
     return true;
 }
