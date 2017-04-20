@@ -24,10 +24,6 @@
             this.attributes         = attributes;
             this.computedAttributes = {};
 
-            this.left     = attributes.left || 0;
-            this.top      = attributes.top || 0;
-            this.coating  = attributes.coating || 1;
-
             this[s_ShadowRoot] = shadowRoot;
             this[s_ShadowRoot].addTag(this.name(), this);
 
@@ -49,7 +45,7 @@
             const parts = k.split(':');
             const selector = parts[0];
 
-            if (parts.length<2) return false;
+            if (parts.length < 2) return false;
 
             const attr = parts[1];
 
