@@ -14,7 +14,6 @@
         constructor(textValue) {
             super();
             this.nodeValue = textValue;
-            this.style.flexGrow = 1;
         }
 
         cloneNode(deep = true, shadowRoot=this[s_ShadowRoot]) {
