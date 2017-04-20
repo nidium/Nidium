@@ -36,7 +36,6 @@
                 ],
             },
             'VCCLCompilerTool': {
-                'RuntimeLibrary': 2, #Multithreaded using DLL (msvcrt.lib)
                 'ExceptionHandling': 0,
                 'AdditionalOptions': [
                     "/EHsc",
@@ -71,7 +70,16 @@
         },
         'configurations': {
             'Debug': {
-                'defines': ['NIDIUM_DEBUG', 'DEBUG', '_DEBUG'],
+                'msvs_settings': {
+                    'VCCLCompilerTool': {
+                        'DebugInformationFormat': '/ZI',
+                     },
+                    'VCCLCompilerTool': {
+                        'RuntimeLibrary': 3, #Multithreaded using DLL /MDd (msvcrtd.lib)
+                    }
+                },
+                #'defines': ['NIDIUM_DEBUG', 'DEBUG', '_DEBUG'],
+                'defines': [],
                 'ldflags': [
                     # Skia need to be linked with its own libjpeg
                     # since libjpeg.a require .o files that are in a relative path 
@@ -90,6 +98,11 @@
                 }
             },
             'Release': {
+                'msvs_settings': {
+                    'VCCLCompilerTool': {
+                        'RuntimeLibrary': 2, #Multithreaded using DLL /MD (msvcrt.lib)
+                    }
+                },
                 'defines': [ 
                     'NDEBUG'
                 ],

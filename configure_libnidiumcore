@@ -142,7 +142,8 @@ def mozilla():
                    --disable-tests \
                    --enable-ctypes %s" % (nsprFlags)
     if Konstruct.config("debug", "valgrind"):
-        configure += " --enable-debug --disable-optimize"
+        if Platform.system != "Windows":
+            configure += " --enable-debug --disable-optimize"
     else:
         configure += " --enable-strip --enable-release"
 
