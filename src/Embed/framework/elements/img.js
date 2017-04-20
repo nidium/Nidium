@@ -6,6 +6,7 @@
 
 {
     const Elements = require("Elements");
+    const { StyleContainer, ElementStyle } = require("ElementsStyles");
 
     Elements.img = class extends Elements.Element {
         constructor(attributes) {
@@ -38,11 +39,12 @@
 
         paint(ctx, width, height) {
             ctx.imageSmoothingEnabled = true;
-
             if (this._loaded) {
                 ctx.drawImage(this._img, 0, 0, width, height);
             }
         }
 
     }
+
+    ElementStyle.Inherit(Elements.img);
 }

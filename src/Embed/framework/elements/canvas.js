@@ -6,8 +6,11 @@
 
 {
     const Elements = require("Elements");
+    const { StyleContainer, ElementStyle } = require("ElementsStyles");
 
     Elements.canvas = class extends Elements.Element {
         onpaint() {}
     }
+
+    ElementStyle.Inherit(Elements.canvas);
 }

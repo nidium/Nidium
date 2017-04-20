@@ -5,8 +5,8 @@
  */
 
 {
-    const StyleContainer = require("./../../StyleContainer.js");
-
+    const { StyleContainer, ElementStyle } = require("ElementsStyles");
+    const { setAnimation, Easing } = require("AnimationBlock");
     const Elements = require("Elements");
 
     Elements.Element = class extends Elements.Node {
@@ -17,7 +17,7 @@
                 this.opacity = attributes.opacity;
             }
 
-            this.style = new StyleContainer(this);
+            this.style = new (StyleContainer.Create(Object.getPrototypeOf(this)))(this);
             this.onresize = this.onpaint;
         }
 
@@ -30,37 +30,6 @@
                 return;
             }
 
-            /*
-            let ctx = this._ctx;
-            let { width, height } = this.getDimensions();
-
-            this.style.angle = 0;
-            this.style.originOffsetX = 0;
-            this.style.originOffsetY = 0;
-            this.style.alpha = 1;
-
-            ctx.save();
-                if (this.style.alpha) {
-                    ctx.globalAlpha = this.style.alpha;
-                } else {
-                    this.clear();
-                }
-
-                if (this.style.angle) {
-                    var origin = {
-                        x : width*0.5 + this.style.originOffsetX,
-                        y : height*0.5 + this.style.originOffsetY
-                    };
-
-                    ctx.translate(origin.x, origin.y);
-                    ctx.rotate(this.style.angle * (Math.PI/180));
-                    ctx.translate(-origin.x, -origin.y);
-                }
-
-                this.paint(ctx, width, height);
-            ctx.restore();
-            */
-
             let dimensions = this.getDimensions();
 
             this._ctx.save();
@@ -69,13 +38,21 @@
             this._ctx.restore();
         }
 
+        paint(ctx, width, height) {
+            let bg = this.style.backgroundColor;
+
+            if (bg) {
+                ctx.fillStyle = this.style.backgroundColor;
+                ctx.fillRect(0, 0, width, height);
+            }
+        }
+
         fadein(duration, callback) {
             var callback = callback || function(){};
 
-            if (!this.style.opacity) this.style.opacity = 0;
-            AnimationBlock(duration, Easing.Sinusoidal.Out, (style) => {
+            setAnimation((style) => {
                 style.opacity = 1;
-            }, this.style)(callback);
+            }, duration, Easing.Sinusoidal.Out, this.style)(callback);
 
             return this;
         }
@@ -83,10 +60,9 @@
         fadeout(duration, callback) {
             var callback = callback || function(){};
 
-            if (!this.style.opacity) this.style.opacity = 1;
-            AnimationBlock(duration, Easing.Sinusoidal.In, (style) => {
+            setAnimation((style) => {
                 style.opacity = 0;
-            }, this.style)(callback);
+            }, duration, Easing.Sinusoidal.In, this.style)(callback);
 
             return this;
         }
@@ -110,23 +86,64 @@
             return this.getContext("2d");
         }
 
+        /* This is needed because Elements.Node forbids getContext() */
         getContext(type="2d") {
             return Canvas.prototype.getContext.call(this, type);
-        }
-
-        beforepaint(ctx){
-
-        }
-
-        paint(ctx, width, height) {
-            this.style._paint(ctx, width, height);
-        }
-
-        afterpaint(ctx){
-            
         }
     }
 
     Elements.element = class extends Elements.Element { }
     Elements.none = Elements.Element;
+
+    [
+        "opacity",
+        "overflow",
+        "scrollLeft",
+        "scrollTop",
+        "allowNegativeScroll",
+        "width",
+        "coating",
+        "height",
+        "maxWidth",
+        "maxHeight",
+        "minWidth",
+        "minHeight",
+        "position",
+        "display",
+        "top",
+        "left",
+        "right",
+        "bottom",
+        "visible",
+        "marginLeft",
+        "marginRight",
+        "marginTop",
+        "marginBottom",
+        "paddingLeft",
+        "paddingRight",
+        "paddingTop",
+        "paddingBottom",
+        "cursor",
+        "flexDirection",
+        "flexWrap",
+        "justifyContent",
+        "alignItems",
+        "alignContent",
+        "flexGrow",
+        "flexShrink",
+        "flexBasis",
+        "alignSelf",
+        "aspectRatio"
+    ].forEach(stl => {
+        ElementStyle.Implement(
+            Elements.Element,
+            new ElementStyle(stl, { isNative: true })
+        );
+    });
+
+    ElementStyle.Implement(Elements.Element, new ElementStyle("backgroundColor", { inherit: false, repaint: true }));
+    ElementStyle.Implement(Elements.Element, new ElementStyle("color", { inherit: true, repaint: true }));
+    
+
+    ElementStyle.Inherit(Elements.element);
 }

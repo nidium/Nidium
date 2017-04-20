@@ -13,7 +13,7 @@
 
     Elements.Node = class extends Canvas {
         constructor(attributes = {}) {
-            super();
+            super(attributes.width, attributes.height);
 
             const shadowRoot = Elements.currentShadow || document.canvas.shadowRoot;
 
@@ -23,10 +23,6 @@
 
             this.attributes         = attributes;
             this.computedAttributes = {};
-
-            this.left     = attributes.left || 0;
-            this.top      = attributes.top || 0;
-            this.coating  = attributes.coating || 1;
 
             this[s_ShadowRoot] = shadowRoot;
             this[s_ShadowRoot].addTag(this.name(), this);
@@ -40,7 +36,6 @@
             });
         }
 
-
         /*
            parse selector:attr attributes (i.e: js:data='foobar')
         */
@@ -49,7 +44,7 @@
             const parts = k.split(':');
             const selector = parts[0];
 
-            if (parts.length<2) return false;
+            if (parts.length < 2) return false;
 
             const attr = parts[1];
 
@@ -69,7 +64,7 @@
                 }
 
                 if (isOn) {
-                    value = "function(){"+value+"}.bind(this)";
+                    value = `function(){${value}}.bind(this)`;
                 } else {
                     //value = `function() { return ${value} }.apply(__this)`
                 }
@@ -84,49 +79,6 @@
                     attributes[attr] = result;
                 }
             }
-        }
-
-        shader(url, callback){
-            var self = this;
-
-            File.read(url, {encoding: "utf8"}, function(err, source){
-                var uniforms = {},
-                    ctx = self.getContext("2d"),
-                    program = ctx.attachFragmentShader(source);
-
-                var setUniformValue = function(location, value){
-                    program.uniform1i(location, value);
-                };
-
-                var createUniformBinding = function(uniform){
-                    var name = uniform.name,
-                        location = uniform.location,
-                        type = uniform.type;
-
-                    Object.defineProperty(uniforms, name, {
-                        configurable : false,
-                        get : function(){
-                            return uniform.value ? uniform.value : 0;
-                        },
-
-                        set : function(value){
-                            uniform.value = value;
-                            setUniformValue(location, value);
-                        }
-                    });
-                };
-
-                var uniformArray = program.getActiveUniforms();
-
-                for (var i=0; i<uniformArray.length; i++){
-                    createUniformBinding(uniformArray[i]);
-                }
-
-                if (typeof callback == "function") {
-                    callback.call(self, program, uniforms);
-                }
-            });
-
         }
 
         getNMLContent(self = true) {
@@ -245,7 +197,6 @@
             }
 
             this.computedAttributes[attr] = value;
-            this.requestPaint();
         }
 
         name() {

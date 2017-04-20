@@ -6,10 +6,13 @@
 
 {
     const Elements = require("Elements");
-
+    const { StyleContainer, ElementStyle } = require("ElementsStyles");
+    
     Elements.section = class extends Elements.Element {
         constructor(attributes) {
             super(attributes);
         }
     }
+
+    ElementStyle.Inherit(Elements.section);
 }
