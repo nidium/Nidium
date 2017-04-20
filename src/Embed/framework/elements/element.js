@@ -5,9 +5,8 @@
  */
 
 {
-    const StyleContainer = require("./../../StyleContainer.js");
 
-    const Elements = require("Elements");
+    load("embed://lib/ElementsStyles");
 
     Elements.Element = class extends Elements.Node {
         constructor(attributes = {}) {
@@ -17,7 +16,7 @@
                 this.opacity = attributes.opacity;
             }
 
-            this.style = new StyleContainer(this);
+            //this.style = new ElementStyles(this); // TODO
             this.onresize = this.onpaint;
         }
 
