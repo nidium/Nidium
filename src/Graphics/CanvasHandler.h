@@ -122,6 +122,7 @@ public:
             };
 
         inline T get() const {
+#if 0
             if (m_State == State::kInherit) {
                 if (m_Canvas->getParentBase()) {
                     CanvasProperty<T> *ref =
@@ -131,13 +132,14 @@ public:
                     return ref->get();
                 }
             }
-
+#endif
             return m_Value;
         }
 
         inline T getAlternativeValue() const {
             return m_AlternativeValue;
         }
+
 
         inline operator T() const {
             return get();
@@ -200,16 +202,16 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(Left,         float, NAN, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Width,        float, NAN, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Height,       float, NAN, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     float, -1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    float, -1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     float, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    float, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(Coating,      float, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     float, -1,  State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    float, -1,  State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     float, 0,   State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    float, 0,   State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Coating,      float, 0,   State::kDefault);
 
     CANVAS_DEF_CLASS_PROPERTY(Flex,         bool, false, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(EventReceiver,bool, true, State::kDefault);
 
-    CANVAS_DEF_CLASS_PROPERTY(Opacity,      double, 1.0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Opacity,      float, 1.0, State::kDefault);
 
     virtual CanvasHandlerBase *getParentBase()=0;
 };
@@ -363,19 +365,31 @@ public:
     /*
         Get the real dimensions computed by Yoga
     */
-    void getDimensions(float *width, float *height,
+    bool getDimensions(float *width, float *height,
         float *left = nullptr, float *top = nullptr)
     {
         *width = YGNodeLayoutGetWidth(m_YogaRef);
         *height = YGNodeLayoutGetHeight(m_YogaRef);
 
+        if (isnan(*width) || isnan(*height)) {
+            return false;
+        }
+
         if (left) {
             *left = YGNodeLayoutGetLeft(m_YogaRef);
+            if (isnan(*left)) {
+                return false;
+            }
         }
 
         if (top) {
             *top = YGNodeLayoutGetTop(m_YogaRef);
+            if (isnan(*top)) {
+                return false;
+            }
         }
+
+        return true;
     }
 
     inline float getComputedTop() const {
@@ -509,8 +523,8 @@ public:
         return m_CoordPosition;
     }
 
-    CanvasHandler(int width,
-                  int height,
+    CanvasHandler(float width,
+                  float height,
                   Frontend::Context *nctx,
                   bool lazyLoad = false);
 
@@ -553,7 +567,7 @@ public:
     bool isDisplayed() const;
     bool isHidden() const;
     bool hasAFixedAncestor() const;
-    void setPropOpacity(double val) override;
+    void setPropOpacity(float val) override;
     void setZoom(double val);
     void removeFromParent(bool willBeAdopted = false);
     void getChildren(CanvasHandler **out) const;
