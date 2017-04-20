@@ -100,5 +100,9 @@ class ElementStyle {
         }
         element.inherit[`_Style_${this.name}`] = value;
     }
+}
 
+module.exports = {
+    ElementStyle,
+    StyleContainer
 }

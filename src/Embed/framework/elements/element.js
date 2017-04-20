@@ -5,10 +5,7 @@
  */
 
 {
-
-    load("embed://lib/ElementsStyles.js");
-
-
+    const { StyleContainer, ElementStyle } = require("ElementsStyles");
     const { setAnimation, Easing } = require("AnimationBlock");
     const Elements = require("Elements")
 
