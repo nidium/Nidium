@@ -66,6 +66,7 @@
             return this.getContext("2d");
         }
 
+        /* This is needed because Elements.Node forbids getContext() */
         getContext(type="2d") {
             return Canvas.prototype.getContext.call(this, type);
         }
@@ -73,4 +74,52 @@
 
     Elements.element = class extends Elements.Element { }
     Elements.none = Elements.Element;
+
+    [
+        "opacity",
+        "overflow",
+        "scrollLeft",
+        "scrollTop",
+        "allowNegativeScroll",
+        "width",
+        "coating",
+        "height",
+        "maxWidth",
+        "maxHeight",
+        "minWidth",
+        "minHeight",
+        "position",
+        "display",
+        "top",
+        "left",
+        "right",
+        "bottom",
+        "visible",
+        "marginLeft",
+        "marginRight",
+        "marginTop",
+        "marginBottom",
+        "paddingLeft",
+        "paddingRight",
+        "paddingTop",
+        "paddingBottom",
+        "cursor",
+        "flexDirection",
+        "flexWrap",
+        "justifyContent",
+        "alignItems",
+        "alignContent",
+        "flexGrow",
+        "flexShrink",
+        "flexBasis",
+        "alignSelf",
+        "aspectRatio"
+    ].forEach(stl => {
+        ElementStyle.Implement(
+            Elements.Element,
+            new ElementStyle(stl, { isNative: true })
+        );
+    });
+
+    ElementStyle.Inherit(Elements.element);
 }
