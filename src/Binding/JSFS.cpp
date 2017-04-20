@@ -16,7 +16,7 @@
 
 using Nidium::Core::SharedMessages;
 using Nidium::Core::Task;
-using Nidium::IO:FileSystem;
+using Nidium::IO::FileSystem::mkdirp;
 
 namespace Nidium {
 namespace Binding {
