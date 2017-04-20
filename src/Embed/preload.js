@@ -32,9 +32,4 @@ function __nidiumPreload(options, lst) {
      * Native UI Controls and NML tags
      */
     load("embed://framework/index.js");
-    
-    /**
-     * Misc
-     */
-    load("embed://AnimationBlock.js");
 }
