@@ -8,6 +8,8 @@
 
     load("embed://lib/ElementsStyles.js");
 
+
+    const { setAnimation, Easing } = require("AnimationBlock");
     const Elements = require("Elements")
 
     Elements.Element = class extends Elements.Node {
@@ -42,10 +44,9 @@
         fadein(duration, callback) {
             var callback = callback || function(){};
 
-            if (!this.style.opacity) this.style.opacity = 0;
-            AnimationBlock(duration, Easing.Sinusoidal.Out, (style) => {
+            setAnimation((style) => {
                 style.opacity = 1;
-            }, this.style)(callback);
+            }, duration, Easing.Sinusoidal.Out, this.style)(callback);
 
             return this;
         }
@@ -53,10 +54,9 @@
         fadeout(duration, callback) {
             var callback = callback || function(){};
 
-            if (!this.style.opacity) this.style.opacity = 1;
-            AnimationBlock(duration, Easing.Sinusoidal.In, (style) => {
+            setAnimation((style) => {
                 style.opacity = 0;
-            }, this.style)(callback);
+            }, duration, Easing.Sinusoidal.In, this.style)(callback);
 
             return this;
         }
