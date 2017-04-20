@@ -189,11 +189,8 @@
         "flexBasis",
         "alignSelf",
         "aspectRatio"
-    ].forEach(stl => {
-        ElementStyle.Implement(
-            Elements.Element,
-            new ElementStyle(stl, { isNative: true })
-        );
+    ].forEach(native => {
+        defineStyleProperty(Elements.Element, native, { isNative: true });
     });
 
     const properties = {

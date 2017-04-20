@@ -56,9 +56,9 @@
 
             let actualWidth = 1;
 
-            let fontSize    = this.inherit.fontSize || 15;
-            let lineHeight  = this.inherit.lineHeight || 20;
-            let color       = this.inherit.color || "#000000";
+            let fontSize    = this.style.fontSize || 15;
+            let lineHeight  = this.style.lineHeight || 20;
+            let color       = this.style.color || "#000000";
 
             let offset      = Math.ceil(lineHeight/2);
 
@@ -76,10 +76,10 @@
 
                 if (w > actualWidth) actualWidth = w;
 
-                if (this.inherit.textAlign == "center") {
+                if (this.style.textAlign == "center") {
                     ox = (width-w)*0.5;
                 }
-                if (this.inherit.textAlign == "right") {
+                if (this.style.textAlign == "right") {
                     ox = (width-w);
                 }
 
