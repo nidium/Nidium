@@ -435,7 +435,7 @@ public:
         YGNodeStyleSetMargin(m_YogaRef, YGEdgeRight, right);
         YGNodeStyleSetMargin(m_YogaRef, YGEdgeBottom, bottom);
         YGNodeStyleSetMargin(m_YogaRef, YGEdgeLeft, left);
-
+        
         m_Margin.top    = top;
         m_Margin.right  = right;
         m_Margin.bottom = bottom;

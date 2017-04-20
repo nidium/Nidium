@@ -133,36 +133,52 @@ void CanvasHandler::setId(const char *str)
 
 void CanvasHandler::setPropMinWidth(float width)
 {
-    if (width < 1) width = 1;
+    p_MinWidth = width;
 
-    p_MinWidth = p_MaxWidth ? nidium_min(width, p_MaxWidth) : width;
+    if (p_MinWidth.isPercentageValue()) {
+        YGNodeStyleSetMinWidthPercent(m_YogaRef, p_MinWidth);
+
+        return;
+    }
 
     YGNodeStyleSetMinWidth(m_YogaRef, p_MinWidth);
 }
 
 void CanvasHandler::setPropMinHeight(float height)
 {
-    if (height < 1) height = 1;
+    p_MinHeight = height;
 
-    p_MinHeight = p_MaxHeight ? nidium_min(height, p_MaxHeight) : height;
+    if (p_MinHeight.isPercentageValue()) {
+        YGNodeStyleSetMinHeightPercent(m_YogaRef, p_MinHeight);
+
+        return;
+    }
 
     YGNodeStyleSetMinHeight(m_YogaRef, p_MinHeight);
 }
 
 void CanvasHandler::setPropMaxWidth(float width)
 {
-    if (width < 1) width = 1;
+    p_MaxWidth = width;
 
-    p_MaxWidth = nidium_max(p_MinWidth, width);
+    if (p_MaxWidth.isPercentageValue()) {
+        YGNodeStyleSetMaxWidthPercent(m_YogaRef, p_MaxWidth);
+
+        return;
+    }
 
     YGNodeStyleSetMaxWidth(m_YogaRef, p_MaxWidth);
 }
 
 void CanvasHandler::setPropMaxHeight(float height)
 {
-    if (height < 1) height = 1;
+    p_MaxHeight = height;
 
-    p_MaxHeight = nidium_max(p_MinHeight, height);
+    if (p_MaxHeight.isPercentageValue()) {
+        YGNodeStyleSetMaxHeightPercent(m_YogaRef, p_MaxHeight);
+
+        return;
+    }
 
     YGNodeStyleSetMaxHeight(m_YogaRef, p_MaxHeight);
 }
@@ -174,6 +190,11 @@ bool CanvasHandler::setWidth(float width, bool force)
     }
 
     p_Width = width;
+
+    if (isnan(width)) {
+        YGNodeStyleSetWidthAuto(m_YogaRef);
+        return true;
+    }
 
     if (p_Width.isPercentageValue()) {
         YGNodeStyleSetWidthPercent(m_YogaRef, width >= 0 && !isnan(width) ? width : YGUndefined);
@@ -191,6 +212,11 @@ bool CanvasHandler::setHeight(float height, bool force)
     }
 
     p_Height = height;
+
+    if (isnan(height)) {
+        YGNodeStyleSetHeightAuto(m_YogaRef);
+        return true;
+    }
 
     if (p_Height.isPercentageValue()) {
         YGNodeStyleSetHeightPercent(m_YogaRef, height >= 0 && !isnan(height) ? height : YGUndefined);
