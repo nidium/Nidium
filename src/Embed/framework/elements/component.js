@@ -142,7 +142,6 @@
             let scope   = this.shadowRoot.getJSScope()
 
             let componentClass = scope.module.exports;
-            ElementStyle.Inherit(componentClass);
 
             if (componentClass instanceof ComponentExports) {
                 if (Object.keys(componentClass).length > 0) {
@@ -157,6 +156,8 @@
             if (!Component.isPrototypeOf(componentClass)) {
                 throw new Error(`Failed to load component "${this.name}". Only class extending Component can be exported.`);
             }
+
+            ElementStyle.Inherit(componentClass);
 
             this[s_ComponentClass] = componentClass;
 
