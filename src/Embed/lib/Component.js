@@ -107,10 +107,17 @@ class Component extends Elements.Element {
                     }
 
                     // Give priority to style already defined
-                    tmp.push(this.style);
+                    // (must manually copy because Object.assign() trick ignore all properties)
+                    let tmpStyle = {};
+                    for (let k in this.style) {
+                        if (k == "elem") continue;
+                        tmpStyle[k] = this.style[k];
+                    }
+                    tmp.push(tmpStyle);
 
                     // Merge all style into |this.style|
                     tmp.unshift(this.style);
+
                     Object.assign.apply(null, tmp);
                 }
 
