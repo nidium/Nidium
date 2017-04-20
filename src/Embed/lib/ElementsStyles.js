@@ -21,10 +21,10 @@ StyleContainer.protoStyle = new WeakMap();
 
 class ElementStyle {
     constructor(name, options) {
-        this.name     = name;
+        this.name = name;
         this.isNative = options.isNative || false;
-        this.inherit  = options.inherit  || false;
-        this.repaint  = options.repaint  || false;
+        this.inherit = options.inherit || false;
+        this.repaint = options.repaint || false;
     }
 
     static Implement(onclass, elementstyle) {
@@ -33,17 +33,20 @@ class ElementStyle {
         Object.defineProperty(inobj.prototype, elementstyle.name, {
             enumerable: true,
             get: function() {
-                if (elementstyle.isNative) return elementstyle.readNative(this.elem);
-                if (elementstyle.inherit) return elementstyle.readInherit(this.elem);
+                if (elementstyle.isNative)
+                    return elementstyle.readNative(this.elem);
+                if (elementstyle.inherit)
+                    return elementstyle.readInherit(this.elem);
                 return elementstyle.readDefault(this.elem);
             },
             set: function(value) {
-                if (elementstyle.isNative) return elementstyle.writeNative(this.elem, value);
-                if (elementstyle.inherit) return elementstyle.writeInherit(this.elem, value);
-                return elementstyle.writeDefault(this.elem, value);                
+                if (elementstyle.isNative)
+                    return elementstyle.writeNative(this.elem, value);
+                if (elementstyle.inherit)
+                    return elementstyle.writeInherit(this.elem, value);
+                return elementstyle.writeDefault(this.elem, value);
             }
         });
-
     }
 
     static Inherit(onclass) {
@@ -57,11 +60,15 @@ class ElementStyle {
             }
 
             for (let prop in target.prototype) {
-                Object.defineProperty(inobj.prototype, prop, Object.getOwnPropertyDescriptor(target.prototype, prop));
+                Object.defineProperty(
+                    inobj.prototype,
+                    prop,
+                    Object.getOwnPropertyDescriptor(target.prototype, prop)
+                );
             }
 
             obj = Object.getPrototypeOf(obj);
-        }        
+        }
     }
 
     /*
@@ -90,7 +97,7 @@ class ElementStyle {
         if (this.repaint) {
             element.requestPaint();
         }
-        
+
         element[this.name] = value;
     }
 
@@ -105,4 +112,4 @@ class ElementStyle {
 module.exports = {
     ElementStyle,
     StyleContainer
-}
+};
