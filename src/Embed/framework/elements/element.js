@@ -18,7 +18,7 @@
                 this.opacity = attributes.opacity;
             }
 
-            //this.style = new ElementStyles(this); // TODO
+            this.style = new (StyleContainer.Create(Object.getPrototypeOf(this)))(this);
             this.onresize = this.onpaint;
         }
 
@@ -30,37 +30,6 @@
             if (!this._ctx) {
                 return;
             }
-
-            /*
-            let ctx = this._ctx;
-            let { width, height } = this.getDimensions();
-
-            this.style.angle = 0;
-            this.style.originOffsetX = 0;
-            this.style.originOffsetY = 0;
-            this.style.alpha = 1;
-
-            ctx.save();
-                if (this.style.alpha) {
-                    ctx.globalAlpha = this.style.alpha;
-                } else {
-                    this.clear();
-                }
-
-                if (this.style.angle) {
-                    var origin = {
-                        x : width*0.5 + this.style.originOffsetX,
-                        y : height*0.5 + this.style.originOffsetY
-                    };
-
-                    ctx.translate(origin.x, origin.y);
-                    ctx.rotate(this.style.angle * (Math.PI/180));
-                    ctx.translate(-origin.x, -origin.y);
-                }
-
-                this.paint(ctx, width, height);
-            ctx.restore();
-            */
 
             let dimensions = this.getDimensions();
 
@@ -102,18 +71,6 @@
 
         getContext(type="2d") {
             return Canvas.prototype.getContext.call(this, type);
-        }
-
-        beforepaint(ctx){
-
-        }
-
-        paint(ctx, width, height) {
-            this.style._paint(ctx, width, height);
-        }
-
-        afterpaint(ctx){
-            
         }
     }
 
