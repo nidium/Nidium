@@ -3,7 +3,10 @@ class StyleContainer {
         var sc = StyleContainer.protoStyle.get(forProto);
         if (!sc) {
             sc = function(elem) {
-                this.elem = elem;
+                Object.defineProperty(this, "elem", {
+                    enumerable: false,
+                    value: elem
+                });
             };
 
             StyleContainer.protoStyle.set(forProto, sc);
