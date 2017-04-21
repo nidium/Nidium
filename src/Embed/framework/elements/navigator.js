@@ -7,6 +7,8 @@
 {
     const Elements = require("Elements");
     const Navigator = require("Navigator");
+    const { ElementStyle } = require("ElementsStyles");
 
     Elements.navigator = class extends Navigator {};
+    ElementStyle.Inherit(Elements.navigator);
 }
