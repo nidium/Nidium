@@ -17,7 +17,9 @@
 
         paint(ctx, width, height) {
             ctx.fillStyle = "rgba(111, 108, 220, 0.6)";
+            ctx.strokeStyle = "rgba(111, 108, 220, 1.0)";
             ctx.fillRect(0, 0, width, height);
+            ctx.strokeRect(0.5, 0.5, width-1, height-1);
         }
 
         goto(elem) {

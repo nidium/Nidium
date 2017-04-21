@@ -390,22 +390,33 @@ _remotedebug.handle('DOM.setNodeValue', function(reply, params) {
 */
 _remotedebug.handle('CSS.getMatchedStylesForNode', function(reply, params) {
 
-    let stylesProps = [
+    /*let stylesProps = [
         "width","height","top","left",
-        ].sort();
+        ].sort();*/
 
     var canvas = document.getCanvasByIdx(params.nodeId);
-    if (!canvas) {
-        console.log("Node not found");
+
+    if (!canvas || !canvas.style) {
         return reply({});
     }
+
+    let stylesProps = [];
+    for (let prop in canvas.style) {
+        stylesProps.push(prop);
+    }
+
+    stylesProps.sort();
 
     let returnedProps = [];
     let curcol = 0;
     let cumulText = '';
 
     for (let style of stylesProps) {
-        let val = canvas[style];
+        let val = canvas.style[style];
+        if (val == undefined) {
+            continue;
+        }
+
         let text = `${style}: ${val};`;
         cumulText += text + ' ';
 
@@ -465,7 +476,7 @@ _remotedebug.handle('DOM.getDocument', function(reply, params) {
 
         let nodeName = "canvas";
         if ("name" in root) {
-            nodeName = root.name();
+            nodeName = root.name() || "unknown";
         }
 
         let tree = {
@@ -510,7 +521,7 @@ _remotedebug.handle('DOM.getDocument', function(reply, params) {
             tree.attributes.push("id", root.id);
         }
 
-        console.log(tree.attributes);
+        //console.log(tree.attributes);
 
         for (let child of children) {
             tree.children.push(getTree(child));
@@ -555,8 +566,7 @@ _remotedebug.handle('CSS.setStyleTexts', function(reply, params) {
     }
 
     for (let declaration of ret.stylesheet.rules[0].declarations) {
-        canvas[declaration.property] = parseInt(declaration.value);
-        console.log(declaration.property, canvas[declaration.property], declaration.value);
+        canvas.style[declaration.property] = declaration.value;
     }
 
     return reply({});
