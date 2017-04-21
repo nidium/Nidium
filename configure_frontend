@@ -157,16 +157,16 @@ def skia():
         gn_hack = "../nidium_gn_quote.sh"
         file_h = open("skia/" + gn_hack, 'w')
         dir = "/c/data/nidium/Nidium/third-party/"
-        file_h.write("#!/bin/bash\n\n" + 
+        file_h.write("#!/bin/bash\n\n" +
                    "export PATH=%s/depot_tools/python276_bin:%s/depot_tools/python:%s/angle/buildtools/win" % (dir, dir, dir) +
-                 "\n\n" +  
+                 "\n\n" +
                 gn_string )
         file_h.close()
         st = os.stat("skia/" + gn_hack)
-        os.chmod("skia/" + gn_hack, st.st_mode | stat.S_IEXEC) 
-        build = [ #"python tools/git-sync-deps", 
+        os.chmod("skia/" + gn_hack, st.st_mode | stat.S_IEXEC)
+        build = [ #"python tools/git-sync-deps",
                   #"bash ./%s||true" % (gn_hack),
-                  #"python gn/gn_meta_sln.py", 
+                  #"python gn/gn_meta_sln.py",
                   #Platform.MsBuild("out/sln/skia.sln", None, None, None)]
                 ]
     else:
@@ -185,12 +185,13 @@ def skia():
     if Platform.system == "Darwin":
         args["extra_cflags_cc"].append("-stdlib=libc++")
         args["extra_ldflags"] = ["-stdlib=libc++"]
-        skiaArgs = ''
-        for k, v in args.items():
-            skiaArgs += r' %s="%s"' % (k, json.dumps(v))
-        build = [ "python tools/git-sync-deps", 
-                   """./bin/gn gen out/Static '--args=%s' '%s' """ % (skiaArgs), 
-                 "ninja %s -C out/Static" % ("-v" if Variables.get("verbose") else "")]
+    skiaArgs = ''
+    for k, v in args.items():
+        #skiaArgs += r' %s="%s"' % (k, json.dumps(v))
+        skiaArgs += " %s=%s" % (k, json.dumps(v))
+    build = [ "python tools/git-sync-deps",
+               """./bin/gn gen out/Static '--args=%s' """ % (skiaArgs),
+             "ninja %s -C out/Static" % ("-v" if Variables.get("verbose") else "")]
     # Add depot_tools to path needed for skia
     Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
 
@@ -207,7 +208,7 @@ def skia():
             os.path.join(CONFIGURE_PATH, "patch", "skia_gr_gl_callback.patch")
         ],
         "outputs": [
-            "out/Static/%sskia%s" % (pref, ext), 
+            "out/Static/%sskia%s" % (pref, ext),
             {
                 "src": "out/Static/skdiff",
                 "dst": os.path.join(ROOT, "tests", "jsunittest", "gr", "skdiff")
@@ -255,8 +256,8 @@ def fixAngleThinArchive():
 def angle():
     outputs = ["preprocessor", "translator", "angle_common"]
     if Platform.system == "Windows":
-        ext = '.lib'
         pref = ''
+        ext = '.lib'
         Platform.setEnviron("CXXFLAGS=-MD")
         Platform.setEnviron("CFLAGS=-MD")
         patch = [os.path.join(CONFIGURE_PATH, "patch", "angle_windows.patch")]
@@ -268,8 +269,8 @@ def angle():
         build = [Platform.MsBuild("%s/src/angle.sln" % anglePath, options="/p:NODEFAULTLIB=ucrt.lib /p:NODEFAULTLIB=libcpmt.lib")]
         outputs = outputs + [ 'angle_image_util', 'libANGLE', 'libEGL', 'libGLESv2' ]
     else:
-        ext = '.a'
         pref = 'lib'
+        ext = '.a'
         patch = []
         location =  Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785")
         cxxFlags = os.environ.get("CXXFLAGS", "")
@@ -277,17 +278,19 @@ def angle():
         if Platform.wordSize == 32:
             cxxFlags += " -msse -msse2 -msse3"
         if Platform.system == "Darwin":
-            outPath = "out/Release/"   
+            outPath = "out/Release/"
         elif Platform.system == "Linux":
             outPath = "out/Release/obj/src/"
-        Platform.setEnviron('GYP_GENERATORS=ninja LDFLAGS="%s" CXXFLAGS="%s"' % (os.environ.get("LDFLAGS", ""), cxxFlags))
-        build = [ "python scripts/bootstrap.py", "gclient sync", fixAngleThinArchive, "ninja -C out/Release/"],
+        build = [ "python scripts/bootstrap.py",
+                'GYP_GENERATORS=ninja LDFLAGS="%s" CXXFLAGS="%s"' % (os.environ.get("LDFLAGS", ""), cxxFlags) +  " gclient sync",
+                fixAngleThinArchive,
+                "ninja -C out/Release/"]
         outputs.append("translator_lib")
     return {
         "location": location,
         "build": build,
         "patchs" : patch,
-        "outputs": [pref + os.path.join(outPath, i) + ext for i in outputs]
+        "outputs": [os.path.join(outPath, pref + i) + ext for i in outputs]
     }
 
 @Deps.register("breakpad")
