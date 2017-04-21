@@ -362,7 +362,8 @@ public:
         Get the real dimensions computed by Yoga
     */
     bool getDimensions(float *width, float *height,
-        float *left = nullptr, float *top = nullptr)
+        float *left = nullptr, float *top = nullptr,
+        float *aleft = nullptr, float *atop = nullptr)
     {
         *width = YGNodeLayoutGetWidth(m_YogaRef);
         *height = YGNodeLayoutGetHeight(m_YogaRef);
@@ -383,6 +384,14 @@ public:
             if (isnan(*top)) {
                 return false;
             }
+        }
+
+        if (aleft) {
+            *aleft = p_Left.getCachedValue();
+        }
+
+        if (atop) {
+            *atop = p_Top.getCachedValue();
         }
 
         return true;

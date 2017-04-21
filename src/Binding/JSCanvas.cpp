@@ -107,10 +107,12 @@ bool JSCanvas::JS_setScale(JSContext *cx, JS::CallArgs &args)
 
 bool JSCanvas::JS_getDimensions(JSContext *cx, JS::CallArgs &args)
 {
-    float width, height, left, top;
+    float width, height, left, top, aleft, atop;
 
-    if (!m_CanvasHandler->getDimensions(&width, &height, &left, &top)) {
-        width = height = left = top = NAN;
+    if (!m_CanvasHandler->getDimensions(&width, &height, &left,
+        &top, &aleft, &atop)) {
+
+        width = height = left = top = aleft = top = NAN;
     }
 
     JS::RootedObject out(cx, JS_NewPlainObject(cx));
@@ -119,6 +121,9 @@ bool JSCanvas::JS_getDimensions(JSContext *cx, JS::CallArgs &args)
     NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "height", height);
     NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "left", left);
     NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "top", top);
+
+    NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "aleft", aleft);
+    NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "atop", atop);    
 
     args.rval().setObject(*out);
     
