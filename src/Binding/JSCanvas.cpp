@@ -1122,62 +1122,6 @@ bool JSCanvas::JSGetter_allowNegativeScroll(JSContext *cx, JS::MutableHandleValu
     return true;
 }
 
-bool JSCanvas::JSGetter_width(JSContext *cx, JS::MutableHandleValue vp)
-{
-    float width = m_CanvasHandler->getPropWidth();
-    if (isnan(width)) {
-        vp.setUndefined();
-
-        return true;
-    }
-
-    vp.setNumber(m_CanvasHandler->getPropWidth());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_height(JSContext *cx, JS::MutableHandleValue vp)
-{
-    float height = m_CanvasHandler->getPropHeight();
-    if (isnan(height)) {
-        vp.setUndefined();
-
-        return true;
-    }
-
-    vp.setNumber(m_CanvasHandler->getPropHeight());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_maxWidth(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setNumber(m_CanvasHandler->getPropMaxWidth());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_maxHeight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setNumber(m_CanvasHandler->getPropMaxHeight());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_minWidth(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setNumber(m_CanvasHandler->getPropMinWidth());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_minHeight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setNumber(m_CanvasHandler->getPropMinHeight());
-
-    return true;
-}
-
 bool JSCanvas::JSGetter_display(JSContext *cx, JS::MutableHandleValue vp)
 {
     if (m_CanvasHandler->getPropDisplay()) {
@@ -1213,62 +1157,6 @@ bool JSCanvas::JSGetter_position(JSContext *cx, JS::MutableHandleValue vp)
             vp.setString(jstr);
             break;
     }
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_top(JSContext *cx, JS::MutableHandleValue vp)
-{
-    float top = m_CanvasHandler->getPropTop();
-    if (isnan(top)) {
-        vp.setUndefined();
-
-        return true;
-    }
-
-    vp.setNumber(m_CanvasHandler->getPropTop());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_left(JSContext *cx, JS::MutableHandleValue vp)
-{
-    float left = m_CanvasHandler->getPropLeft();
-    if (isnan(left)) {
-        vp.setUndefined();
-
-        return true;
-    }
-
-    vp.setNumber(m_CanvasHandler->getPropLeft());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_right(JSContext *cx, JS::MutableHandleValue vp)
-{
-    float right = m_CanvasHandler->getPropRight();
-    if (isnan(right)) {
-        vp.setUndefined();
-
-        return true;
-    }
-
-    vp.setNumber(m_CanvasHandler->getPropRight());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
-{
-    float bottom = m_CanvasHandler->getPropBottom();
-    if (isnan(bottom)) {
-        vp.setUndefined();
-
-        return true;
-    }
-
-    vp.setNumber(m_CanvasHandler->getPropBottom());
 
     return true;
 }
@@ -1594,6 +1482,18 @@ bool JSCanvas::JSSetter_aspectRatio(JSContext *cx, JS::MutableHandleValue vp)
 
     return true;
 }
+
+/* Generic setter for CanvasHandler properties */
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Width, width);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Height, height);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Left, left);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Top, top);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Bottom, bottom);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Right, right);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MaxWidth, maxWidth);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MaxHeight, maxHeight);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MinWidth, minWidth);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MinHeight, minHeight);
 
 JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
     JS::HandleObject obj)

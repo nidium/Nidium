@@ -18,6 +18,19 @@ class CanvasHandler;
 }
 namespace Binding {
 
+
+#define JSCANVAS_GENERIC_PERCENT_PROP_GETTER(name, prop) \
+    bool JSCanvas::JSGetter_##prop(JSContext *cx, JS::MutableHandleValue vp) \
+    { \
+        float name = m_CanvasHandler->getProp##name(); \
+        if (isnan(name)) { \
+            vp.setUndefined(); \
+            return true; \
+        } \
+        vp.setNumber(m_CanvasHandler->getProp##name()); \
+        return true; \
+    }
+
 class JSCanvas : public ClassMapperWithEvents<JSCanvas>, public Core::Messages
 {
 public:
