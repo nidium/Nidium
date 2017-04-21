@@ -11,6 +11,8 @@
     const s_ShadowHost  = require("../../Symbols.js").ElementShadowHost;
     const VM            = require("VM");
 
+    let highlightCanvas = null;
+
     Elements.Node = class extends Canvas {
         constructor(attributes = {}) {
             super(attributes.width, attributes.height);
@@ -244,6 +246,16 @@
             if (this.allowsChild()) {
                 NML.CreateTree(children, this, this.shadowRoot ? this.shadowRoot : this[s_ShadowRoot]);
             }
+        }
+
+        highlight() {
+            if (!highlightCanvas) {
+                highlightCanvas = Elements.Create("nodeoverlay");
+                document.canvas.add(highlightCanvas);
+            }
+
+            highlightCanvas.goto(this);
+            console.log("want to highlight", highlightCanvas);
         }
 
         onload() {}

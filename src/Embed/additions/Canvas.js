@@ -7,6 +7,7 @@
 
 const { setAnimation, Easing } = require("AnimationBlock");
 
+
 {
     const s_ShadowRoot = require("../Symbols.js").ElementShadowRoot;
 
@@ -69,118 +70,6 @@ const { setAnimation, Easing } = require("AnimationBlock");
         }
     });
 
-    Canvas.currentHightLight = null;
+    Canvas.prototype.highlight = function() {}
 
-    Canvas.prototype.highlight = function(enable = true) {
-        var canvas = null;
-
-        if (!this.getParent() || !this.__visible) {
-            return false;
-        }
-
-        var draw = (canvas) => {
-            canvas.clear();
-            let ctx = canvas.getContext("2d");
-            ctx.fillStyle = "rgba(111, 108, 220, 0.6)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-
-        if (Canvas.currentHightLight) {
-            canvas = Canvas.currentHightLight;
-            //canvas.setSize(this.width, this.height);
-
-            setAnimation((canvas) => {
-                canvas.width = this.width;
-                canvas.height = this.height;
-            }, 200, Easing.Back.Out, canvas);
-
-            canvas.on("resize", () => {
-                draw(canvas);
-            });
-
-        } else {
-            canvas = new Canvas(this.width, this.height);
-            Canvas.currentHightLight = canvas;
-
-            canvas.on("load", () => {
-                draw(canvas);
-            });
-        }
-
-        document.canvas.add(canvas);
-        canvas.position = "absolute";
-
-        setAnimation((canvas) => {
-            canvas.left = this.__left;
-            canvas.top = this.__top;
-        }, 200, Easing.Back.Out, canvas);
-    }
-}
-
-class DebugCanvas extends Canvas {
-    constructor(width, height, parent = document.canvas) {
-        super(width, height);
-
-        if (parent) {
-            parent.add(this);
-        }
-
-        this.onload = this.randomPaint;
-        this.onresize = this.randomPaint;
-
-        this.m_highlight = false;
-        this._pickColor();
-        this.cursor = "pointer";
-
-        this.on("mousedown", function(ev) {
-            this.highlight();
-        }.bind(this));
-        this.on("mouseup", function(ev) {
-            this.highlight(false);
-        }.bind(this));
-
-    }
-
-    _pickColor() {
-        var mr = (min=100, max=200) => min + Math.floor(Math.random()*(max-min));
-        this.color = `rgba(${mr(200, 250)}, ${mr()}, ${mr(50, 150)}, 0.7)`;
-    }
-
-    randomPaint() {
-        var ctx = this.getContext("2d");
-
-        ctx.save()
-
-        this.clear();   
-
-        ctx.fillStyle = this.color;
-        
-        ctx.fillRect(0, 0, this.width, this.height, 7, 25);
-
-        ctx.fillStyle = "#fff";
-        ctx.fillText(`${this.id}`, 10, 15);
-
-        if (this.m_highlight) {
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = `rgba(210, 210, 210, 1)`;
-            ctx.strokeRect(0, 0, this.width, this.height, 10, 20);
-        }
-
-        ctx.restore();
-    }
-
-    place() {
-        var parent = this.getParent();
-        if (!parent) {
-            return;
-        }
-        this.left = Math.floor(Math.random() * (parent.width - this.width));
-        this.top = Math.floor(Math.random() * (parent.height - this.height));
-
-    }
-
-    /*highlight(enable = true) {
-        this.m_highlight = enable;
-        this.randomPaint();
-    }*/
 }

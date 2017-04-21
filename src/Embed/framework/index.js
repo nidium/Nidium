@@ -22,6 +22,7 @@ load("embed://framework/elements/slot.js");
  */
 load("embed://framework/elements/canvas.js");
 load("embed://framework/elements/textnode.js");
+load("embed://framework/elements/nodeoverlay.js");
 load("embed://framework/elements/li.js");
 load("embed://framework/elements/div.js");
 load("embed://framework/elements/view.js");
@@ -29,6 +30,7 @@ load("embed://framework/elements/span.js");
 load("embed://framework/elements/img.js");
 load("embed://framework/elements/section.js");
 load("embed://framework/elements/radio.js");
+
 
 /*
  * Grid layout
