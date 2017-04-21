@@ -489,7 +489,7 @@ def setDependencies():
         "lss",
         "SDL2",
         "rapidxml",
-        "breakpad",
+        #"breakpad",
     )
 
     if Gyp.get("nidium_audio") == 1:
