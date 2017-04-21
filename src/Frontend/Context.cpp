@@ -124,7 +124,7 @@ Context::Context(ape_global *net)
       m_Debug2Handler(NULL),
 #endif
       m_UI(NULL), m_NML(NULL), m_GLState(NULL),
-      m_JSWindow(NULL), m_SizeDirty(false), m_CurrentClickedHandler(NULL)
+      m_JSWindow(NULL), m_SizeDirty(false)
 {
 
     m_YogaConfig = YGConfigNew();
@@ -582,44 +582,42 @@ static int GetGLSLVersion()
 // From Mozilla dom/canvas/WebGLShaderValidator.cpp
 static ShShaderOutput GetShaderOutputVersion()
 {
-    if (false /* opengles context */) {
-        return SH_ESSL_OUTPUT;
-    } else {
-        int version = GetGLSLVersion();
+#ifdef NIDIUM_OPENGLES2
+    return SH_ESSL_OUTPUT;
+#else
+    int version = GetGLSLVersion();
 
-        switch (version) {
-            case 100:
-                return SH_GLSL_COMPATIBILITY_OUTPUT;
-            case 120:
-                return SH_GLSL_COMPATIBILITY_OUTPUT;
-            case 130:
-                return SH_GLSL_130_OUTPUT;
-            case 140:
-                return SH_GLSL_140_OUTPUT;
-            case 150:
-                return SH_GLSL_150_CORE_OUTPUT;
-            case 330:
-                return SH_GLSL_330_CORE_OUTPUT;
-            case 400:
-                return SH_GLSL_400_CORE_OUTPUT;
-            case 410:
-                return SH_GLSL_410_CORE_OUTPUT;
-            case 420:
-                return SH_GLSL_420_CORE_OUTPUT;
-            case 430:
-                return SH_GLSL_430_CORE_OUTPUT;
-            case 440:
-                return SH_GLSL_440_CORE_OUTPUT;
-            case 450:
-                return SH_GLSL_450_CORE_OUTPUT;
-            default:
-                ndm_logf(NDM_LOG_ERROR, "Context", "Unexpected GLSL version.");
-                exit(1);
-        }
-
+    switch (version) {
+        case 100:
+            return SH_GLSL_COMPATIBILITY_OUTPUT;
+        case 120:
+            return SH_GLSL_COMPATIBILITY_OUTPUT;
+        case 130:
+            return SH_GLSL_130_OUTPUT;
+        case 140:
+            return SH_GLSL_140_OUTPUT;
+        case 150:
+            return SH_GLSL_150_CORE_OUTPUT;
+        case 330:
+            return SH_GLSL_330_CORE_OUTPUT;
+        case 400:
+            return SH_GLSL_400_CORE_OUTPUT;
+        case 410:
+            return SH_GLSL_410_CORE_OUTPUT;
+        case 420:
+            return SH_GLSL_420_CORE_OUTPUT;
+        case 430:
+            return SH_GLSL_430_CORE_OUTPUT;
+        case 440:
+            return SH_GLSL_440_CORE_OUTPUT;
+        case 450:
+            return SH_GLSL_450_CORE_OUTPUT;
+        default:
+            ndm_logf(NDM_LOG_ERROR, "Context", "Unexpected GLSL version.");
+            return SH_GLSL_COMPATIBILITY_OUTPUT;
     }
+#endif
 
-    return SH_GLSL_COMPATIBILITY_OUTPUT;
 }
 
 // From Mozilla canvas/src/WebGLContextValidate.cpp
@@ -646,11 +644,16 @@ bool Context::initShaderLang()
     glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS,
                   &maxVertexTextureImageUnits);
 
+#ifdef NIDIUM_OPENGLES2
+    glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_VECTORS, &maxFragmentUniformVectors);
+    glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS, &maxVertexUniformVectors);
+#else
     glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS,
                   &maxFragmentUniformVectors);
     maxFragmentUniformVectors /= 4;
     glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &maxVertexUniformVectors);
     maxVertexUniformVectors /= 4;
+#endif
 
     m_ShShaderOutput = GetShaderOutputVersion();
 

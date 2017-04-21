@@ -16,6 +16,11 @@
 #include <js/RootingAPI.h>
 #include <jsprf.h>
 
+#ifdef __ANDROID__
+// Needed for isspace()
+#include <locale>
+#endif
+
 
 bool JS_ConvertArgumentsVA(JSContext *cx,
     const JS::CallArgs &args, const char *format, va_list ap);

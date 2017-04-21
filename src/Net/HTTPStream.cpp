@@ -170,7 +170,12 @@ void HTTPStream::onStart(size_t packets, size_t seek)
         close(m_Mapped.fd);
     }
 
+#ifdef __ANDROID__
+    // FIXME : Temporary workaround, we need to make this more generic
+    char tmpfname[] = "/data/data/com.nidium.android/tmp.XXXXXX";
+#else
     char tmpfname[] = "/tmp/nidiumtmp.XXXXXXXX";
+#endif
     m_Mapped.fd = mkstemp(tmpfname);
     if (m_Mapped.fd == -1) {
         ndm_log(NDM_LOG_ERROR, "HTTPStream", "Failed to create temporary file");

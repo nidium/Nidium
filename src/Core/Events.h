@@ -28,6 +28,16 @@ namespace Core {
 class Events
 {
 public:
+    enum EventStateFlags {
+        kEventStateFlag_stopped   = 1,
+        kEventStateFlag_prevented = 1 << 1
+    };
+
+    struct EventState {
+        bool stopped          = false;
+        bool defaultPrevented = false;
+    };
+
     void addListener(Messages *listener)
     {
         m_Listeners_s.insert(listener);
@@ -44,9 +54,11 @@ public:
     }
 
     template <typename T>
-    bool fireEventSync(typename T::Events event, const Args &args)
+    bool fireEventSync(typename T::Events event,
+                       const Args &args,
+                       EventState *state = nullptr)
     {
-        return this->fireEventImpl<T>(event, args,
+        return this->fireEventImpl<T>(event, args, state,
                                       Events::kPropagationMode_Sync);
     }
 
@@ -57,8 +69,9 @@ public:
     {
 
         return this->fireEventImpl<T>(
-            event, args, forceAsync ? Events::kPropagationMode_Async
-                                    : Events::kPropagationMode_Auto);
+            event, args, nullptr,
+            forceAsync ? Events::kPropagationMode_Async
+                       : Events::kPropagationMode_Auto);
     }
 
     virtual ~Events()
@@ -81,6 +94,7 @@ private:
     template <typename T>
     bool fireEventImpl(typename T::Events event,
                        const Args &args,
+                       EventState *state,
                        PropagationMode propagation
                        = Events::kPropagationMode_Auto)
     {
@@ -96,19 +110,23 @@ private:
             msg->m_Priv = 0;
 
             if (propagation == Events::kPropagationMode_Sync) {
-                receiver->postMessageSync(msg);
+                Core::PtrAutoDelete<SharedMessages::Message *> _msg(msg);
+                receiver->postMessageSync(msg, false /* deleteMsg */);
+
+                if (msg->m_Priv & kEventStateFlag_stopped) {
+                    if (state) state->stopped = true;
+                    return false;
+                }
+
+                if(msg->m_Priv & kEventStateFlag_prevented) {
+                    if (state) state->defaultPrevented = true;
+                    return false;
+                }
             } else {
                 receiver->postMessage(
                     msg, propagation == Events::kPropagationMode_Async ? true
                                                                        : false);
             }
-#if 0
-            /* TODO FIX : Use after free here */
-            /* stop propagation */
-            if (msg->priv) {
-                return false;
-            }
-#endif
         }
 
 

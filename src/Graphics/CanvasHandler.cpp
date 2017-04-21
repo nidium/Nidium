@@ -12,11 +12,14 @@
 
 #include <js/GCAPI.h>
 
+#include "Interface/SystemInterface.h"
 #include "Binding/JSCanvas2DContext.h"
 
 using Nidium::Core::Args;
 using Nidium::Frontend::Context;
 using Nidium::Frontend::InputEvent;
+using Nidium::Frontend::InputTouch;
+using Nidium::Frontend::InputHandler;
 using Nidium::Graphics::CanvasHandler;
 using Nidium::Binding::Canvas2DContext;
 using Nidium::Interface::UIInterface;
@@ -394,8 +397,9 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
         return;
     }
 
-    if (!willBeAdopted && m_NidiumContext->getCurrentClickedHandler() == this) {
-        m_NidiumContext->setCurrentClickedHandler(NULL);
+    InputHandler *inputHandler = m_NidiumContext->getInputHandler();
+    if (!willBeAdopted && inputHandler->getCurrentClickedHandler() == this) {
+        inputHandler->setCurrentClickedHandler(nullptr);
     }
 
 #if 0
@@ -442,9 +446,9 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
         return;
     }
 
-    InputEvent *ev = m_NidiumContext->getInputHandler()->getEvents();
+    std::vector<InputEvent> *eventList = m_NidiumContext->getInputHandler()->getEvents();
 
-    if (ev == NULL) {
+    if (eventList->size() == 0) {
         return;
     }
 
@@ -473,13 +477,13 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
     /*
         Loop through all new events
     */
-    for (; ev != NULL; ev = ev->m_Next) {
+    for (auto &ev : *eventList) {
         /* This event is happening in a zone inside |this| canvas  */
-        if (ev->isInRect(actualRect)) {
+        if (ev.isInRect(actualRect)) {
             /*
                 Increment depth (Nth canvas affected by this event)
             */
-            ev->inc();
+            ev.inc();
 
             if (!evlist) {
                 evlist = ape_new_pool_list(0, 4);
@@ -489,7 +493,7 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
                Dupplicate the event and set |this|
                as the handler of the new event 
             */
-            InputEvent *dup = ev->dupWithHandler(this);
+            InputEvent *dup = ev.dupWithHandler(this);
 
             ape_pool_push(evlist, dup);
         }
@@ -870,6 +874,29 @@ int CanvasHandler::getCursor()
     /* Inherit from parent when default */
     return m_Parent ? m_Parent->getCursor() : UIInterface::ARROW;
 }
+
+void CanvasHandler::scroll(int relX, int relY)
+{
+    if (m_ScrollableY) {
+        int max  = this->getContentHeight() - this->getComputedHeight();
+        int pos = m_Content.scrollTop + relY;
+        if (!m_AllowNegativeScroll) {
+            pos = nidium_clamp(pos, 0, max);
+        }
+
+        this->setScrollTop(pos);
+    }
+
+    if (m_ScrollableX) {
+        int max  = this->getContentWidth() - this->getComputedWidth();
+        int pos = m_Content.scrollLeft + relX;
+        if (!m_AllowNegativeScroll) {
+            pos = nidium_clamp(pos, 0, max);
+        }
+
+        this->setScrollLeft(pos);
+    }
+}
 // }}}
 
 // {{{ Setters
@@ -1048,42 +1075,123 @@ void CanvasHandler::onDrop(InputEvent *ev, CanvasHandler *drop)
     this->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg);
 }
 
-void CanvasHandler::onMouseEvent(InputEvent *ev)
+void CanvasHandler::checkDrop(InputEvent *ev,
+                              Graphics::CanvasHandler *drag)
 {
+    if (!drag || !(drag->m_Flags & kDrag_Flag)) return;
+
     CanvasHandler *underneath = this;
     if (CanvasHandler *tmp = ev->getUnderneathCanvas()) {
         underneath = tmp;
     }
 
+    CanvasHandler *target = (drag == this) ? underneath : this;
+
+    drag->onDrag(ev, target, true);
+    target->onDrop(ev, drag);
+
+    drag->m_Flags &= ~kDrag_Flag;
+}
+
+void CanvasHandler::checkDrag(InputEvent *ev,
+                              Graphics::CanvasHandler *drag)
+{
+    if (!drag) return;
+
+    CanvasHandler *underneath = this;
+    if (CanvasHandler *tmp = ev->getUnderneathCanvas()) {
+        underneath = tmp;
+    }
+
+    drag->onDrag(ev, (this == drag) ? underneath : this);
+}
+
+void CanvasHandler::onInputEvent(InputEvent *ev)
+{
+    InputHandler *inputHandler = m_NidiumContext->getInputHandler();
+
     switch (ev->getType()) {
+        case InputEvent::kTouchScroll_type: {
+            int consumed = ev->m_Origin->m_data[5];
+
+            if (consumed) {
+                InputEvent::ScrollState state
+                    = static_cast<InputEvent::ScrollState>(ev->m_data[4]);
+
+                switch (state) {
+                    case InputEvent::kScrollState_start:
+                        inputHandler->setCurrentScrollHandler(this);
+                        break;
+                    case InputEvent::kScrollState_end:
+                        inputHandler->setCurrentScrollHandler(nullptr);
+                        break;
+                    default:
+                        break;
+
+                }
+                return;
+            }
+
+            Graphics::CanvasHandler *scrollHandler
+                = inputHandler->getCurrentScrollHandler();
+
+            if (!scrollHandler) {
+                return;
+            }
+
+            Args args;
+            args[0].set(ev->getType());
+            args[1].set(ev->m_x);
+            args[2].set(ev->m_y);
+            args[3].set(ev->m_data[0]); // scrollX
+            args[4].set(ev->m_data[1]); // scrollY
+            args[5].set(ev->m_data[2]); // velocityX
+            args[6].set(ev->m_data[3]); // velocityY
+            args[7].set(ev->m_data[4]); // state
+
+            // Mark the event as consumed
+            ev->m_Origin->m_data[5] = 1;
+
+            scrollHandler->fireEvent<CanvasHandler>(CanvasHandler::SCROLL_EVENT, args);
+            scrollHandler->scroll(ev->m_data[0], ev->m_data[1]);
+        } break;
+        case InputEvent::kTouchStart_Type:
+            inputHandler->setCurrentTouchedHandler(ev->getTouch()->getIdentifier(), this);
+            break;
+        case InputEvent::kTouchMove_Type:
+            /*
+                If the touchmove event is received on an handler outside of the
+                origin handlers fire the touchmove event of the original handler.
+            */
+            if (!ev->getTouch()->hasOrigin(this)) {
+                Args arg;
+                this->onTouch(ev, arg, nullptr);
+                ev->getTouch()->getTarget()->fireEvent<CanvasHandler>(CanvasHandler::TOUCH_EVENT, arg);
+            }
+
+            this->checkDrag(ev, inputHandler->getCurrentTouchHandler(ev->getTouch()->getIdentifier()));
+            break;
+        case InputEvent::kTouchEnd_Type: {
+            unsigned int id = ev->getTouch()->getIdentifier();
+
+            this->checkDrop(ev, inputHandler->getCurrentTouchHandler(id));
+            inputHandler->setCurrentTouchedHandler(id, nullptr);
+        } break;
+
         case InputEvent::kMouseClick_Type:
-            if (ev->m_data[0] == 1) // left click
-                m_NidiumContext->setCurrentClickedHandler(this);
+            if (ev->m_data[0] == 1) { // left click
+                inputHandler->setCurrentClickedHandler(this);
+            }
             break;
         case InputEvent::kMouseClickRelease_Type:
             if (ev->m_data[0] == 1) {
-                CanvasHandler *drag;
-                if ((drag = m_NidiumContext->getCurrentClickedHandler())
-                    && (drag->m_Flags & kDrag_Flag)) {
-
-                    CanvasHandler *target = (drag == this) ? underneath : this;
-
-                    drag->onDrag(ev, target, true);
-                    target->onDrop(ev, drag);
-
-                    drag->m_Flags &= ~kDrag_Flag;
-                }
-                m_NidiumContext->setCurrentClickedHandler(NULL);
+                this->checkDrop(ev, inputHandler->getCurrentClickedHandler());
+                inputHandler->setCurrentClickedHandler(nullptr);
             }
             break;
-        case InputEvent::kMouseMove_Type: {
-            CanvasHandler *drag;
-            if ((drag = m_NidiumContext->getCurrentClickedHandler())) {
-
-                drag->onDrag(ev, (this == drag) ? underneath : this);
-            }
+        case InputEvent::kMouseMove_Type:
+            this->checkDrag(ev, inputHandler->getCurrentClickedHandler());
             break;
-        }
         default:
             break;
     }
@@ -1092,34 +1200,124 @@ void CanvasHandler::onMouseEvent(InputEvent *ev)
         (UIInterface::CURSOR_TYPE) this->getCursor());
 }
 
+void CanvasHandler::onTouch(InputEvent *ev, Args &args, CanvasHandler *handler)
+{
+    InputHandler *inputHandler = m_NidiumContext->getInputHandler();
+    std::shared_ptr<InputTouch> touch = ev->getTouch();
+
+    if (ev->getType() == InputEvent::kTouchStart_Type) {
+        if (!inputHandler->getTouch(ev->getTouch()->getTouchID())) {
+            inputHandler->addTouch(ev->getTouch());
+        }
+        touch->addOrigin(handler);
+    } else if (ev->getType() == InputEvent::kTouchEnd_Type) {
+        inputHandler->rmTouch(touch->getIdentifier());
+    }
+
+    inputHandler->addChangedTouch(touch);
+
+    args[0].set(ev->getType());
+    args[1].set(touch.get());
+
+    /*
+        Update touch coordinates when they are processed
+    */
+    touch->x    = ev->m_x;
+    touch->y    = ev->m_y;
+}
+
 /*
     Called by Context whenever there are pending events on this canvas
-    Currently only handle mouse events.
+    Currently only handle mouse, touch & scroll events.
 */
 bool CanvasHandler::_handleEvent(InputEvent *ev)
 {
+    Events canvasEvent = MOUSE_EVENT;
+
     for (CanvasHandler *handler = this; handler != NULL;
          handler = handler->getParent()) {
 
         Args arg;
 
-        arg[0].set(ev->getType());
-        arg[1].set(ev->m_x);
-        arg[2].set(ev->m_y);
-        arg[3].set(ev->m_data[0]);     // xrel
-        arg[4].set(ev->m_data[1]);     // yrel
-        arg[5].set(ev->m_x - p_Left.getCachedValue()); // layerX
-        arg[6].set(ev->m_y - p_Top.getCachedValue());  // layerY
-        arg[7].set(this);              // target
+        switch (ev->getType()) {
+            case InputEvent::kMouseMove_Type:
+            case InputEvent::kMouseClick_Type:
+            case InputEvent::kMouseClickRelease_Type:
+            case InputEvent::kMouseDoubleClick_Type:
+            case InputEvent::kMouseDragStart_Type:
+            case InputEvent::kMouseDragEnd_Type:
+            case InputEvent::kMouseDragOver_Type:
+            case InputEvent::kMouseDrop_Type:
+            case InputEvent::kMouseDrag_Type:
+                arg[0].set(ev->getType());
+                arg[1].set(ev->m_x);
+                arg[2].set(ev->m_y);
+                arg[3].set(ev->m_data[0]);     // xrel
+                arg[4].set(ev->m_data[1]);     // yrel
+                arg[5].set(ev->m_x - p_Left.getCachedValue()); // layerX
+                arg[6].set(ev->m_y - p_Top.getCachedValue());  // layerY
+                arg[7].set(this);              // target
+                break;
+            case InputEvent::kScroll_type: {
+            case InputEvent::kTouchScroll_type:
+                if (!handler->isScrollable() || ev->m_Origin->m_data[5] /* consumed */) {
+                    continue;
+                }
 
-        /* fireEvent returns false if a stopPropagation is detected */
-        if (!handler->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT,
-                                               arg)) {
+                canvasEvent    = SCROLL_EVENT;
+
+                arg[0].set(ev->getType());
+                arg[1].set(ev->m_x);
+                arg[2].set(ev->m_y);
+
+                /*
+                    Set a flag on the original event to mark it as consumed
+                */
+                ev->m_Origin->m_data[5] = 1;
+
+                arg[3].set(ev->m_data[0]); // scrollX
+                arg[4].set(ev->m_data[1]); // scrollY
+                arg[5].set(ev->m_data[2]); // velocityX
+                arg[6].set(ev->m_data[3]); // velocityY
+                arg[7].set(ev->m_data[4]); // state
+
+            } break;
+            case InputEvent::kTouchStart_Type:
+            case InputEvent::kTouchEnd_Type:
+            case InputEvent::kTouchMove_Type: {
+                /*
+                    If the handler isn't one of the handlers that
+                    received the touchstart event ignore it.
+                 */
+                if (ev->getType() != InputEvent::kTouchStart_Type &&
+                        !ev->getTouch()->hasOrigin(handler)) {
+                    continue;
+                }
+
+                canvasEvent = TOUCH_EVENT;
+
+                this->onTouch(ev, arg, handler);
+            } break;
+        }
+
+        EventState evState;
+        handler->fireEventSync<CanvasHandler>(canvasEvent, arg, &evState);
+
+        if (canvasEvent == SCROLL_EVENT) {
+            if (!evState.defaultPrevented) {
+                handler->scroll(ev->m_data[0], ev->m_data[1]);
+            }
+            // Scroll event does not bubble
+            break;
+        }
+
+        if (evState.stopped) {
+            // stopPropagation() has been called on the event
             break;
         }
     }
 
-    this->onMouseEvent(ev);
+    this->onInputEvent(ev);
 
     return true;
 }

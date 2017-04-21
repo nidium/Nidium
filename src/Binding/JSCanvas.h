@@ -74,6 +74,9 @@ protected:
 
     NIDIUM_DECL_JSGETTERSETTER(opacity);
     NIDIUM_DECL_JSGETTERSETTER(overflow);
+    NIDIUM_DECL_JSGETTERSETTER(scrollable);
+    NIDIUM_DECL_JSGETTERSETTER(scrollableX);
+    NIDIUM_DECL_JSGETTERSETTER(scrollableY);
     NIDIUM_DECL_JSGETTERSETTER(scrollLeft);
     NIDIUM_DECL_JSGETTERSETTER(scrollTop);
     NIDIUM_DECL_JSGETTERSETTER(allowNegativeScroll);
@@ -135,6 +138,8 @@ protected:
 
 private:
     Graphics::CanvasHandler *m_CanvasHandler;
+
+    bool fireInputEvent(int event, JS::HandleObject ev, const Core::SharedMessages::Message &msg);
 };
 
 } // namespace Binding

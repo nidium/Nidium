@@ -19,7 +19,7 @@
         '<(nidium_interface_path)/UIInterface.cpp',
     ],
     'conditions': [
-        ['OS=="mac"', {
+        ['target_os=="mac"', {
             'sources': [
                 '<(nidium_interface_path)/osx/CocoaUIInterface.mm',
                 '<(nidium_interface_path)/osx/UIConsole.mm',
@@ -27,7 +27,7 @@
                 '<(nidium_interface_path)/osx/DragNSView.mm',
             ],
         }],
-        ['OS=="linux"', {
+        ['target_os=="linux"', {
             'sources': [
                 '<(nidium_interface_path)/linux/X11UIInterface.cpp',
                 '<(nidium_interface_path)/linux/System.cpp',
@@ -44,6 +44,16 @@
                 '<!@(pkg-config --libs gtk+-3.0)',
                 '-lnotify',
                 '-lfontconfig',
+            ],
+        }],
+        ['target_os=="android"', {
+            'sources': [
+                '<(nidium_interface_path)/android/AndroidUIInterface.cpp',
+                '<(nidium_interface_path)/android/System.cpp',
+                '<(nidium_interface_path)/android/AndroidMain.cpp',
+            ],
+            'include_dirs': [
+                '<(nidium_interface_path)/android/',
             ],
         }],
         ['nidium_ui_console==0', {

@@ -31,7 +31,7 @@
                     'NIDIUM_CRASH_COLLECTOR_ENDPOINT="<(nidium_crash_collector_endpoint)"',
                 ],
             }],
-            ['OS=="linux"', {
+            ['target_os=="linux"', {
                 'conditions': [
                     ['nidium_enable_breakpad==1', {
                         'dependencies': [
@@ -70,7 +70,7 @@
                 #    'action': ['strip', '$(PRODUCT_DIR)/<(nidium_exec_name)']
                 #}]
             }],
-            ['OS=="mac"', {
+            ['target_os=="mac"', {
                 # XXX : Dono why, but this has no effect
                 "xcode_settings": {
                     'STRIP_INSTALLED_PRODUCT': 'YES',

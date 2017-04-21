@@ -188,15 +188,16 @@ uint32_t CanvasContext::CreatePassThroughVertex()
 {
     /* PassThrough Vertex shader */
     const char *vertex_s
-        = "attribute vec4 Position;\n"
+        = NIDIUM_GL_SHADER_PREAMBLE
+          "attribute vec4 Position;\n"
           "attribute vec2 TexCoordIn;\n"
           "attribute vec2 Modifier;\n"
-          "varying vec2 TexCoordOut;\n"
+          "varying vec2 n_TexCoord;\n"
           "uniform mat4 u_projectionMatrix;\n"
           "void main(void) {\n"
           "    gl_Position = u_projectionMatrix * Position + vec4(Modifier, "
           "0., 0.);\n"
-          "    TexCoordOut = TexCoordIn;\n"
+          "    n_TexCoord = TexCoordIn;\n"
           "}";
 
     uint32_t vertexshader
@@ -208,12 +209,12 @@ uint32_t CanvasContext::CreatePassThroughVertex()
 uint32_t CanvasContext::CreatePassThroughFragment()
 {
     const char *fragment_s
-        = "\n"
+        = NIDIUM_GL_SHADER_PREAMBLE
           "uniform sampler2D Texture;\n"
           "uniform float u_opacity;\n"
-          "varying vec2 TexCoordOut;\n"
+          "varying vec2 n_TexCoord;\n"
           "void main(void) {\n"
-          "    gl_FragColor = texture2D(Texture, TexCoordOut.xy) * u_opacity;\n"
+          "    gl_FragColor = texture2D(Texture, n_TexCoord.xy) * u_opacity;\n"
           "}";
 
     uint32_t fragmentshader = CanvasContext::CompileShader(&fragment_s, 1, GL_FRAGMENT_SHADER);
@@ -456,9 +457,12 @@ bool CanvasContext::validateCurrentFBO()
                        CheckFramebufferStatus(GR_GL_FRAMEBUFFER), status);
 
     switch (status) {
+#ifndef NIDIUM_OPENGLES2
+        // FIXME : GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE is not defined for OpenGLES2
         case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
             ndm_logf(NDM_LOG_DEBUG, "CanvasContext", "fbo %x (incomplete multisample)", status);
             break;
+#endif
         case GR_GL_FRAMEBUFFER_COMPLETE:
             break;
         case GR_GL_FRAMEBUFFER_UNSUPPORTED:

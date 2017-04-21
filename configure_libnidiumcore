@@ -19,7 +19,6 @@ from konstructor import Log
 from konstructor import ROOT, OUTPUT
 
 Deps.set(
-    "libnspr4",
     "mozilla-central",
     "leveldb",
     "http-parser",
@@ -41,42 +40,49 @@ Gyp = Builder.Gyp
 @Deps.register("leveldb")
 def leveldb():
     cxxFlags = os.environ.get("CXXFLAGS", "")
+    env = Utils.Env()
 
     if Konstruct.config("asan"):
         # Fix ASAN container overflow false positive :
         # https://github.com/google/sanitizers/wiki/AddressSanitizerContainerOverflow#false-positives
-        cxxFlags += " -fsanitize=address"
+        env.append("CXXFLAGS", "-fsanitize=address")
+
+    if Konstruct.config("android"):
+        env.update(Variables.get("androidEnvClang"))
+        env.set("TARGET_OS", "OS_ANDROID_CROSSCOMPILE")
 
     return {
         "location": Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.18"),
         # leveldb make doest not detect CXXFLAGS changes, so we force "make clean"
-        "build": ["make clean", "CXXFLAGS='%s' make" % (cxxFlags)],
+        "build": ["make clean","make"],
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "leveldb.patch")],
+        "env": env,
         "outputs": ["libleveldb(.a|.lib)"]
-    }
-
-@Deps.register("libnspr4")
-def libnspr():
-    configure = "./configure"
-    if Platform.wordSize == 64:
-        configure += " --enable-64bit"
-
-    return {
-        "chdir": "mozilla-central/nsprpub/",
-        "build": [configure, "make"],
-        "outputs": ["dist/lib/libnspr4(.a|.lib)"]
     }
 
 @Deps.register("mozilla-central")
 def mozilla():
-    nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/"))
-    nsprFlags = "--with-nspr-cflags=\"-I%s/dist/include/nspr/\" \
-                 --with-nspr-libs=\"-L%s/dist/lib/ -lnspr4 -lplds4 -lplc4\"" % (nsprDir, nsprDir)
+    env = Utils.Env()
 
     configure = "../configure\
             --disable-shared-js\
             --disable-jemalloc\
-            --enable-ctypes %s" % (nsprFlags)
+            --enable-nspr-build \
+            --enable-ctypes"
+
+
+    if Konstruct.config("android"):
+        configure += " " + " ".join([
+            "--with-android-cxx-stl=libc++",
+            "--with-android-gnu-compiler-version=4.9",
+            "--with-android-ndk=%s" % (Platform.getEnviron("ANDROID_NDK_ROOT")),
+            "--with-android-toolchain=%s" % (Variables.get("toolchainPath")),
+            "--with-android-platform=%s/sysroot/" % (Variables.get("toolchainPath")),
+            "--with-android-version=%d" % (Variables.get("androidNDKAPIVersion")),
+            "--target=%s" % (Variables.get("targetTriplet"))
+        ])
+        env.update(Variables.get("androidEnvGcc"))
+        env.set("ANDROID_CPU_ARCH", "armeabi-v7a")
 
     if Konstruct.config("debug", "valgring"):
         configure += " --enable-debug --disable-optimize"
@@ -88,14 +94,21 @@ def mozilla():
         "chdir": "js/src/obj",
         "location": DEPEDENCY_REPO + "/mozjs-45.5.3.tar.bz2",
         "build": [configure, "make"],
-        "outputs": ["mozglue/build/libmozglue.a$", "js/src/libjs_static.a$", "js/src/js-config.h$"]
+        "env": env,
+        "outputs": ["mozglue/build/libmozglue.a$", "dist/lib/libnspr4.a$", "js/src/libjs_static.a$", "js/src/js-config.h$"],
+        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "mozilla_android.patch")],
     }
 
 @Deps.register("http-parser")
 def httpParser():
+    env = Utils.Env()
+    if Konstruct.config("android"):
+        env.update(Variables.get("androidEnvClang"))
+
     return {
         "location": Deps.GitRepo("https://github.com/nodejs/http-parser.git", tag="v2.6.2"),
         "build": ["make package"],
+        "env": env,
         "outputs": ["libhttp_parser.a"]
     }
 
@@ -178,7 +191,7 @@ if __name__ == '__main__':
         Gyp.set('nidium_version', 'library')
 
     Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi --include=src/libapenetwork/gyp/config.gypi")
-    Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_SERVER")
+    Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_LIBRARY")
     Build.add(Gyp("src/libapenetwork/gyp/network.gyp"));
     Build.add(Gyp("gyp/libnidiumcore.gyp"))
 

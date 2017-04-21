@@ -10,7 +10,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <pthread.h>
-#include <glob.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/types.h>

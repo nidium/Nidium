@@ -8,18 +8,10 @@
 
 #include "Binding/ClassMapper.h"
 
-typedef unsigned int GLenum;
-typedef unsigned int GLuint;
+#include "Graphics/GLHeader.h"
 
-#define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl.h>
 #include <OpenGL/gl3ext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glext.h>
-#include <GL/glx.h>
-#include <GL/glxext.h>
 #endif
 
 #include "Graphics/CanvasContext.h"

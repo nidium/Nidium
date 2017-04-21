@@ -14,6 +14,7 @@
 #include <jsapi.h>
 
 #include "Core/Events.h"
+#include "Frontend/InputHandler.h"
 #include "Graphics/Geometry.h"
 
 #include <Yoga.h>
@@ -37,10 +38,6 @@ class UIInterface;
 }
 namespace Binding {
 class JSCanvas;
-}
-namespace Frontend {
-class Context;
-class InputEvent;
 }
 namespace Graphics {
 
@@ -258,7 +255,9 @@ public:
         LOADED_EVENT,
         CHANGE_EVENT,
         MOUSE_EVENT,
+        TOUCH_EVENT,
         DRAG_EVENT,
+        SCROLL_EVENT,
         PAINT_EVENT,
         MOUNT_EVENT,
         UNMOUNT_EVENT
@@ -607,6 +606,18 @@ public:
     void setCursor(int cursor);
     int getCursor();
 
+    bool isScrollable() {
+        // XXX : Broken with yoga update, needs to be updated once ready
+        /*
+        return (m_ScrollableX && this->getWidth() < this->getContentWidth(true))
+                || (m_ScrollableY && this->getHeight() < this->getContentHeight(true));
+        */
+
+        return (m_ScrollableX || m_ScrollableY);
+    }
+
+    void scroll(int x, int y);
+
     void invalidate()
     {
         m_NeedPaint = true;
@@ -663,9 +674,15 @@ protected:
 
 private:
     void deviceSetSize(float width, float height);
-    void onMouseEvent(Frontend::InputEvent *ev);
+    void onTouch(Frontend::InputEvent *ev, Core::Args &args, CanvasHandler *handler);
+    void onInputEvent(Frontend::InputEvent *ev);
     void onDrag(Frontend::InputEvent *ev, CanvasHandler *target, bool end = false);
     void onDrop(Frontend::InputEvent *ev, CanvasHandler *droped);
+
+    void checkDrag(Frontend::InputEvent *ev,
+                   Graphics::CanvasHandler *drag);
+    void checkDrop(Frontend::InputEvent *ev,
+                   Graphics::CanvasHandler *drag);
 
     int32_t m_nChildren;
     void dispatchMouseEvents(LayerizeContext &layerContext);
@@ -689,6 +706,8 @@ private:
 
 
     bool m_Overflow;
+    bool m_ScrollableX = false;
+    bool m_ScrollableY = false;
     bool m_Loaded;
     int m_Cursor;
     bool m_NeedPaint = true;

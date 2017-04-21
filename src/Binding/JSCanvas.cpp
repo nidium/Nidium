@@ -27,6 +27,7 @@ using Nidium::Graphics::CanvasHandler;
 using Nidium::Graphics::Rect;
 using Nidium::Frontend::Context;
 using Nidium::Frontend::InputEvent;
+using Nidium::Core::Events;
 
 namespace Nidium {
 namespace Binding {
@@ -1101,6 +1102,61 @@ bool JSCanvas::JSSetter_overflow(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
+bool JSCanvas::JSGetter_scrollable(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->m_ScrollableX && m_CanvasHandler->m_ScrollableY);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_scrollable(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+        return true;
+    }
+
+    m_CanvasHandler->m_ScrollableX = vp.toBoolean();
+    m_CanvasHandler->m_ScrollableY = vp.toBoolean();
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_scrollableX(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->m_ScrollableX);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_scrollableX(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+        return true;
+    }
+
+    m_CanvasHandler->m_ScrollableX = vp.toBoolean();
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_scrollableY(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->m_ScrollableY);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_scrollableY(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+        return true;
+    }
+
+    m_CanvasHandler->m_ScrollableY = vp.toBoolean();
+
+    return true;
+}
+
 bool JSCanvas::JSGetter_scrollLeft(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setInt32(m_CanvasHandler->m_Content.scrollLeft);
@@ -1659,6 +1715,9 @@ JSPropertySpec *JSCanvas::ListProperties()
     static JSPropertySpec props[] = {
         CLASSMAPPER_PROP_GS(JSCanvas, opacity),
         CLASSMAPPER_PROP_GS(JSCanvas, overflow),
+        CLASSMAPPER_PROP_GS(JSCanvas, scrollable),
+        CLASSMAPPER_PROP_GS(JSCanvas, scrollableX),
+        CLASSMAPPER_PROP_GS(JSCanvas, scrollableY),
         CLASSMAPPER_PROP_GS(JSCanvas, scrollLeft),
         CLASSMAPPER_PROP_GS(JSCanvas, scrollTop),
         CLASSMAPPER_PROP_GS(JSCanvas, allowNegativeScroll),
@@ -1769,6 +1828,25 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx,
     *out = handler;
 
     return ret;
+}
+
+static JS::Value TouchToJSVal(JSContext *cx, Frontend::InputTouch *touch)
+{
+    JSObjectBuilder obj(cx);
+
+    JS::RootedObject targetObj(cx, touch->getTarget()->m_JsObj);
+
+    obj.set("screenX", touch->x);
+    obj.set("screenY", touch->y);
+    obj.set("clientX", touch->x);
+    obj.set("clientY", touch->y);
+    obj.set("pageX", touch->x);
+    obj.set("pageY", touch->y);
+
+    obj.set("target", (JS::HandleObject)targetObj);
+    obj.set("identifier", touch->getIdentifier());
+
+    return obj;
 }
 
 void JSCanvas::onMessage(const SharedMessages::Message &msg)
@@ -1899,21 +1977,74 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
                     break;
             }
 
-            JS::RootedValue evVal(cx, obj.jsval());
-            if (!this->fireJSEvent(InputEvent::GetName(msg.m_Args[1].toInt()),
-                                   &evVal)) {
+            if (!this->fireInputEvent(msg.m_Args[1].toInt(), eventObj, msg)) {
                 break;
             }
+        } break;
+        case NIDIUM_EVENT(CanvasHandler, SCROLL_EVENT): {
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
 
-            JS::RootedValue cancelBubble(cx);
-            JS::RootedObject robj(cx, obj.obj());
-            if (JS_GetProperty(cx, robj, "cancelBubble", &cancelBubble)) {
-                if (cancelBubble.isBoolean() && cancelBubble.toBoolean()) {
-                    /* TODO: sort out this dirty hack */
-                    SharedMessages::Message *nonconstmsg
-                        = (SharedMessages::Message *)&msg;
-                    nonconstmsg->m_Priv = 1;
+            JSObjectBuilder obj(m_Cx, eventObj);
+            obj.set("x", msg.m_Args[2].toInt());
+            obj.set("y", msg.m_Args[3].toInt());
+            obj.set("relX", msg.m_Args[4].toInt());
+            obj.set("relY", msg.m_Args[5].toInt());
+            obj.set("velocityX", msg.m_Args[6].toInt());
+            obj.set("velocityY", msg.m_Args[7].toInt());
+            obj.set("state", msg.m_Args[8].toInt());
+
+            if (!this->fireInputEvent(msg.m_Args[1].toInt(), eventObj, msg)) {
+                break;
+            }
+        } break;
+        case NIDIUM_EVENT(CanvasHandler, TOUCH_EVENT): {
+            Frontend::InputHandler *inputHandler
+                = Context::GetObject<Frontend::Context>(m_Cx)->getInputHandler();
+            std::vector<std::shared_ptr<Frontend::InputTouch>> touches
+                = inputHandler->getTouches();
+            std::set<std::shared_ptr<Frontend::InputTouch>> changedTouches
+                = inputHandler->getChangedTouches();
+            InputEvent::Type evType = static_cast<InputEvent::Type>(msg.m_Args[1].toInt());
+
+            JS::AutoValueVector jsTouchesVector(m_Cx);
+            JS::AutoValueVector jsTargetTouchesVector(m_Cx);
+            for(auto const& touch : touches) {
+                if (!touch) continue;
+
+                jsTouchesVector.append(TouchToJSVal(m_Cx, touch.get()));
+
+                if (touch->hasOrigin(this->getHandler())) {
+                    jsTargetTouchesVector.append(TouchToJSVal(m_Cx, touch.get()));
                 }
+            }
+
+            JS::AutoValueVector jsChangedTouchesVector(m_Cx);
+            if (evType == InputEvent::kTouchStart_Type || evType == InputEvent::kTouchEnd_Type) {
+                Frontend::InputTouch *touch
+                    = static_cast<Frontend::InputTouch *>(msg.m_Args[2].toPtr());
+                if (touch) {
+                    jsChangedTouchesVector.append(TouchToJSVal(m_Cx, touch));
+                }
+            } else {
+                for(auto const& touch : changedTouches) {
+                    if (!touch) continue;
+                    jsChangedTouchesVector.append(TouchToJSVal(m_Cx, touch.get()));
+                }
+            }
+
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            JSObjectBuilder obj(m_Cx, eventObj);
+
+            JS::RootedObject jsTouchesObj(m_Cx, JS_NewArrayObject(m_Cx, jsTouchesVector));
+            JS::RootedObject jsChangedTouchesObj(m_Cx, JS_NewArrayObject(m_Cx, jsChangedTouchesVector));
+            JS::RootedObject jsTargetTouchesObj(m_Cx, JS_NewArrayObject(m_Cx, jsTargetTouchesVector));
+
+            obj.set("touches", (JS::HandleObject)jsTouchesObj);
+            obj.set("changedTouches", (JS::HandleObject)jsChangedTouchesObj);
+            obj.set("targetTouches", (JS::HandleObject)jsTargetTouchesObj);
+
+            if (!this->fireInputEvent(msg.m_Args[1].toInt(), eventObj, msg)) {
+                break;
             }
         } break;
         default:
@@ -1934,6 +2065,36 @@ JSCanvas::JSCanvas(CanvasHandler *handler)
         Trigger "loaded" event if not lazy loaded
     */
     m_CanvasHandler->checkLoaded(true);
+}
+
+bool JSCanvas::fireInputEvent(int ev, JS::HandleObject evObj, const Core::SharedMessages::Message &msg)
+{
+    JS::RootedValue evVal(m_Cx);
+    evVal.setObjectOrNull(evObj);
+    if (!this->fireJSEvent(InputEvent::GetName(ev), &evVal)) {
+        // No listeners
+        return true;
+    }
+
+    SharedMessages::Message *nonconstmsg = (SharedMessages::Message *)&msg;
+
+    /* TODO: sort out this dirty hack */
+
+    JS::RootedValue cancelBubble(m_Cx);
+    if (JS_GetProperty(m_Cx, evObj, "cancelBubble", &cancelBubble)) {
+        if (cancelBubble.isBoolean() && cancelBubble.toBoolean()) {
+            nonconstmsg->m_Priv |= Events::kEventStateFlag_stopped;;
+        }
+    }
+
+    JS::RootedValue defaultPrevented(m_Cx);
+    if (JS_GetProperty(m_Cx, evObj, "defaultPrevented", &defaultPrevented)) {
+        if (defaultPrevented.isBoolean() && defaultPrevented.toBoolean()) {
+            nonconstmsg->m_Priv |= Events::kEventStateFlag_prevented;
+        }
+    }
+
+    return true;
 }
 
 JSCanvas::~JSCanvas()

@@ -6,6 +6,8 @@
 
 {
     const Elements = require("Elements");
+    const OS = require("OS");
+    const IS_MOBILE = OS.platform == "ios" || OS.platform == "android";
 
     let reportUnsupported = function(message) {
         console.info("[HTML5Compat] " + message);
@@ -48,7 +50,8 @@
             "userAgent": {
                 get: function() {
                     return this.appName + " / " + __nidium__.version +
-                       " (" + this.language + "; rv:" + __nidium__.build + ")";
+                       " (" + this.language + "; rv:" + __nidium__.build + ")" +
+                       IS_MOBILE ? "mobile" : "";
                 }
             },
         });
@@ -75,6 +78,7 @@
         }
     };
 
+    //}}}
 
     // {{{ Document
     document.createElement = function(what) {
@@ -159,7 +163,7 @@
                 // to quickly make three.js works inside Nidium.
                 // For a more general approach we should wrap an
                 // an ArrayBuffer inside a Blob.
-                let f = new File(this.url);
+                const f = new File(this.url);
                 this.status = 200;
                 this._fireEvent("load", {target: {response: f}});
             }
@@ -181,6 +185,17 @@
         revokeObjectURL: function(obj) {
             URL._map.delete(obj);
         }
+    }
+    // }}}
+
+    // {{{ Window
+    // Some basic event forwarding
+    for (let name of ["touchstart", "touchmove", "touchend"]) {
+        document.canvas.addEventListener(name, function(name, ev) {
+            window.fireEvent(name, ev);
+        }.bind(window, name));
+
+        window["on" + name] = null;
     }
     // }}}
 }

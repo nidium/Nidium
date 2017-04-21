@@ -43,14 +43,18 @@
             '<(third_party_path)/yoga/',
         ],
 
+        'defines': [
+            'GR_GL_CUSTOM_SETUP_HEADER=<../patch/skia_gl_config.h>',
+            'GL_GLEXT_PROTOTYPES'
+        ],
+
+        'direct_dependent_settings': {
+            'defines': [ 'GL_GLEXT_PROTOTYPES']
+        },
+
         'conditions': [
             ['OS=="mac"', {
                 'defines': [
-                    'ENABLE_TYPEDARRAY_MOVE',
-                    'ENABLE_YARR_JIT=1',
-                    'NO_NSPR_10_SUPPORT',
-                    'IMPL_MFBT EXPORT_JS_API',
-                    'MOZILLA_CLIENT',
                     'SK_GAMMA_SRGB',
                     'SK_GAMMA_APPLY_TO_A8',
                     'SK_ALLOW_STATIC_GLOBAL_INITIALIZERS=1',
@@ -64,12 +68,9 @@
                     'SK_SUPPORT_PDF',
                     'SK_RELEASE',
                     'GR_RELEASE=1',
-                    'TRACING',
-                    'JS_THREADSAFE',
-                    'GR_GL_CUSTOM_SETUP_HEADER=<../patch/skia_gl_config.h>'
                 ],
             }],
-            ['OS=="linux"', {
+            ['target_os=="linux"', {
                 'defines': [
                     'EXPORT_JS_API',
                     'IMPL_MFBT',
@@ -93,12 +94,30 @@
                     'SK_RASTER_PIPELINE_HAS_JIT',
                     'SK_HAS_WEBP_LIBRARY',
                     'SK_XML',
-
                     'UINT32_MAX=4294967295u',
                     '__STDC_CONSTANT_MACROS',
-                    'TRACING',
-                    'JS_THREADSAFE',
-                    'GR_GL_CUSTOM_SETUP_HEADER=<../patch/skia_gl_config.h>'
+                ],
+            }],
+
+            ['target_os=="android"', {
+                'defines': [
+                    'SK_RELEASE',
+                    'SK_GAMMA_APPLY_TO_A8',
+                    'SK_INTERNAL',
+                    'SK_GAMMA_EXPONENT=1.4',
+                    'SK_GAMMA_CONTRAST=0.0',
+                    'SK_ALLOW_STATIC_GLOBAL_INITIALIZERS=0',
+                    'SK_ENABLE_DISCRETE_GPU',
+                    'SKIA_IMPLEMENTATION=1',
+                    'SK_HAS_JPEG_LIBRARY',
+                    'SK_SUPPORT_PDF',
+                    'SK_PDF_USE_SFNTLY',
+                    'SK_HAS_PNG_LIBRARY',
+                    'SK_CODEC_DECODES_RAW',
+                    'SK_RASTER_PIPELINE_HAS_JIT',
+                    'SK_HAS_WEBP_LIBRARY',
+                    'SK_XML',
+                    'XML_STATIC',
                 ],
             }],
             ['nidium_audio==1', {
@@ -108,17 +127,23 @@
                     '<(nidium_src_path)/Binding/JSAudioContext.cpp',
                     '<(nidium_src_path)/Binding/JSAudioNode.cpp',
                     '<(nidium_src_path)/Binding/JSVideo.cpp',
-                 ],
-                 'defines': [ 'NIDIUM_AUDIO_ENABLED' ],
-                     'includes': [
-                        'av.gypi'
-                     ]
+                ],
+                'defines': [ 'NIDIUM_AUDIO_ENABLED' ],
+                'includes': [
+                    'av.gypi'
+                ]
             }],
             ['nidium_webgl==1', {
                 'sources': [
                     '<(nidium_src_path)/Binding/JSWebGL.cpp',
-                 ],
-                 'defines': [ 'NIDIUM_WEBGL_ENABLED' ],
+                ],
+                'defines': [ 'NIDIUM_WEBGL_ENABLED' ],
+            }],
+            ['nidium_opengles2==1', {
+                'direct_dependent_settings': {
+                    'defines': [ 'NIDIUM_OPENGLES2']
+                },
+                'defines': [ 'NIDIUM_OPENGLES2']
             }],
             ['nidium_gl_debug==1', {
                  'defines': [ 'NIDIUM_ENABLE_GL_ERROR' ],
@@ -145,6 +170,7 @@
             '<(nidium_src_path)/Binding/JSCanvas.cpp',
             '<(nidium_src_path)/Binding/JSCanvas2DContext.cpp',
             '<(nidium_src_path)/Binding/JSNML.cpp',
+            '<(nidium_src_path)/Binding/JSKeyboard.cpp',
             '<(nidium_src_path)/IO/SystemStream.cpp',
             '<(third_party_path)/yoga/Yoga.c',
             '<(third_party_path)/yoga/YGNodeList.c',

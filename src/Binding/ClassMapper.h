@@ -680,14 +680,24 @@ public:
         JS_DefineFunctions(cx, jsobj, GetJSEventsFunctions());
     }
 
-    bool fireJSEvent(const char *name, JS::MutableHandleValue evobj)
+    bool fireJSEvent(const char *name, JS::MutableHandleValue ev)
     {
         JS::RootedObject thisobj(m_Cx, m_Instance);
+        JS::RootedObject evObj(m_Cx, ev.toObjectOrNull());
         JS::AutoValueArray<1> params(m_Cx);
         JS::RootedValue callback(m_Cx);
+        JS::RootedValue type(m_Cx);
         std::string onEv = "on" + std::string(name);
 
-        params[0].set(evobj);
+        params[0].set(ev);
+
+        JS_GetProperty(m_Cx, evObj, "type", &type);
+        if (type.isUndefined()) {
+            JS::RootedValue typeStr(m_Cx);
+            if (JSUtils::StrToJsval(m_Cx,  name, strlen(name), &typeStr, "utf8")) {
+                JS_SetProperty(m_Cx, evObj, "type", typeStr);
+            }
+        }
 
         JS_GetProperty(m_Cx, thisobj, onEv.c_str(), &callback);
 
@@ -709,9 +719,9 @@ public:
         }
 
         /*
-        if (0 && !JS_InstanceOf(m_Cx, evobj.toObjectOrNull(),
+        if (0 && !JS_InstanceOf(m_Cx, ev.toObjectOrNull(),
             &JSEvent_class, NULL)) {
-            evobj.setUndefined();
+            ev.setUndefined();
         }*/
 
         JSEvents *events = m_Events->get(name);
@@ -719,7 +729,7 @@ public:
             return false;
         }
 
-        events->fire(m_Cx, evobj, thisobj);
+        events->fire(m_Cx, ev, thisobj);
 
         return true;
     }

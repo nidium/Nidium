@@ -1,0 +1,30 @@
+# JSAPI45 has been tested with NDK R10, but we are using R13
+# This patch fix various stuff to support the new NDK version
+--- mozilla-central/js/src/configure	2016-12-21 16:16:45.914235729 +0100
++++ mozilla-central/js/src/configure	2016-12-21 17:11:48.584307204 +0100
+@@ -6673,9 +6673,9 @@
+ 
+ if test "$OS_TARGET" = "Android" -a -z "$gonkdir"; then
+     cpu_arch_dir="$ANDROID_CPU_ARCH"
+-    if test "$MOZ_THUMB2" = 1; then
+-        cpu_arch_dir="$cpu_arch_dir/thumb"
+-    fi
++    #if test "$MOZ_THUMB2" = 1; then
++    #    cpu_arch_dir="$cpu_arch_dir/thumb"
++    #fi
+ 
+     if test -z "$STLPORT_CPPFLAGS$STLPORT_LIBS"; then
+         case "$android_cxx_stl" in
+
+--- mozilla-central/js/src/configure	2017-01-05 13:04:58.663926251 +0100                                                                   
++++ mozilla-central/js/src/configure	2017-01-05 13:05:28.583926899 +0100
+@@ -6706,7 +6706,7 @@
+                 { echo "configure: error: Couldn't find path to llvm-libc++ in the android ndk" 1>&2; echo "configure: error: Couldn't find path to llvm-libc++ in the android ndk" 1>&5; exit 1; }
+             fi
+ 
+-            STLPORT_LIBS="-L$cxx_libs -lc++_static"
++            STLPORT_LIBS="-L$cxx_libs -lc++_static -lc++abi"
+             # Add android/support/include/ for prototyping long double math
+             # functions, locale-specific C library functions, multibyte support,
+             # etc.
+

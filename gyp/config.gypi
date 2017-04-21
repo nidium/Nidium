@@ -8,6 +8,7 @@
         'nidium_version': '0.2',
         'nidium_webgl%': 1,
         'nidium_audio%': 1,
+        'nidium_opengles2%': 0,
         'nidium_ui_console%': 1,
         'nidium_package_embed%': 0,
         'nidium_gl_debug%': 0,

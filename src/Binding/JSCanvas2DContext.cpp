@@ -264,10 +264,11 @@ bool JSCanvasGLProgram::uniformXfv(JSContext *cx, JS::CallArgs &args, int nb)
         carray = (GLfloat *)JS_GetFloat32ArrayData(array, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(array);
     } else if (JS_IsArrayObject(cx, array, &isarray) && isarray) {
+        JS::RootedObject tmp(cx, JS_NewFloat32ArrayFromArray(cx, array));
+
         bool shared;
         JS::AutoCheckCannotGC nogc;
 
-        JS::RootedObject tmp(cx, JS_NewFloat32ArrayFromArray(cx, array));
         carray = (GLfloat *)JS_GetFloat32ArrayData(tmp, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
@@ -1640,37 +1641,32 @@ char *Canvas2DContext::genModifiedFragmentShader(const char *data, const char *g
 
 uint32_t Canvas2DContext::createProgram(const char *data)
 {
-    char *pdata = CanvasContext::ProcessShader(data,
-        CanvasContext::SHADER_FRAGMENT, SH_GLSL_COMPATIBILITY_OUTPUT);
 
-    if (!pdata) {
+    const char *shaders[] = {  getCoopFragmentShader(), data };
+
+#ifdef NIDIUM_OPENGLES2
+    #define SH_TYPE_OUTPUT SH_ESSL_OUTPUT
+#else
+    #define SH_TYPE_OUTPUT SH_GLSL_COMPATIBILITY_OUTPUT
+#endif
+
+    char *output = CanvasContext::ProcessMultipleShader(shaders, 2,
+        CanvasContext::SHADER_FRAGMENT, SH_TYPE_OUTPUT);
+#undef SH_TYPE_OUTPUT
+
+    nlogf("output =>\n%s", output);
+
+    if (!output) {
         return 0;
     }
 
-    std::string tshader = pdata;
-    free(pdata);
-
-    int fline = tshader.find("\n");
-    if (!fline) {
-        return 0;
-    }
-
-    std::string glslversion = tshader.substr(0, fline);
-
-    tshader.erase(0, fline + 1);
-
-    char *nshader = this->genModifiedFragmentShader(tshader.c_str(), glslversion.c_str());
-    uint32_t fragment = CanvasContext::CompileShader((const char **)&nshader, 1, GL_FRAGMENT_SHADER);
+    uint32_t fragment = CanvasContext::CompileShader((const char **)&output, 1, GL_FRAGMENT_SHADER);
 
     if (fragment == 0) {
-        free(nshader);
         return 0;
     }
 
-    uint32_t coop   = this->compileCoopFragmentShader(glslversion.c_str());
     uint32_t vertex = this->CreatePassThroughVertex();
-
-    free(nshader);
 
     GLuint programHandle;
 
@@ -1681,7 +1677,6 @@ uint32_t Canvas2DContext::createProgram(const char *data)
     GLint linkSuccess;
 
     NIDIUM_GL_CALL(iface, AttachShader(programHandle, vertex));
-    NIDIUM_GL_CALL(iface, AttachShader(programHandle, coop));
     NIDIUM_GL_CALL(iface, AttachShader(programHandle, fragment));
 
     NIDIUM_GL_CALL(iface, BindAttribLocation(programHandle,
@@ -1710,14 +1705,15 @@ uint32_t Canvas2DContext::createProgram(const char *data)
 static const char *getCoopFragmentShader()
 {
     return
-        "uniform sampler2D Texture;\n"
+        "precision mediump float;\n"
+        "uniform sampler2D n_texture;\n"
         "uniform vec2 n_Position;\n"
         "uniform vec2 n_Resolution;\n"
         "uniform float u_opacity;\n"
         "uniform float n_Padding;\n"
-        "varying vec2 TexCoordOut;\n"
+        "varying vec2 n_TexCoord;\n"
         "vec4 _nm_gl_FragCoord;\n"
-        "void _nm_main(void);\n"
+        "void user_redefined_main(void);\n"
 
         "void main(void) {\n"
         "_nm_gl_FragCoord = vec4(gl_FragCoord.x-n_Position.x-n_Padding, "
@@ -1727,12 +1723,12 @@ static const char *getCoopFragmentShader()
         "    _nm_gl_FragCoord.x > n_Resolution.x ||\n"
         "    _nm_gl_FragCoord.y+n_Padding < n_Padding ||\n"
         "    _nm_gl_FragCoord.y > n_Resolution.y) {\n"
-        "     gl_FragColor = texture2D(Texture, TexCoordOut.xy);\n"
+        "     gl_FragColor = texture2D(n_texture, n_TexCoord.xy);\n"
         "} else {\n"
-        "    _nm_main();\n"
+        "    user_redefined_main();\n"
         "}\n"
         "gl_FragColor = gl_FragColor * u_opacity;"
-        "}\n";
+        "}\n#define main user_redefined_main\n";
 }
 
 uint32_t Canvas2DContext::compileCoopFragmentShader(const char *glslversion)
@@ -1746,10 +1742,13 @@ void Canvas2DContext::drawTexture(uint32_t textureID)
 {
     NIDIUM_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, textureID));
 
+#ifndef NIDIUM_OPENGLES2
+    // FIXME : OpenGLES2 does not define GL_CLAMP_TO_BORDER
     NIDIUM_GL_CALL_MAIN(
         TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
     NIDIUM_GL_CALL_MAIN(
         TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
+#endif
 
     /* Anti Aliasing */
     NIDIUM_GL_CALL_MAIN(

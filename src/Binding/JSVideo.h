@@ -10,6 +10,9 @@
 #include "Binding/ClassMapper.h"
 #include "Binding/JSAudioNode.h"
 
+#include <SkBitmap.h>
+#include <SkPaint.h>
+
 namespace Nidium {
 namespace Binding {
 
@@ -30,6 +33,8 @@ public:
     int m_Height = -1;
     int m_Left   = 0;
     int m_Top    = 0;
+    SkBitmap m_Bitmap;
+    SkPaint m_Paint;
 
     void releaseAudioNode();
     void setSize(int width, int height);
@@ -37,6 +42,7 @@ public:
     static void RegisterObject(JSContext *cx);
     static void RegisterAllObjects(JSContext *cx);
     static void FrameCallback(uint8_t *data, void *custom);
+    void frameCallback(uint8_t *data);
     void onSourceMessage(const Core::SharedMessages::Message &msg) override;
     static JSVideo *
     Constructor(JSContext *cx, JS::CallArgs &args, JS::HandleObject obj);

@@ -48,7 +48,6 @@
                     '-fno-rtti',
                     #'-fno-exceptions', # rapidxml use exception :/
                     '-Wno-c++0x-extensions',
-                    '-Wno-c++0x-extensions',
                     '-Wno-invalid-offsetof',
                     '-Wno-mismatched-tags',
                     '-include <(nidium_output_third_party_path)/js-config.h',
@@ -72,7 +71,7 @@
         'type': 'none',
         'direct_dependent_settings': {
             'conditions': [
-                ['OS=="mac"', {
+                ['target_os=="mac"', {
                     "link_settings": {
                         'libraries': [
                             'libhttp_parser.a',
@@ -83,7 +82,7 @@
                         ]
                     }
                 }],
-                ['OS=="linux"', {
+                ['target_os=="linux" or target_os=="android"', {
                     'ldflags': [
                         '-Wl,--gc-sections',
                     ],
@@ -110,12 +109,12 @@
             'libnidiumcore.gyp:libnidiumcore-includes',
         ],
         'conditions': [
-            ['OS=="mac"', {
+            ['target_os=="mac"', {
                 'defines': [
                     'DSO_EXTENSION=".dylib"'
                 ],
             }],
-            ['OS=="linux"', {
+            ['target_os=="linux" or target_os=="android"', {
                 'defines': [
                     'DSO_EXTENSION=".so"'
                 ]

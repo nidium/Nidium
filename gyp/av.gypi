@@ -11,6 +11,7 @@
         '<(third_party_path)/ffmpeg/',
         '<(third_party_path)/libcoroutine/source/',
         '<(third_party_path)/basekit/source/',
+        '<(third_party_path)/SDL2/include/',
     ],
     'sources': [
         '<(nidium_av_path)AV.cpp',
@@ -58,6 +59,13 @@
                         '-lavformat',
                         '-lavcodec',
                         '-lavutil',
+                    ],
+                }
+            }],
+            ['target_os=="android"', {
+                "link_settings": {
+                    'libraries!': [
+                        '-lasound',
                     ],
                 }
             }]

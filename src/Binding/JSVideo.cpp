@@ -12,12 +12,17 @@
 #include "Binding/JSUtils.h"
 #include "Graphics/SkiaContext.h"
 #include "Graphics/CanvasHandler.h"
+#include "Interface/SystemInterface.h"
+
+#include <SkImage.h>
+#include <SkRect.h>
 
 using namespace Nidium::AV;
 using Nidium::Graphics::CanvasHandler;
 using Nidium::Graphics::SkiaContext;
 using Nidium::Graphics::CanvasContext;
 using Nidium::Graphics::CanvasHandler;
+using Nidium::Interface::SystemInterface;
 
 namespace Nidium {
 namespace Binding {
@@ -28,6 +33,9 @@ JSVideo::JSVideo(Canvas2DContext *canvasCtx, JSContext *cx)
     m_Video = new Video((ape_global *)JS_GetContextPrivate(cx));
     m_Video->frameCallback(JSVideo::FrameCallback, this);
     m_CanvasCtx->getHandler()->addListener(this);
+
+    m_Paint.setColor(SK_ColorBLACK);
+    //m_Paint.setFilterQuality(SkFilterQuality::kMedium_SkFilterQuality);
 
     this->listenSourceEvents(m_Video);
 }
@@ -46,26 +54,42 @@ void JSVideo::onSourceMessage(const SharedMessages::Message &msg)
 
 void JSVideo::FrameCallback(uint8_t *data, void *custom)
 {
-    JSVideo *v             = (JSVideo *)custom;
-    CanvasHandler *handler = v->m_CanvasCtx->getHandler();
-    SkiaContext *surface   = v->m_CanvasCtx->getSkiaContext();
-    JSContext *cx          = v->m_Cx;
+    JSVideo *v = static_cast<JSVideo *>(custom);
+    v->frameCallback(data);
+}
+
+void JSVideo::frameCallback(uint8_t *data)
+{
+    CanvasHandler *handler = m_CanvasCtx->getHandler();
+    SkiaContext *surface   = m_CanvasCtx->getSkiaContext();
+    JSContext *cx          = m_Cx;
+    int w                  = m_Video->m_CodecCtx->width;
+    int h                  = m_Video->m_CodecCtx->height;
 
     surface->setFillColor(0xFF000000);
     surface->drawRect(0, 0, handler->getComputedWidth(), handler->getComputedHeight(), 0);
-    surface->drawPixels(data, v->m_Video->m_Width, v->m_Video->m_Height,
-                        v->m_Left, v->m_Top);
 
-    JS::RootedValue onframe(v->m_Cx);
-    JS::RootedObject vobj(v->m_Cx, v->getJSObject());
+    m_Bitmap.setPixels(data);
+
+    SkIRect src;
+    SkRect dst;
+
+    src.setXYWH(0, 0, w, h);
+    dst.setXYWH(SkDoubleToScalar(m_Left), SkDoubleToScalar(m_Top),
+                SkDoubleToScalar(m_Video->m_Width), SkDoubleToScalar(m_Video->m_Height));
+
+    surface->getCanvas()->drawBitmapRect(m_Bitmap, src, dst, &m_Paint);
+
+    JS::RootedValue onframe(cx);
+    JS::RootedObject vobj(cx, this->getJSObject());
     JS::RootedObject evObj(cx);
 
     evObj = JSEvents::CreateEventObject(cx);
     JSObjectBuilder ev(cx, evObj);
-    ev.set("video", v->getJSObject());
+    ev.set("video", this->getJSObject());
     JS::RootedValue evjsval(cx, ev.jsval());
 
-    v->fireJSEvent("frame", &evjsval);
+    this->fireJSEvent("frame", &evjsval);
 }
 
 void JSVideo::setSize(int width, int height)
@@ -90,15 +114,16 @@ void JSVideo::setSize(int width, int height)
         int videoWidth  = m_Video->m_CodecCtx->width;
         int videoHeight = m_Video->m_CodecCtx->height;
 
-        int maxWidth
-            = nidium_min(m_Width == -1 ? canvasWidth : m_Width, canvasWidth);
-        int maxHeight = nidium_min(m_Height == -1 ? canvasHeight : m_Height,
-                                   canvasHeight);
-        double ratio = nidium_max(videoHeight / (double)maxHeight,
-                                  videoWidth / (double)maxWidth);
+        int maxWidth  = nidium_min(m_Width == -1 ? canvasWidth : m_Width, canvasWidth);
+        int maxHeight = nidium_min(m_Height == -1 ? canvasHeight : m_Height, canvasHeight);
+        double ratio  = nidium_max(videoHeight / (double)maxHeight,
+                                   videoWidth / (double)maxWidth);
 
         width  = videoWidth / ratio;
         height = videoHeight / ratio;
+
+        m_Bitmap.setInfo(SkImageInfo::Make(videoWidth, videoHeight,
+                                           kRGBA_8888_SkColorType, kUnpremul_SkAlphaType));
     }
 
     if (height < canvasHeight) {

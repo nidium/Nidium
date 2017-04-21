@@ -62,6 +62,7 @@ public:
     void dragEnd();
 
     void textInput(const char *data);
+    void textEdit(const char *data);
     void keyupdown(int keycode, int mod, int state, int repeat, int location);
     void addFrameCallback(JS::MutableHandleValue cb);
     void callFrameCallbacks(double ts, bool garbage = false);
