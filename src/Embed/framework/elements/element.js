@@ -9,6 +9,7 @@
     const { setAnimation, Easing } = require("AnimationBlock");
     const Elements = require("Elements");
     const drawer = require("../core/drawer.js");
+    const VM = require("VM");
 
     const defineStyleProperty = function(target, property, descriptor){
         let styler = new ElementStyle(property, descriptor);
@@ -46,6 +47,13 @@
 
                 // Merge all style into |this.style|
                 this._mergeStyle(tmp);
+            }
+
+            if (attributes.style) {
+                var style = VM.run("(" + attributes.style + ")", {
+                    scope: this[s_ShadowRoot].getJSScope()
+                });
+                Object.assign(this.style, style);
             }
 
             this.onresize = this.onpaint;
