@@ -70,7 +70,10 @@
                                     return this.shadowRoot.findNodeById(id);
                                 }
                             default:
-                                return document[key].bind(document);
+                                var value = typeof(document[key]) == "function" ?
+                                    document[key].bind(document) : document[key];
+                                    
+                                return value;
                         }
                     },
 

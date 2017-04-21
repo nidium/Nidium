@@ -47,7 +47,7 @@ var AnimationsList = new Set();
         for (let anim of AnimationsList) {
             let { end, start, ease, list, duration } = anim;
             let e = ease((curDate - start) / (end - start));
-            let finish = (curDate > end);
+            let finish = (curDate > end) || anim.finished;
 
             for (let elem of list) {
                 let { target, property, value, startValue } = elem;
@@ -58,7 +58,7 @@ var AnimationsList = new Set();
                 if (anim.next) {
                     anim.redo(anim.next);
                 } else {
-                    anim.finish();
+                    anim.onFinish();
                     AnimationsList.delete(anim);
                 }
             }
@@ -78,7 +78,9 @@ var AnimationBlock = function(callback, duration, ease, ...objs)
         duration,
         ease,
         objs,
-        finish: function(){},
+        onFinish: function(){},
+        finished: false,
+        loop: false /* todo */
     };
 
     AnimationsList.add(anim);
@@ -123,9 +125,22 @@ var AnimationBlock = function(callback, duration, ease, ...objs)
 
     })(callback);
 
-    return function(animationFinished) {
-        anim.finish = animationFinished;
-    }
+    var handler = {
+        finish() {
+            anim.finished = true;
+        },
+
+        cancel() {
+            anim.onFinish = function(){};
+            AnimationsList.delete(anim);
+        },
+
+        set onFinish(call) {
+            anim.onFinish = call;
+        }
+    };
+
+    return handler;
 }
 
 module.exports = {
