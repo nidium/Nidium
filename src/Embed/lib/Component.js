@@ -102,23 +102,16 @@ class Component extends Elements.Element {
                     const tmp = [];
                     const nss = this.shadowRoot.getNSS();
 
+                    // Add all NSS style defined by every classes
                     for (let c of classes.split(" ")) {
                         tmp.push(nss[c]);
                     }
 
-                    // Give priority to style already defined
-                    // (must manually copy because Object.assign() trick ignore all properties)
-                    let tmpStyle = {};
-                    for (let k in this.style) {
-                        if (k == "elem") continue;
-                        tmpStyle[k] = this.style[k];
-                    }
-                    tmp.push(tmpStyle);
+                    // Add already defined style at the end so they have priority
+                    tmp.push(this.style);
 
-                    // Merge all style into |this.style|
-                    tmp.unshift(this.style);
-
-                    Object.assign.apply(null, tmp);
+                    // Merge all styles, into |this.style|
+                    this._mergeStyle(tmp);
                 }
 
                 // Render layout

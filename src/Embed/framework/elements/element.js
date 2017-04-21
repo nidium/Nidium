@@ -38,13 +38,14 @@
                 }
 
                 let tmp = [];
+
+                // Add all NSS style defined by every classes
                 for (let c of classes.split(" ")) {
                     tmp.push(nss[c]);
                 }
 
                 // Merge all style into |this.style|
-                tmp.unshift(this.style);
-                Object.assign.apply(null, tmp);
+                this._mergeStyle(tmp);
             }
 
             this.onresize = this.onpaint;
@@ -151,6 +152,18 @@
             return Canvas.prototype.getContext.call(this, type);
         }
     }
+
+    Object.defineProperty(Elements.Element.prototype, "_mergeStyle", {
+        value: function(stylesArray) {
+            for (let styles of stylesArray) {
+                for (let prop in styles) {
+                    if (!this.style[prop] && styles[prop] != undefined) {
+                        this.style[prop] = styles[prop]
+                    }
+                }
+            }
+        }
+    });
 
     Elements.element = class extends Elements.Element { }
     Elements.none = Elements.Element;
