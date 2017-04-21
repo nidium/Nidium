@@ -564,8 +564,8 @@ public:
 
     void setContext(CanvasContext *context);
 
-    bool setWidth(float width, bool force = false);
-    bool setHeight(float height, bool force = false);
+    void setPropWidth(float width) override;
+    void setPropHeight(float height) override;
 
     void setPropMinWidth(float width) override;
     void setPropMinHeight(float height) override;
