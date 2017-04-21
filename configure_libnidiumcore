@@ -85,20 +85,21 @@ def icu():
         "build": [  Platform.MsBuild("source/common/common.vcxproj"),
                     Platform.MsBuild("source/stubdata/stubdata.vcxproj"),
                     Platform.MsBuild("source/i18n/i18n.vcxproj")
-                ], 
+                ],
         "outputs": ["lib/%s.lib" % (l) for l in ["icuin", "icuuc", "icudt"] ]
         }
 
 @Deps.register("libnspr4")
 def libnspr():
     ext = '.a'
+    postfix= ''
     outputs =  []
     if Platform.system == "Windows":
         ext = '.lib'
         postfix= '_s'
         make = "mozmake -j1"
         configure = "bash ./configure --disable-static-rtl "
-        outputs + [ "dist/lib/lib%s4%s_s%s" % (l, postfix, ext) for l in ['nspr', 'plc', 'plds']] 
+        outputs + [ "dist/lib/lib%s4%s_s%s" % (l, postfix, ext) for l in ['nspr', 'plc', 'plds']]
     else:
         make = "make"
         configure = "./configure"
@@ -108,7 +109,7 @@ def libnspr():
                    --enable-optimize \
                    --enable-strip \
                    --disable-nspr-threads"
-    outputs = outputs + [ "dist/lib/lib%s4%s%s" % (l, postfix, ext) for l in ['nspr', 'plc', 'plds']] 
+    outputs = outputs + [ "dist/lib/lib%s4%s%s" % (l, postfix, ext) for l in ['nspr', 'plc', 'plds']]
     return {
         "chdir": "mozilla-central/nsprpub/",
         "build": [configure, make],
@@ -130,7 +131,8 @@ def mozilla():
             configure += " --target=x86_64-pc-mingw32 --host=x86_64-pc-mingw32"
         nsprFlags += ''' --with-nspr-libs="'%s/dist/lib/libnspr4' '%s/dist/lib/libplds4' '%s/dist/lib/libplc4'"''' % (nsprDir, nsprDir, nsprDir)
         outputs = ["mozglue/build/mozglue.lib$", "js/src/js_static.lib$", "js/src/Initialization.obj"] \
-                + ["mfbt/staticruntime/%s.obj" % (l) for l in ["Compression", "Decimal", "Unified_cpp_mfbt_staticruntime0"] ]
+                + ["mfbt/staticruntime/%s.obj" % (l) for l in ["Compression", "Decimal", "Unified_cpp_mfbt_staticruntime0"] ] \
+                + ["intl/icu/target/lib/%s.lib" % (l) for l in ["icuin", "icuuc", "icudt"] ]
     else:
         make = "make"
         patch = []
@@ -150,7 +152,6 @@ def mozilla():
     if Konstruct.config("valgrind"):
         configure += " --enable-valgrind "
 
-    outputs = outputs + ["intl/icu/target/lib/%s.lib" % (l) for l in ["icuin", "icuuc", "icudt"] ]
     return {
         "chdir": "js/src/obj",
         "location": DEPEDENCY_REPO + "/mozjs-45.5.3.tar.bz2",
@@ -194,7 +195,7 @@ def ninja():
         sys.exit(1)
     return {
         "location": "https://github.com/ninja-build/ninja/archive/v1.7.2.tar.gz",
-        "build": ["python configure.py --bootstrap", "cp ninja.exe ../depot_tools/"] 
+        "build": ["python configure.py --bootstrap", "cp ninja.exe ../depot_tools/"]
     }
 
 @CommandLine.option("--unit-tests")
