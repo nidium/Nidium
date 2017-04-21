@@ -1098,65 +1098,117 @@ bool JSCanvas::JSGetter_idx(JSContext *cx, JS::MutableHandleValue vp)
 /* Flexbox container getter */
 bool JSCanvas::JSGetter_flexDirection(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    vp.setString(JS_NewStringCopyZ(cx,
+        YGFlexDirectionToString(
+            YGNodeStyleGetFlexDirection(m_CanvasHandler->m_YogaRef))));
+
     return true;
 }
 
 bool JSCanvas::JSGetter_flexWrap(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    vp.setString(JS_NewStringCopyZ(cx,
+        YGWrapToString(
+            YGNodeStyleGetFlexWrap(m_CanvasHandler->m_YogaRef))));
+
     return true;
 }
 
 bool JSCanvas::JSGetter_justifyContent(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    vp.setString(JS_NewStringCopyZ(cx,
+        YGJustifyToString(
+            YGNodeStyleGetJustifyContent(m_CanvasHandler->m_YogaRef))));
+
     return true;
 }
 
 bool JSCanvas::JSGetter_alignItems(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    vp.setString(JS_NewStringCopyZ(cx,
+        YGAlignToString(
+            YGNodeStyleGetAlignItems(m_CanvasHandler->m_YogaRef))));
+
     return true;
 }
 
 bool JSCanvas::JSGetter_alignContent(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    vp.setString(JS_NewStringCopyZ(cx,
+        YGAlignToString(
+            YGNodeStyleGetAlignContent(m_CanvasHandler->m_YogaRef))));
+
     return true;
 }
 
 /* Flexbox items setter */
 bool JSCanvas::JSGetter_flexGrow(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    float val = YGNodeStyleGetFlexGrow(m_CanvasHandler->m_YogaRef);
+
+    if (isnan(val)) {
+        vp.setUndefined();
+
+        return true;
+    }
+
+    vp.setNumber(val);
+
     return true;
 }
 
 bool JSCanvas::JSGetter_flexShrink(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    float val = YGNodeStyleGetFlexShrink(m_CanvasHandler->m_YogaRef);
+
+    if (isnan(val)) {
+        vp.setUndefined();
+
+        return true;
+    }
+
+    vp.setNumber(val);
+
     return true;
 }
 
 bool JSCanvas::JSGetter_flexBasis(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    YGValue val = YGNodeStyleGetFlexBasis(m_CanvasHandler->m_YogaRef);
+    if (isnan(val.value)) {
+        vp.setUndefined();
+
+        return true;        
+    }
+    
+    vp.setNumber(val.value);
+
     return true;
 }
 
 bool JSCanvas::JSGetter_alignSelf(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    vp.setString(JS_NewStringCopyZ(cx,
+        YGAlignToString(
+            YGNodeStyleGetAlignSelf(m_CanvasHandler->m_YogaRef))));
+
     return true;
 }
 
 bool JSCanvas::JSGetter_aspectRatio(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    float val = YGNodeStyleGetAspectRatio(m_CanvasHandler->m_YogaRef);
+
+    if (isnan(val)) {
+        vp.setUndefined();
+
+        return true;
+    }
+
+    vp.setNumber(val);
+
     return true;
 }
-
 
 
 /* Flexbox container setter */
