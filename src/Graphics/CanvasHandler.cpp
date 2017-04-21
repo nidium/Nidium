@@ -261,6 +261,8 @@ void CanvasHandler::setPropCoating(float coating)
                            p_Height + (p_Coating * 2));
 
         m_Context->translate(p_Coating, p_Coating);
+
+        this->invalidate();
     }
 }
 
