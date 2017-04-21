@@ -231,6 +231,8 @@
             this.__NodeID__ = val;
             let shadow = this[s_ShadowRoot];
 
+            super.id = val;
+
             shadow.addID(val, this);
         }
 
