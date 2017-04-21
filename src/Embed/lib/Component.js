@@ -41,6 +41,38 @@ class Component extends Elements.Element {
     }
 
     createTree(children) {
+        /*
+            Merge & Apply style components
+        */
+        const tmp = [];
+        const layout    = this.constructor[s_ComponentShadow].layout;
+
+        // Apply style defined on <layout> to the component
+        const classes = layout.attributes.class;
+        if (classes) {
+            const nss = this.shadowRoot.getNSS();
+
+            // Add all NSS style defined by every classes
+            for (let c of classes.split(" ")) {
+                tmp.push(nss[c]);
+            }
+        }
+
+        // Give priority to class defined by the user
+        if (this.attributes.class) {
+            const nss = this.getParent()[s_ShadowRoot].getNSS();
+
+            for (let c of this.attributes.class.split(" ")) {
+                tmp.push(nss[c]);
+            }
+        }
+
+        // Merge all styles, into |this.style|
+        this._mergeStyle(tmp);
+
+        /*
+            Create & Add children to the components
+        */
         if (!this.allowsChild()) {
             if (children.length) {
                 console.warn(`Component <${this.name()}> does not allow children. Ignoring children.`);
@@ -96,24 +128,6 @@ class Component extends Elements.Element {
 
         try  {
             if (layout) {
-                // Apply style defined on <layout> to the component
-                const classes = layout.attributes.class;
-                if (classes) {
-                    const tmp = [];
-                    const nss = this.shadowRoot.getNSS();
-
-                    // Add all NSS style defined by every classes
-                    for (let c of classes.split(" ")) {
-                        tmp.push(nss[c]);
-                    }
-
-                    // Add already defined style at the end so they have priority
-                    tmp.push(this.style);
-
-                    // Merge all styles, into |this.style|
-                    this._mergeStyle(tmp);
-                }
-
                 // Render layout
                 NML.CreateTree(layout.children, this, this.shadowRoot);
             } else if (templates.length == 1) {

@@ -157,7 +157,7 @@
         value: function(stylesArray) {
             for (let styles of stylesArray) {
                 for (let prop in styles) {
-                    if (!this.style[prop] && styles[prop] != undefined) {
+                    if (styles[prop] != undefined) {
                         this.style[prop] = styles[prop]
                     }
                 }
