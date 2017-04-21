@@ -20,9 +20,6 @@ class Navigator extends Elements.Element {
         this.history = [];
 
         this.style.flexGrow = 1;
-        this.style.backgroundColor = "red";
-        this.style.width = "400";
-        this.style.height = "400";
     }
 
     set(routes) {
@@ -42,6 +39,7 @@ class Navigator extends Elements.Element {
         }
 
         var scene = new component(params);
+        scene.createTree();
         scene.url = url;
         scene.navigator = this;
 
