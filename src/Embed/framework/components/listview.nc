@@ -3,17 +3,17 @@
         list: {
             backgroundColor: "#f8f8f8",
             flexDirection: "column",
-            flexGrow:1,
+            flexGrow: 1,
             color: "#d0d0d0",
             fontSize: 16,
             lineHeight: 56,
             textAlign: "left",
-            overflow:false,
-            maxHeight:400
+            overflow: false,
+            maxHeight: "50%"
         },
 
         icon: {
-            flexGrow:1,
+            flexGrow: 1,
             fontSize: 24,
             lineHeight: 24,
             width: 24,
@@ -21,30 +21,30 @@
         },
 
         media: {
-            flexGrow:1,
-            color:"#d0d0d0",
-            textAlign:"center",
+            flexGrow: 1,
+            color: "#d0d0d0",
+            textAlign: "center",
             fontSize: 32,
             lineHeight: 50,
-            maxWidth:50,
-            minHeight:50
+            maxWidth: 50,
+            minHeight: 50
         },
 
         chevron: {
-            flexGrow:1,
-            color:"#d8d8d8",
-            marginRight:6
+            flexGrow: 1,
+            color: "#d8d8d8",
+            marginRight: 6
         },
 
         title : {
-            flexGrow:4,
-            color:"#444444"
+            flexGrow: 4,
+            color: "#444444"
         },
 
         li : {
-            height : 56,
-            borderColor : "#d0d0d0",
-            borderWidth : 0.50
+            height: 56,
+            borderColor: "#d0d0d0",
+            borderWidth: 0.50
         }
     </nss>
     <layout class="list">

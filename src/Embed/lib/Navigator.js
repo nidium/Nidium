@@ -27,6 +27,7 @@ class Navigator extends Elements.Element {
 
     set(routes) {
         this.routes = {};
+
         for (var url in routes) {
             if (routes.hasOwnProperty(url)) this.routes[url] = routes[url];
         }
@@ -58,18 +59,18 @@ class Navigator extends Elements.Element {
 
             var currScene = this.history[this.history.length-1];
             currScene.opacity = __opacity_hi__;
-            AnimationBlock(__next_duration__, Easing.Exponential.Out, (c)=>{
+            setAnimation((c)=>{
                 c.left = -window.innerWidth;
                 c.opacity = __opacity_lo__;
-            }, currScene);
+            }, __next_duration__, Easing.Exponential.Out, currScene);
 
 
             nextScene.left = window.innerWidth;
             nextScene.opacity = __opacity_lo__;
-            AnimationBlock(__next_duration__, Easing.Exponential.Out, (c)=>{
+            setAnimation((c)=>{
                 c.left = 0;
                 c.opacity = __opacity_hi__;
-            }, nextScene);
+            }, __next_duration__, Easing.Exponential.Out, nextScene);
         }
 
         this.history.push(nextScene);
@@ -84,10 +85,10 @@ class Navigator extends Elements.Element {
         var currScene = this.history.pop();
         currScene.opacity = __opacity_hi__;
 
-        AnimationBlock(__back_duration__, Easing.Exponential.Out, (c)=>{
+        setAnimation((c)=>{
             c.left = window.innerWidth;
             c.opacity = __opacity_lo__;
-        }, currScene)(()=>{
+        }, __back_duration__, Easing.Exponential.Out, currScene)(()=>{
             currScene.removeFromParent();
             callback.call(this);
         });
@@ -95,10 +96,10 @@ class Navigator extends Elements.Element {
         var prevScene = this.history[this.history.length-1];
         prevScene.left = -window.innerWidth;
         prevScene.opacity = __opacity_lo__;
-        AnimationBlock(__back_duration__, Easing.Exponential.Out, (c)=>{
+        setAnimation((c)=>{
             c.left = 0;
             c.opacity = __opacity_hi__;
-        }, prevScene);
+        }, __back_duration__, Easing.Exponential.Out, prevScene);
 
     }
 }
