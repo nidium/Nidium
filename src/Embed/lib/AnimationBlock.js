@@ -92,7 +92,7 @@ var AnimationBlock = function(callback, duration, ease, ...objs)
                 }
 
                 anim.list.push({
-                    startValue: target[property],
+                    startValue: target[property] || 0,
                     target,
                     property,
                     value,                 
