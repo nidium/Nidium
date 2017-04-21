@@ -11,45 +11,39 @@
     const { StyleContainer, ElementStyle } = require("ElementsStyles");
 
     Elements.col = class extends Elements.Element {
-        constructor(a) {
+        constructor(a={}) {
             super(a);
 
-            var a = a || {},
-                size = a.size || 1;
+            var size = a.size || 1;
 
-            this.style.flexGrow = size
-            this.style.flexDirection = 'column';
-            this.style.backgroundColor = "green";
+            this.style.flexGrow = size;
+            this.style.flexDirection = "column";
+
+            this.style.alignItems = a.align || "stretch";
+            this.style.justifyContent = a.valign || "flex-start";
 
             this.responsive = {
-                xs : a.xs || size,
-                sm : a.sm || size,
-                md : a.md || size,
-                lg : a.lg || size,
-                xl : a.xl || size,
+                xs: a.xs || size,
+                sm: a.sm || size,
+                md: a.md || size,
+                lg: a.lg || size,
+                xl: a.xl || size
             };
         }
 
         paint(ctx, w, h) {
             super.paint(ctx, w, h);
 
-            var r = responsive(),
-                size = this.responsive[r];
+            var r = responsive(), size = this.responsive[r];
 
-            if (size=="hidden") {
-                console.log("hidde")
-                this.width=0;
-                this.minWidth=0;
-                this.maxWidth=0;
-                this.hide();
+
+            if (size == "hidden") {
+                this.style.display = "none";
             } else {
-                this.style.flexGrow = size;
-                console.log(r, size)
-                this.show();
+                this.style.display = "flex";
             }
-
         }
-    }
+    };
 
     ElementStyle.Inherit(Elements.col);
 }

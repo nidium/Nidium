@@ -30,12 +30,12 @@ class Navigator extends Elements.Element {
         }
     }
 
-    go(url, params){
+    go(url, params) {
         var component = this.routes[url];
         if (!component) return false;
 
-        for (var i=0, len=this.history.length; i<len; i++) {
-           // if ()
+        for (var i = 0, len = this.history.length; i < len; i++) {
+            // if ()
         }
 
         var scene = new component(params);
@@ -46,29 +46,36 @@ class Navigator extends Elements.Element {
         this.push(scene);
     }
 
-    reset(){
+    reset() {
         this.empty();
         this.history = [];
     }
 
     push(nextScene) {
-
-        if (this.history.length>0) {
-
-            var currScene = this.history[this.history.length-1];
+        if (this.history.length > 0) {
+            var currScene = this.history[this.history.length - 1];
             currScene.opacity = __opacity_hi__;
-            setAnimation((c)=>{
-                c.left = -window.innerWidth;
-                c.opacity = __opacity_lo__;
-            }, __next_duration__, Easing.Exponential.Out, currScene);
-
+            setAnimation(
+                c => {
+                    c.left = -window.innerWidth;
+                    c.opacity = __opacity_lo__;
+                },
+                __next_duration__,
+                Easing.Exponential.Out,
+                currScene
+            );
 
             nextScene.left = window.innerWidth;
             nextScene.opacity = __opacity_lo__;
-            setAnimation((c)=>{
-                c.left = 0;
-                c.opacity = __opacity_hi__;
-            }, __next_duration__, Easing.Exponential.Out, nextScene);
+            setAnimation(
+                c => {
+                    c.left = 0;
+                    c.opacity = __opacity_hi__;
+                },
+                __next_duration__,
+                Easing.Exponential.Out,
+                nextScene
+            );
         }
 
         this.history.push(nextScene);
@@ -76,29 +83,38 @@ class Navigator extends Elements.Element {
     }
 
     back(callback) {
-        var callback = callback || function(){};
+        var callback = callback || function() {};
 
-        if (this.history.length<=1) return false;
+        if (this.history.length <= 1) return false;
 
         var currScene = this.history.pop();
         currScene.opacity = __opacity_hi__;
 
-        setAnimation((c)=>{
-            c.left = window.innerWidth;
-            c.opacity = __opacity_lo__;
-        }, __back_duration__, Easing.Exponential.Out, currScene)(()=>{
+        setAnimation(
+            c => {
+                c.left = window.innerWidth;
+                c.opacity = __opacity_lo__;
+            },
+            __back_duration__,
+            Easing.Exponential.Out,
+            currScene
+        )(() => {
             currScene.removeFromParent();
             callback.call(this);
         });
 
-        var prevScene = this.history[this.history.length-1];
+        var prevScene = this.history[this.history.length - 1];
         prevScene.left = -window.innerWidth;
         prevScene.opacity = __opacity_lo__;
-        setAnimation((c)=>{
-            c.left = 0;
-            c.opacity = __opacity_hi__;
-        }, __back_duration__, Easing.Exponential.Out, prevScene);
-
+        setAnimation(
+            c => {
+                c.left = 0;
+                c.opacity = __opacity_hi__;
+            },
+            __back_duration__,
+            Easing.Exponential.Out,
+            prevScene
+        );
     }
 }
 

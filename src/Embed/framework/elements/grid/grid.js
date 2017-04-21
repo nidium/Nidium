@@ -17,9 +17,8 @@
             this.style.justifyContent = "space-between";
             this.style.alignItems = "stretch";
             this.style.flexWrap = "nowrap";
-            this.style.backgroundColor = "red";
         }
-    }
+    };
 
     ElementStyle.Inherit(Elements.grid);
 }

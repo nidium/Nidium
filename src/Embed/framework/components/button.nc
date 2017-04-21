@@ -20,11 +20,11 @@
             textOffsetY : 0,
 
             opacity : 1.0,
-            borderWidth : 6,
-            borderColor : "rgba(0, 0, 0, 0.003)",
+            borderWidth : 2,
+            borderColor : "rgba(0, 0, 0, 0.03)",
 
             shadowBlur : 3,
-            shadowColor : "rgba(0, 0, 0, 0.12)",
+            shadowColor : "rgba(0, 0, 0, 0.02)",
             shadowOffsetX : 0,
             shadowOffsetY : 2
         }

@@ -50,6 +50,7 @@ require("./components/button.nc");
 require("./components/icon.nc");
 require("./components/statusbar.nc");
 require("./components/listview.nc");
+require("./components/spinner.nc");
 
 /**
  * Fonts

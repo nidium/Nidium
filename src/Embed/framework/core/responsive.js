@@ -9,23 +9,23 @@
 var responsive = function(){
     const w = window.innerWidth;
 
-    if (w<350){
+    if (w < 350) {
         return 'xs';
     }
 
-    if (w>=350 && w<768){
+    if (w >= 350 && w < 768) {
         return 'sm';
     }
 
-    if (w>=768 && w<1024){
-        return  'md';
+    if (w >= 768 && w < 1024) {
+        return 'md';
     }
 
-    if (w>=1024 && w<1280){
+    if (w >= 1024 && w < 1280) {
         return 'lg';
     }
 
-    if (w>=1280){
+    if (w >= 1280) {
         return 'xl';
     }
 };

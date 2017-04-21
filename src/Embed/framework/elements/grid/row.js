@@ -9,12 +9,24 @@
     const { StyleContainer, ElementStyle } = require("ElementsStyles");
 
     Elements.row = class extends Elements.Element {
-        constructor(a) {
+        constructor(a={}) {
             super(a);
 
-            this.style.flexGrow = a && a.size ? a.size : 1;
+            var size = a.size || 1;
+
+            this.style.flexGrow = size;
             this.style.flexDirection = "row";
-            this.style.backgroundColor = "blue";
+
+            this.style.alignItems = a.valign || "stretch";
+            this.style.justifyContent = a.align || "flex-start";
+
+            this.responsive = {
+                xs: a.xs || size,
+                sm: a.sm || size,
+                md: a.md || size,
+                lg: a.lg || size,
+                xl: a.xl || size
+            };
         }
     }
 
