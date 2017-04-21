@@ -1,26 +1,52 @@
 <application>
     <meta>
         <title>nidium</title>
-        <viewport>320x480</viewport>
+        <viewport>375x667</viewport>
         <identifier>com.nidium.app</identifier>
     </meta>
-    <assets>
-        <script>
-            document.canvas.ctx.fillStyle = "#111219";
-            document.canvas.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-            var logo = document.canvas.shadowRoot.getElementById("logo");
-            logo.left = (window.innerWidth-64)*0.5;
-            logo.opacity = 0;
+    <component src="embed://framework/components/navbar.nc" />
 
-            AnimationBlock(1800, Easing.Back.Out, function(logo) {
-                logo.top = (window.innerHeight-64)*0.5;
-                logo.opacity = 1;
-            }, logo);
-        </script>
-    </assets>
+    <nss>
+        bg: {
+            backgroundColor: "rgb(15, 24, 29);",
+            flexDirection: "row",
+            justifyContent: "center",
+        },
+
+        bgimg: {
+            top: -128,
+            width: 128,
+            height: 128,
+            position: "relative"
+        },
+
+        mainbar: {
+            left: "-100%"
+        }
+    </nss>
+
     <layout>
-        <img id="logo" src="embed://resources/logo-64x64.png" />
+        <view class="bg">
+            <img id="logo" class="bgimg" src="embed://resources/logo-128x128.png" />
+            <navbar id="nav" title="nidium" class="mainbar" />
+        </view>
     </layout>
+
+    <script>
+        setAnimation(function(style) {
+            style.top = 200
+        }, 3000, Easing.Elastic.Out, document.getElementById("logo").style);
+
+        setTimeout(function() {
+            var nav = document.getElementById("nav");
+            var { left } = nav.getDimensions();
+            nav.left = left;
+
+            setAnimation(function(bar) {
+                bar.left = 0;
+            }, 500, Easing.Exponential.Out, nav.style);
+        }, 1000);
+    </script>
 </application>
 
