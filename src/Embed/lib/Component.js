@@ -5,6 +5,7 @@
  */
 
 const Elements          = require("Elements");
+const VM                = require("VM");
 const s_ComponentShadow = require("../Symbols.js").ComponentShadowRoot;
 const s_ShadowHost      = require("../Symbols.js").ElementShadowHost;
 const s_ShadowRoot      = require("../Symbols.js").ElementShadowRoot;
@@ -43,6 +44,7 @@ class Component extends Elements.Element {
     createTree(children) {
         /*
             Merge & Apply style components
+            XXX : This should be refactored to avoid code duplication with element.js
         */
         const tmp = [];
         const layout    = this.constructor[s_ComponentShadow].layout;
@@ -65,6 +67,14 @@ class Component extends Elements.Element {
             for (let c of this.attributes.class.split(" ")) {
                 tmp.push(nss[c]);
             }
+        }
+
+        // Also parse style attributes
+        if (this.attributes.style) {
+            var style = VM.run("(" + this.attributes.style + ")", {
+                scope: this[s_ShadowRoot].getJSScope()
+            });
+            tmp.push(style);
         }
 
         // Merge all styles, into |this.style|
