@@ -444,10 +444,10 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
     }
 
     Rect actualRect;
-    actualRect.m_fLeft   = p_Left.getCachedValue() - p_Coating;
-    actualRect.m_fTop    = p_Top.getCachedValue() - p_Coating;
-    actualRect.m_fRight  = p_Width.getCachedValue() + p_Left.getCachedValue();
-    actualRect.m_fBottom = p_Height.getCachedValue() + p_Top.getCachedValue();
+    actualRect.m_fLeft   = p_Left.getCachedValue();
+    actualRect.m_fTop    = p_Top.getCachedValue();
+    actualRect.m_fRight  = p_Width.getCachedValue() + actualRect.m_fLeft;
+    actualRect.m_fBottom = p_Height.getCachedValue() + actualRect.m_fTop;
 
     if (layerContext.m_Clip) {
 
