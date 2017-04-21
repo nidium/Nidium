@@ -27,6 +27,12 @@ namespace Binding {
             vp.setUndefined(); \
             return true; \
         } \
+        if (m_CanvasHandler->p_##name.isPercentageValue()) { \
+            char ret[8]; \
+            int len = sprintf(ret, "%.2f%%", name); \
+            vp.setString(JS_NewStringCopyN(cx, ret, len)); \
+            return true; \
+        }   \
         vp.setNumber(m_CanvasHandler->getProp##name()); \
         return true; \
     }
