@@ -22,7 +22,8 @@
         },
 
         mainbar: {
-            left: "-100%"
+            left: "-100%",
+            backgroundColor: "steelblue"
         }
     </nss>
 
