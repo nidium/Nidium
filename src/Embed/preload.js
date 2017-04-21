@@ -12,6 +12,7 @@ Object.defineProperty(window, "_onready", {
     writable: false,
     value: function(lst) {
         document.canvas.inject(lst);
+        window.emit("ready", {});
     }
 });
 
