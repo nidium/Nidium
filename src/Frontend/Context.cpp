@@ -830,9 +830,11 @@ Context::~Context()
         delete m_RootHandler;
     }
 
-    m_JSWindow->callFrameCallbacks(0, true);
+    if (m_JSWindow) {
+        m_JSWindow->callFrameCallbacks(0, true);
 
-    delete m_JSWindow;
+        delete m_JSWindow;
+    }
 
     /*
         Don't let the base class destroy the JS.
