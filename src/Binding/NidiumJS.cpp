@@ -37,7 +37,9 @@
 #include "Binding/JSDB.h"
 #include "Binding/JSOS.h"
 #include "Binding/JSVM.h"
+#ifdef NIDIUM_PRODUCT_FRONTEND
 #include "Binding/JSKeyboard.h"
+#endif
 
 #include "Binding/ThreadLocalContext.h"
 
@@ -778,7 +780,9 @@ void NidiumJS::loadGlobalObjects()
     JSDB::RegisterObject(m_Cx);
     JSOS::RegisterObject(m_Cx);
     JSVM::RegisterObject(m_Cx);
+#ifdef NIDIUM_PRODUCT_FRONTEND
     JSKeyboard::RegisterObject(m_Cx);
+#endif
 
     m_Modules = new JSModules(m_Cx);
     if (!m_Modules) {
