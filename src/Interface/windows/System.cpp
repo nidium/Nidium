@@ -54,7 +54,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-System::System() : m_EmbedPath(NULL), m_SystemUIReady(false)
+#define DEBUG_LINE "-------------------------------------------------------------------------------\n"
+System::System() : m_EmbedPath(NULL), m_SystemUIReady(false), m_LogF(NULL)
     {
      m_fBackingStorePixelRatio = 1.0;
 
@@ -68,6 +69,11 @@ System::System() : m_EmbedPath(NULL), m_SystemUIReady(false)
         m_EmbedPath = static_cast<char *>(malloc(sizeof(char) * len));
         snprintf(m_EmbedPath, len, "%s/%s", dir, embed);
     }
+#if defined(DEBUG) 
+    this->m_LogF = fopen("nidium_debug.log", "a");
+    fwrite(DEBUG_LINE, 1, strlen(DEBUG_LINE), this->m_LogF);
+    fflush(this->m_LogF);
+#endif
 }
 
 System::~System()
@@ -75,7 +81,22 @@ System::~System()
     if (m_EmbedPath) {
         free(m_EmbedPath);
     }
+    if (this->m_LogF) {
+        fwrite(DEBUG_LINE, 1, strlen(DEBUG_LINE), this->m_LogF);
+        fflush(this->m_LogF);
+        fclose(this->m_LogF);
+    }
 }
+#undef DEBUG_LINE
+
+void System::print(const char *buf)
+{
+    if (this->m_LogF) {
+        fwrite(buf, 1, strlen(buf), this->m_LogF);
+        fflush(this->m_LogF);
+    }
+}
+
 
 float System::backingStorePixelRatio()
 {

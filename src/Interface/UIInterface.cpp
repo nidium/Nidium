@@ -110,11 +110,7 @@ bool UIInterface::createWindow(int width, int height)
         }
 
         // glViewport(0, 0, width*2, height*2);
-/*#ifdef NDEBUG
-        //ndm_logf(NDM_LOG_INFO, "UIInterface", "OpenGL version : %s", glGetString(GL_VERSION));
-#else*/
-            printf("[UIInterface] OpenGL version : %s\n", glGetString(GL_VERSION));
-/*#endif*/
+        ndm_logf(NDM_LOG_INFO, "UIInterface", "OpenGL version : %s", glGetString(GL_VERSION));
 
         this->onWindowCreated();
 

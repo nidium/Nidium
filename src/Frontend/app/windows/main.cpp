@@ -68,7 +68,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdShow
     google_breakpad::ExceptionHandler eh(descriptor, NULL, dumpCallback, NULL,
                                          true, -1);
 #endif
-
     Nidium::Interface::__NidiumUI = &UI;
     _ape_seed = time(NULL) ^ (getpid() << 16);
     if (getcwd(Nidium::App::_root, PATH_MAX)) {

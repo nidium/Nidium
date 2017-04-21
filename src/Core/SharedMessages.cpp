@@ -12,10 +12,7 @@
 namespace Nidium {
 namespace Core {
 
-SharedMessages::SharedMessages()
-    :
-
-      m_Cleaner(NULL)
+SharedMessages::SharedMessages() : m_Cleaner(NULL)
 {
     m_MessagesList.count      = 0;
     m_MessagesList.asyncCount = 0;

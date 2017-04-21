@@ -9,6 +9,7 @@
 #ifdef __cplusplus
 
 #include <string.h>
+
 #include "Interface/UIInterface.h"
 #include <ape_log.h>
 

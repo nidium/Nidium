@@ -7,6 +7,8 @@
 #ifndef interface_windows_system_h__
 #define interface_windows_system_h__
 
+#include <stdio.h>
+
 #include <Port/MSWindows.h>
 #include "SystemInterface.h"
 
@@ -28,9 +30,11 @@ public:
     void alert(const char *message, SystemInterface::AlertType type = SystemInterface::AlertType::ALERT_INFO);
     void sendNotification(const char *title, const char *content, bool sound);
     const char *execute(const char *cmd);
+    void print(const char *buf);
 private:
     bool m_SystemUIReady;
     char *m_EmbedPath;
+    FILE *m_LogF;
 };
 
 } // namespace Interface
