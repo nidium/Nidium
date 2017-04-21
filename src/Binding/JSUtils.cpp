@@ -140,6 +140,7 @@ JS_ConvertArgumentsVA(JSContext *cx, const JS::CallArgs &args, const char *forma
 namespace Nidium {
 namespace Binding {
 
+
 JSObject *JSUtils::NewObjectForConstructor(JSContext *cx,
     JSClass *jsclass, JS::CallArgs &args)
 {
@@ -303,6 +304,31 @@ char *JSUtils::CurrentJSCaller(JSContext *cx)
 
     return strdup(af.get());
 }
+
+
+bool JSUtils::ValuePercent(JSContext *cx, JS::HandleValue val, double *out)
+{
+    if (!val.isString()) {
+        if (!JS::ToNumber(cx, val, out)) {
+            *out = 0;
+        }
+        return false;
+    }
+
+    JS::RootedString vpStr(cx, val.toString());
+    JSAutoByteString type(cx, vpStr);
+    int len = type.length();
+
+    if (len >= 2 && type.ptr()[len-1] == '%') {
+        *out = atof(type.ptr());
+        return true;
+    } else {
+        *out = atof(type.ptr());
+    }
+
+    return false;
+}
+
 // }}}
 
 // {{{ JSTransferable
@@ -378,6 +404,8 @@ bool JSTransferableFunction::call(JS::HandleObject obj,
 
     return JS_CallFunctionValue(m_DestCx, obj, m_Val, params, rval);
 }
+
+
 // }}}
 
 } // namespace Binding

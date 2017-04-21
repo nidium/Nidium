@@ -112,13 +112,14 @@ public:
         static constexpr float kUndefined_Value  = NAN;
 
         CanvasProperty(const char *name, T val, State state, CanvasHandlerBase *h) :
-            m_Name(name), m_Canvas(h), m_Value(val), m_AlternativeValue(val) {
+            m_Name(name), m_Canvas(h), m_Value(val), m_CachedValue(val) {
                 
                 position = m_Canvas->m_PropertyList.size();
                 m_Canvas->m_PropertyList.push_back((void *)this);
             };
 
         inline T get() const {
+#if 0
             if (m_State == State::kInherit) {
                 if (m_Canvas->getParentBase()) {
                     CanvasProperty<T> *ref =
@@ -128,13 +129,14 @@ public:
                     return ref->get();
                 }
             }
-
+#endif
             return m_Value;
         }
 
-        inline T getAlternativeValue() const {
-            return m_AlternativeValue;
+        inline T getCachedValue() const {
+            return m_CachedValue;
         }
+
 
         inline operator T() const {
             return get();
@@ -145,14 +147,8 @@ public:
             m_Value = val;
         }
 
-        inline void setAlternativeValue(T val) {
-            m_AlternativeValue = val;
-        }
-        
-        /* Change the user value */
-        inline void userSet(T val) {
-            m_UserValue = val;
-            m_State = State::kSet;
+        inline void setCachedValue(T val) {
+            m_CachedValue = val;
         }
 
         inline CanvasProperty<T> operator=(const T& val) {
@@ -170,6 +166,14 @@ public:
             m_State = State::kDefault;
         }
 
+        void setIsPercentageValue(bool val) {
+            m_IsPercentage = val;
+        }
+
+        bool isPercentageValue() const {
+            return m_IsPercentage;
+        }
+
     private:
         /* Used for debug purpose
          * TODO: ifdef DEBUG */
@@ -179,11 +183,9 @@ public:
 
         /* Actual value used for computation */
         T m_Value;
-        /* Value set by the user */
-        T m_UserValue;
+        T m_CachedValue;
 
-        T m_AlternativeValue;
-        
+        bool m_IsPercentage = false;
         State m_State = State::kDefault;
 
         /* Position of the property in the Canvas properyList
@@ -197,16 +199,15 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(Left,         float, NAN, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Width,        float, NAN, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Height,       float, NAN, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     float, -1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    float, -1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     float, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    float, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(Coating,      float, 0, State::kDefault);
-
-    CANVAS_DEF_CLASS_PROPERTY(Flex,         bool, false, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     float, -1,  State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    float, -1,  State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     float, 0,   State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    float, 0,   State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Coating,      float, 0,   State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(EventReceiver,bool, true, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Display,      bool, true, State::kDefault);
 
-    CANVAS_DEF_CLASS_PROPERTY(Opacity,      double, 1.0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Opacity,      float, 1.0, State::kDefault);
 
     virtual CanvasHandlerBase *getParentBase()=0;
 };
@@ -318,10 +319,6 @@ public:
         bool consumed;
     } m_MousePosition;
 
-    bool m_Overflow;
-    bool m_ScrollableX = false;
-    bool m_ScrollableY = false;
-
     CanvasContext *getContext() const
     {
         return m_Context;
@@ -334,12 +331,12 @@ public:
 
     inline float getPropLeftAbsolute()
     {
-        return p_Left.getAlternativeValue();
+        return p_Left.getCachedValue();
     }
 
     inline float getPropTopAbsolute()
     {
-        return p_Top.getAlternativeValue();
+        return p_Top.getCachedValue();
     }
 
     float getTopScrolled() 
@@ -364,19 +361,31 @@ public:
     /*
         Get the real dimensions computed by Yoga
     */
-    void getDimensions(float *width, float *height,
+    bool getDimensions(float *width, float *height,
         float *left = nullptr, float *top = nullptr)
     {
         *width = YGNodeLayoutGetWidth(m_YogaRef);
         *height = YGNodeLayoutGetHeight(m_YogaRef);
 
+        if (isnan(*width) || isnan(*height)) {
+            return false;
+        }
+
         if (left) {
             *left = YGNodeLayoutGetLeft(m_YogaRef);
+            if (isnan(*left)) {
+                return false;
+            }
         }
 
         if (top) {
             *top = YGNodeLayoutGetTop(m_YogaRef);
+            if (isnan(*top)) {
+                return false;
+            }
         }
+
+        return true;
     }
 
     inline float getComputedTop() const {
@@ -404,11 +413,11 @@ public:
     }
 
     inline float getComputedAbsoluteLeft() const {
-        return p_Left.getAlternativeValue();
+        return p_Left.getCachedValue();
     }
 
     inline float getComputedAbsoluteTop() const {
-        return p_Top.getAlternativeValue();
+        return p_Top.getCachedValue();
     }
 
     Frontend::Context *getNidiumContext() const
@@ -422,7 +431,7 @@ public:
         YGNodeStyleSetMargin(m_YogaRef, YGEdgeRight, right);
         YGNodeStyleSetMargin(m_YogaRef, YGEdgeBottom, bottom);
         YGNodeStyleSetMargin(m_YogaRef, YGEdgeLeft, left);
-
+        
         m_Margin.top    = top;
         m_Margin.right  = right;
         m_Margin.bottom = bottom;
@@ -442,32 +451,65 @@ public:
         m_Padding.left   = left;
     }
 
+    void setPropDisplay(bool state) override
+    {
+        p_Display.set(state);
+
+        YGNodeStyleSetDisplay(m_YogaRef, state ? YGDisplayFlex : YGDisplayNone);
+    }
+
     void setPropLeft(float val) override
     {
         p_Left.set(val);
         
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, isnan(val) ? YGUndefined : val);
+        if (p_Left.isPercentageValue()) {
+            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeLeft, isnan(val) ? YGUndefined : val);
+        } else {
+            YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, isnan(val) ? YGUndefined : val);
+        }
     }
 
     void setPropTop(float val) override
     {
         p_Top.set(val);
 
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, isnan(val) ? YGUndefined : val);
+        if (p_Top.isPercentageValue()) {
+            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeTop, isnan(val) ? YGUndefined : val);
+        } else {
+            YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, isnan(val) ? YGUndefined : val);
+        }
     }
 
     void setPropRight(float val) override
     {
-        p_Left.set(val);
+        p_Right.set(val);
         
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeRight, isnan(val) ? YGUndefined : val);
+        if (p_Right.isPercentageValue()) {
+            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeRight, isnan(val) ? YGUndefined : val);
+        } else {
+            YGNodeStyleSetPosition(m_YogaRef, YGEdgeRight, isnan(val) ? YGUndefined : val);
+        }
     }
 
     void setPropBottom(float val) override
     {
-        p_Top.set(val);
+        p_Bottom.set(val);
 
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
+        if (p_Bottom.isPercentageValue()) {
+            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
+        } else {
+            YGNodeStyleSetPosition(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
+        }
+    }
+
+    void setOverflow(bool state) {
+        m_Overflow = state;
+        /* TODO: We should set YGOverflowScroll only if the view is scrollable */
+        YGNodeStyleSetOverflow(m_YogaRef, state ? YGOverflowScroll : YGOverflowVisible);
+    }
+
+    bool canOverflow() const {
+        return m_Overflow;
     }
 
     void setPropCoating(float value) override;
@@ -510,8 +552,8 @@ public:
         return m_CoordPosition;
     }
 
-    CanvasHandler(int width,
-                  int height,
+    CanvasHandler(float width,
+                  float height,
                   Frontend::Context *nctx,
                   bool lazyLoad = false);
 
@@ -554,7 +596,7 @@ public:
     bool isDisplayed() const;
     bool isHidden() const;
     bool hasAFixedAncestor() const;
-    void setPropOpacity(double val) override;
+    void setPropOpacity(float val) override;
     void setZoom(double val);
     void removeFromParent(bool willBeAdopted = false);
     void getChildren(CanvasHandler **out) const;
@@ -662,9 +704,14 @@ private:
 
     void recursiveScale(double x, double y, double oldX, double oldY);
 
+
+    bool m_Overflow;
+    bool m_ScrollableX = false;
+    bool m_ScrollableY = false;
     bool m_Loaded;
     int m_Cursor;
     bool m_NeedPaint = true;
+
 
     /* Reference to the Yoga node */
     YGNodeRef m_YogaRef;
