@@ -148,14 +148,12 @@ void UIWinInterface::openFileDialog(const char *files[],
 
 static int ProcessSystemLoop(void *arg)
 {
-    /*
     SDL_PumpEvents();
     UIWinInterface *ui = static_cast<UIWinInterface *>(arg);
 
     if (ui->getNidiumContext()) {
         ui->makeMainGLCurrent();
     }
-    */
 
     //gtk_main_iteration_do(FALSE);
      return 4;
@@ -181,51 +179,41 @@ void UIWinInterface::processWinPendingEvents()
 
 void UIWinInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
 {
-#if 0
-    int cursor;
+    HCURSOR cursor;
     SDL_SysWMinfo info;
 
     if (cursorvalue != UIInterface::HIDDEN) {
         this->hideCursor(false);
+        ShowCursor(false);
     }
     switch (cursorvalue) {
         case UIWinInterface::ARROW:
-            cursor = XC_left_ptr;
-            ndm_log(NDM_LOG_DEBUG, "X11UI", "Normal cursor");
+            cursor = LoadCursor(NULL, IDC_ARROW);
+            ndm_log(NDM_LOG_DEBUG, "WinUI", "Normal cursor");
             break;
         case UIWinInterface::BEAM:
-            cursor = XC_xterm;
+            cursor = LoadCursor(NULL, IDC_IBEAM);
             break;
         case UIWinInterface::CROSS:
-            cursor = XC_crosshair;
+            cursor = LoadCursor(NULL, IDC_CROSS);
             break;
         case UIWinInterface::POINTING:
-            cursor = XC_hand2;
+            cursor = LoadCursor(NULL, IDC_HAND);
             break;
         case UIWinInterface::CLOSEDHAND:
-            cursor = XC_hand1;
+            cursor = LoadCursor(NULL, IDC_NO);
             break;
         case UIWinInterface::HIDDEN:
-            ndm_log(NDM_LOG_DEBUG, "X11UI", "Hide cursor");
+            ndm_log(NDM_LOG_DEBUG, "WinUI", "Hide cursor");
             this->hideCursor(true);
             return;
         default:
-            cursor = XC_left_ptr;
+            cursor = LoadCursor(NULL, IDC_ARROW);
             break;
     }
 
     SDL_VERSION(&info.version);
-
-    if (SDL_GetWindowWMInfo(m_Win, &info)) {
-        Cursor c   = XCreateFontCursor(info.info.x11.display, cursor);
-        Display *d = info.info.x11.display;
-
-        XDefineCursor(d, info.info.x11.window, c);
-        XFlush(d);
-        XFreeCursor(d, c);
-    }
-
-#endif
+    ShowCursor(true);
 }
 
 #if 0
