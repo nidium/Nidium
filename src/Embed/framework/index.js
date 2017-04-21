@@ -17,7 +17,6 @@ load("embed://framework/elements/template.js");
 load("embed://framework/elements/component.js");
 load("embed://framework/elements/slot.js");
 
-
 /*
  * Native UI elements (low level)
  */
@@ -32,10 +31,16 @@ load("embed://framework/elements/section.js");
 load("embed://framework/elements/radio.js");
 
 /*
+ * Grid layout
+ */
+load("embed://framework/elements/grid/grid.js");
+load("embed://framework/elements/grid/row.js");
+load("embed://framework/elements/grid/col.js");
+
+/*
  * Native controllers (medium level)
  */
 load("embed://framework/elements/navigator.js");
-
 
 
 /*
