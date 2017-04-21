@@ -21,6 +21,11 @@ Object.defineProperty(window, "_onready", {
  */
 function __nidiumPreload(options, lst) {
     if (options.html5) load("embed://html5.js");
+    if (options.debug) {
+        console.log("[Remote Debug] loading");
+        const rdebug = require("RemoteDebug");
+        rdebug.run();
+    }
 
     /**
      * Additions

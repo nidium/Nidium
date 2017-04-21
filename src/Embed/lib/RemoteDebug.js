@@ -362,8 +362,9 @@ _remotedebug.handle('DOM.highlightNode', function(reply, params) {
         console.log("Node not found");
         return reply({});
     }
-
-    canvas.highlight();
+    try {
+        canvas.highlight();
+    } catch(e){};
     
     return reply({});
 });
@@ -499,8 +500,10 @@ _remotedebug.handle('DOM.getDocument', function(reply, params) {
             tree.documentURL = "file://";
             tree.baseURL = "file://";
             tree.xmlVersion = "";
-        } else {
-            tree.attributes.push("width", root.width + '', "height", root.height + '');
+        } else if (root.attributes) {
+            for (let attr in root.attributes) {
+                tree.attributes.push(attr, root.attributes[attr] + '')
+            }
         }
 
         if (root.id) {
