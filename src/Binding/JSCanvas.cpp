@@ -540,171 +540,9 @@ bool JSCanvas::JSSetter_allowNegativeScroll(JSContext *cx, JS::MutableHandleValu
     return true;
 }
 
-bool JSCanvas::JSSetter_width(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->setWidth(NAN);
-        return true;
-    }
 
 
-    m_CanvasHandler->p_Width.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
 
-    if (!m_CanvasHandler->setWidth((float)dval)) {
-        return true;
-    }
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_height(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->setHeight(NAN);
-        return true;
-    }
-
-    m_CanvasHandler->p_Height.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
-
-    if (!m_CanvasHandler->setHeight((float)dval)) {
-        return true;
-    }
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_left(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->setPropLeft(NAN);
-        return true;
-    }
-
-
-    m_CanvasHandler->p_Left.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
-
-    m_CanvasHandler->setPropLeft((float)dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_right(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->setPropRight(NAN);
-        return true;
-    }
-
-    m_CanvasHandler->p_Right.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
-
-    m_CanvasHandler->setPropRight((float)dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_top(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->setPropTop(NAN);
-        return true;
-    }
-
-    m_CanvasHandler->p_Top.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
-
-    m_CanvasHandler->setPropTop((float)dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->setPropRight(NAN);
-        return true;
-    }
-
-    m_CanvasHandler->p_Bottom.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
-
-    m_CanvasHandler->setPropBottom((float)dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_minWidth(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->setPropMinWidth(NAN);
-        return true;
-    }
-
-    m_CanvasHandler->p_MinWidth.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
-
-    m_CanvasHandler->setPropMinWidth((float)dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_minHeight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->setPropMinHeight(NAN);
-        return true;
-    }
-
-    m_CanvasHandler->p_MinHeight.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
-
-    m_CanvasHandler->setPropMinHeight((float)dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_maxWidth(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->setPropMaxWidth(NAN);
-        return true;
-    }
-
-    m_CanvasHandler->p_MaxWidth.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
-
-    m_CanvasHandler->setPropMaxWidth((float)dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_maxHeight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->setPropMaxHeight(NAN);
-        return true;
-    }
-
-    m_CanvasHandler->p_MaxHeight.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval));
-
-    m_CanvasHandler->setPropMaxHeight((float)dval);
-
-    return true;
-}
 
 bool JSCanvas::JSSetter_visible(JSContext *cx, JS::MutableHandleValue vp)
 {
@@ -1483,7 +1321,18 @@ bool JSCanvas::JSSetter_aspectRatio(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
-/* Generic setter for CanvasHandler properties */
+/* Generic getter/setter for CanvasHandler properties */
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(Width, width);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(Height, height);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(Left, left);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(Top, top);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(Bottom, bottom);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(Right, right);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MaxWidth, maxWidth);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MaxHeight, maxHeight);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MinWidth, minWidth);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MinHeight, minHeight);
+
 JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Width, width);
 JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Height, height);
 JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Left, left);

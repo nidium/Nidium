@@ -129,7 +129,7 @@ void CanvasHandler::setId(const char *str)
 
 void CanvasHandler::setPropMinWidth(float width)
 {
-    p_MinWidth = width;
+    p_MinWidth.set(width);
 
     if (p_MinWidth.isPercentageValue()) {
         YGNodeStyleSetMinWidthPercent(m_YogaRef, p_MinWidth);
@@ -142,7 +142,7 @@ void CanvasHandler::setPropMinWidth(float width)
 
 void CanvasHandler::setPropMinHeight(float height)
 {
-    p_MinHeight = height;
+    p_MinHeight.set(height);
 
     if (p_MinHeight.isPercentageValue()) {
         YGNodeStyleSetMinHeightPercent(m_YogaRef, p_MinHeight);
@@ -155,7 +155,7 @@ void CanvasHandler::setPropMinHeight(float height)
 
 void CanvasHandler::setPropMaxWidth(float width)
 {
-    p_MaxWidth = width;
+    p_MaxWidth.set(width);
 
     if (p_MaxWidth.isPercentageValue()) {
         YGNodeStyleSetMaxWidthPercent(m_YogaRef, p_MaxWidth);
@@ -168,7 +168,7 @@ void CanvasHandler::setPropMaxWidth(float width)
 
 void CanvasHandler::setPropMaxHeight(float height)
 {
-    p_MaxHeight = height;
+    p_MaxHeight.set(height);
 
     if (p_MaxHeight.isPercentageValue()) {
         YGNodeStyleSetMaxHeightPercent(m_YogaRef, p_MaxHeight);
@@ -179,17 +179,17 @@ void CanvasHandler::setPropMaxHeight(float height)
     YGNodeStyleSetMaxHeight(m_YogaRef, p_MaxHeight);
 }
 
-bool CanvasHandler::setWidth(float width, bool force)
+void CanvasHandler::setPropWidth(float width)
 {
-    if (p_Width == width) {
-        return true;
+    if (p_Width.get() == width) {
+        return;
     }
 
-    p_Width = width;
+    p_Width.set(width);
 
     if (isnan(width)) {
         YGNodeStyleSetWidthAuto(m_YogaRef);
-        return true;
+        return;
     }
 
     if (p_Width.isPercentageValue()) {
@@ -197,21 +197,19 @@ bool CanvasHandler::setWidth(float width, bool force)
     } else {
         YGNodeStyleSetWidth(m_YogaRef, width >= 0 && !isnan(width) ? width : YGUndefined);
     }
-
-    return true;
 }
 
-bool CanvasHandler::setHeight(float height, bool force)
+void CanvasHandler::setPropHeight(float height)
 {
-    if (p_Height == height) {
-        return true;
+    if (p_Height.get() == height) {
+        return;
     }
 
-    p_Height = height;
+    p_Height.set(height);
 
     if (isnan(height)) {
         YGNodeStyleSetHeightAuto(m_YogaRef);
-        return true;
+        return;
     }
 
     if (p_Height.isPercentageValue()) {
@@ -219,21 +217,12 @@ bool CanvasHandler::setHeight(float height, bool force)
     } else {
         YGNodeStyleSetHeight(m_YogaRef, height >= 0 && !isnan(height) ? height : YGUndefined);
     }
-
-    return true;
 }
 
 void CanvasHandler::setSize(float width, float height, bool redraw)
 {
-    if (p_Height == height && p_Width == width) {
-        return;
-    }
-
-    p_Width  = width;
-    p_Height = height;
-
-    YGNodeStyleSetWidth(m_YogaRef, width >= 0  && !isnan(width) ? width : YGUndefined);
-    YGNodeStyleSetHeight(m_YogaRef, height >= 0 && !isnan(height) ? height : YGUndefined);
+    setPropWidth(width);
+    setPropHeight(height);
 }
 
 void CanvasHandler::deviceSetSize(float width, float height)

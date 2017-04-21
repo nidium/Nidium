@@ -37,6 +37,19 @@ namespace Binding {
         return true; \
     }
 
+#define JSCANVAS_GENERIC_PERCENT_PROP_SETTER(name, prop) \
+    bool JSCanvas::JSSetter_##prop(JSContext *cx, JS::MutableHandleValue vp) \
+    { \
+        double dval; \
+        if (vp.isNullOrUndefined()) { \
+            m_CanvasHandler->setProp##name(NAN); \
+            return true; \
+        } \
+        m_CanvasHandler->p_##name.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval)); \
+        m_CanvasHandler->setProp##name((float)dval); \
+        return true; \
+    }
+
 class JSCanvas : public ClassMapperWithEvents<JSCanvas>, public Core::Messages
 {
 public:
