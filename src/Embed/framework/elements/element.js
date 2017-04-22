@@ -27,6 +27,9 @@
 
             this.style = new (StyleContainer.Create(Object.getPrototypeOf(this)))(this);
 
+            this.style.fontFamily = "Roboto Regular";
+            this.style.fontSize = 15;
+
             const classes = attributes.class;
             if (classes) {
                 let nss;

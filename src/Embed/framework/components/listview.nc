@@ -21,7 +21,7 @@
 
         media: {
             flexGrow: 1,
-            color: "#d0d0d0",
+            color: "#c8c8c8",
             textAlign: "center",
             fontSize: 32,
             lineHeight: 50,
@@ -83,7 +83,7 @@
                     <li id="${id}" class="li" on:mousedown='this.select(${id})'>
                         <icon class="icon media" shape="${media}"></icon>
                         <span class="title">${title}</span>
-                        <icon class="icon chevron" shape="fa-chevron-right"></icon>
+                        <icon class="icon chevron" shape="ion-chevron-right"></icon>
                     </li>
                 `);
             }

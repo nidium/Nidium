@@ -1,9 +1,9 @@
 <component name="icon">
     <nss>
         icon: {
-            width: 20,
-            height: 20,
-            fontFamily: "fontAwesome"
+            width: 24,
+            height: 24,
+            fontFamily: "ionicons"
         }
     </nss>
     <layout class="icon">
@@ -31,7 +31,7 @@
                 let oy = Math.ceil(lineHeight*0.5);
 
                 if (this.style.textAlign == "center") {
-                    ox = (width-w)*0.5;
+                    ox = (width-w)*0.5-1;
                 }
 
                 if (this.style.textAlign == "right") {

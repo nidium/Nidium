@@ -58,4 +58,20 @@ require("./components/spinner.nc");
 /**
  * Fonts
  */
-window.fontShapes = require('./fonts/fontawesome.js');
+
+window.fontShapes = {};
+
+const fontAwesome = require('./fonts/fontawesome.js');
+const ionicons = require('./fonts/ionicons.js');
+
+for (var i in fontAwesome) {
+    window.fontShapes[i] = fontAwesome[i];
+}
+
+for (var i in ionicons) {
+    window.fontShapes[i] = ionicons[i];
+}
+
+console.dump(window.fontShapes);
+
+load("embed://framework/fonts/default.js");

@@ -70,7 +70,7 @@
     </nss>
     <layout class="bar">
         <span id="back" class="flexme left" on:mousedown="this.back()">
-            <icon class="icon il" shape="fa-chevron-left"></icon>
+            <icon class="icon il" shape="ion-chevron-left"></icon>
             <span id="backLabel" class="icleft">Back</span>
         </span>
         <span class="flexme center">
@@ -78,7 +78,7 @@
         </span>
         <span id="next" class="flexme right" on:mousedown="this.next()">
             <span class="icright">Next</span>
-            <icon class="icon ir" shape="fa-chevron-right"></icon>
+            <icon class="icon ir" shape="ion-chevron-right"></icon>
         </span>
     </layout>
     <script>
