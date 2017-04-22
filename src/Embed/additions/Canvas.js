@@ -50,9 +50,7 @@ const { setAnimation, Easing } = require("AnimationBlock");
     }
 
     Object.defineProperty(Canvas.prototype, "computed", {
-        get() {
-            return this.getDimensions();
-        }
+        get:() => this.getDimensions()
     })
 
     Object.defineProperty(Canvas.prototype, "inherit", {
