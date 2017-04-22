@@ -39,9 +39,12 @@ class Component extends Elements.Element {
         this.shadowRoot.nss = this.constructor[s_ComponentShadow].getNSS();
 
         this.createComponentTree();
+        this.on("mount", () => {
+            this.updateNSS();
+        });
     }
 
-    createTree(children) {
+    updateNSS() {
         /*
             Merge & Apply style components
             XXX : This should be refactored to avoid code duplication with element.js
@@ -80,6 +83,10 @@ class Component extends Elements.Element {
         // Merge all styles, into |this.style|
         this._mergeStyle(tmp);
 
+    }
+
+    createTree(children) {
+        console.log("component create tree");
         /*
             Create & Add children to the components
         */

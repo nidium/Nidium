@@ -39,7 +39,6 @@ class Navigator extends Elements.Element {
         }
 
         var scene = new component(params);
-        scene.createTree();
         scene.url = url;
         scene.navigator = this;
 
