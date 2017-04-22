@@ -375,8 +375,8 @@ void CanvasHandler::addChild(CanvasHandler *insert,
     insert->m_Parent = this;
     m_nChildren++;
 
-    //Args arg;
-    //insert->fireEventSync<CanvasHandler>(MOUNT_EVENT, arg);
+    Args arg;
+    insert->fireEventSync<CanvasHandler>(MOUNT_EVENT, arg);
 
 }
 
@@ -419,10 +419,9 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
     m_Parent = NULL;
     m_Next   = NULL;
     m_Prev   = NULL;
-#if 0
+
     Args arg;
     this->fireEventSync<CanvasHandler>(UNMOUNT_EVENT, arg);
-#endif
 }
 
 /*

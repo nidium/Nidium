@@ -32,10 +32,6 @@
             if (attributes.id) {
                 this.id = attributes.id;
             }
-
-            this.addEventListener("load", () => {
-                this.fireEvent("mount", {});
-            });
         }
 
         /*
