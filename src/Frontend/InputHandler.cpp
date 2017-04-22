@@ -4,8 +4,17 @@
 namespace Nidium {
 namespace Frontend {
 
+void InputHandler::pushEvent(InputEvent &ev)
+{
+    std::lock_guard<std::mutex> lock(m_PushEventLock);
+
+    m_PendingInputEvents->push_back(std::move(ev));
+}
+
 void InputHandler::clear()
 {
+    std::lock_guard<std::mutex> lock(m_PushEventLock);
+
     m_InputEvents->clear();
     m_ChangedTouches.clear();
 
