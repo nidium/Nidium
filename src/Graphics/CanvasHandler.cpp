@@ -73,8 +73,6 @@ CanvasHandler::CanvasHandler(float width,
     YGNodeStyleSetMinWidth(m_YogaRef, p_MinWidth);
     YGNodeStyleSetMinHeight(m_YogaRef, p_MinHeight);
 
-    memset(&m_Margin, 0, sizeof(m_Margin));
-    memset(&m_Padding, 0, sizeof(m_Padding));
     memset(&m_MousePosition, 0, sizeof(m_MousePosition));
 
     m_MousePosition.consumed = true;
