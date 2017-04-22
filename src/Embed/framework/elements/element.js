@@ -55,8 +55,6 @@
                 });
                 Object.assign(this.style, style);
             }
-
-            this.onresize = this.onpaint;
         }
 
         onload() {

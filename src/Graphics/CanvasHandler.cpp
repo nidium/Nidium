@@ -238,7 +238,7 @@ void CanvasHandler::deviceSetSize(float width, float height)
     arg[0].set(width);
     arg[1].set(height);
 
-    this->fireEvent<CanvasHandler>(RESIZE_EVENT, arg);
+    this->fireEventSync<CanvasHandler>(RESIZE_EVENT, arg);
 }
 
 
@@ -535,6 +535,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 
 
         deviceSetSize(nwidth, nheight);
+        m_NeedPaint = true;
     }
     
     int maxChildrenWidth  = p_Width.getCachedValue(),
