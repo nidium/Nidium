@@ -30,13 +30,14 @@
             constructor(attr={}) {
                 super(attr);
 
-                this.sidewidth = attr.width || (window.innerWidth-100);
+                this.sidewidth = attr.width || (window.innerWidth-150);
 
                 this.style.position = "relative";
                 this.style.left = 0;
-                this.style.width = 0;
+                this.style.width = this.sidewidth;
                 this.style.height = "100%";
                 this.style.minWidth = 0.5*this.sidewidth;
+                this.scrollableY = true;
             }
 
             attach(view) {
@@ -85,7 +86,7 @@
                     let dx = e.x - this._event.x;
                     let dy = e.y - this._event.y;
 
-                    if (Math.abs(dy) > 30 && Math.abs(dx) < 30) {
+                    if (Math.abs(dy) > 30) {
                         this._moving = false;
                         this._start = false;
                     } else if (Math.abs(dx) > 30) {
@@ -101,7 +102,7 @@
 
                     if (this._moving) {
                         let dx = e.x - this._event.x;
-                        if (dx < 0.90*this.sidewidth) {
+                        if (dx < 0.70*this.sidewidth) {
                             this.close();
                         } else {
                             this.open();
@@ -117,15 +118,18 @@
                     sidewidth = dim.width,
                     currLeft = dim.left;
 
+                if (this.width<0) return false;
+
                 if (this.width<=this.sidewidth) {
                     var opacity = (x/this.sidewidth) * (1-__opacity_lo__);
 
                     this.opacity = __opacity_lo__+opacity;
-                    this.width = x;
-                    this.view.left = this.width;
+                    //this.width = x;
+                    this.view.left = x;
 
                     this.view.__overlay__.open(__next_duration__);
                 }
+               
             }
 
             open() {
@@ -133,7 +137,7 @@
 
                 setAnimation(
                     (side, view) => {
-                        side.width = this.sidewidth;
+                        //side.width = this.sidewidth;
                         side.opacity = __opacity_hi__;
                         view.left = this.sidewidth;
                     },
@@ -150,7 +154,7 @@
 
                 setAnimation(
                     (c, v) => {
-                        c.width = 0;
+                        //c.width = 0;
                         c.opacity = __opacity_lo__;
                         v.left = 0;
                     },
