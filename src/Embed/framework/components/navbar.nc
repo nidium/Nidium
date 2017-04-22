@@ -69,7 +69,7 @@
         }
     </nss>
     <layout class="bar">
-        <span id="back" class="flexme left" on:click="this.back()">
+        <span id="back" class="flexme left" on:mousedown="this.back()">
             <icon class="icon il" shape="fa-chevron-left"></icon>
             <span id="backLabel" class="icleft">Back</span>
         </span>
