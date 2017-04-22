@@ -114,7 +114,7 @@
                 for (var i=0, l=list.length; i<l; i++) {
                     let item = list[i];
                     this.items[i] = item;
-                    if (i <= (2*this.page_count)) {
+                    if (i <= (2+this.page_count)) {
                         this.addItem(item);
                         this.currItem = i;
                     }
@@ -148,7 +148,7 @@
 
                 var list = this.items,
                     l = list.length,
-                    max = Math.min(this.currItem + 2*this.page_count, l);
+                    max = Math.min(this.currItem + 2 /*2*this.page_count*/, l);
 
                 console.log("load more", this.currItem + '->' + max, "items");
 
