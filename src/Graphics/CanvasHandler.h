@@ -407,6 +407,12 @@ public:
             *atop = p_Top.getCachedValue();
         }
 
+        *width = ceilf(*width);
+        *height = ceilf(*height);
+
+        *left = floorf(*left);
+        *top = floorf(*top);
+
         return true;
     }
 
