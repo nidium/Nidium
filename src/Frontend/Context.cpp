@@ -245,18 +245,21 @@ void Context::createDebugCanvas()
     Canvas2DContext *context
         = static_cast<Canvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
-    m_DebugHandler = new CanvasHandler(context->getSkiaContext()->getWidth(),
-                                       DEBUG_HEIGHT, this);
+    m_DebugHandler = new CanvasHandler(NAN, NAN, this);
     Canvas2DContext *ctx2d
-        = new Canvas2DContext(m_DebugHandler, context->getSkiaContext()->getWidth(),
-                              DEBUG_HEIGHT, NULL, false);
+        = new Canvas2DContext(m_DebugHandler, NAN,
+                              NAN, NULL, false);
     m_DebugHandler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
 
     m_RootHandler->addChild(m_DebugHandler);
 
+    m_DebugHandler->setPropHeight(DEBUG_HEIGHT);
     m_DebugHandler->setPropRight(0);
-    m_DebugHandler->setPropOpacity(0.6);
+    m_DebugHandler->setPropLeft(0);
+    m_DebugHandler->setPropBottom(0);
+    m_DebugHandler->setPositioning(CanvasHandler::COORD_ABSOLUTE);
+    m_DebugHandler->setPropOpacity(0.8);
     m_DebugHandler->p_EventReceiver = false;
     ctx2d->getSkiaContext()->setFontType("monospace");
 }
@@ -285,17 +288,16 @@ void Context::postDraw()
 {
     if (JSDocument::m_ShowFPS && m_DebugHandler) {
 
-        SkiaContext *s
-            = (static_cast<Canvas2DContext *>(m_DebugHandler->getContext())
+        SkiaContext *s = (static_cast<Canvas2DContext *>(m_DebugHandler->getContext())
                    ->getSkiaContext());
-        m_DebugHandler->bringToFront();
 
         s->setFillColor(0xFF000000u);
-        s->drawRect(0, 0, m_DebugHandler->getPropWidth(),
-                    m_DebugHandler->getPropHeight(), 0);
+
+        s->drawRect(0, 0, m_DebugHandler->getComputedWidth(),
+                    m_DebugHandler->getComputedHeight(), 0);
         s->setFillColor(0xFFEEEEEEu);
 
-        s->drawTextf(5, 12, "Nidium build %s %s", __DATE__, __TIME__);
+        s->drawTextf(5, 12, "nidium build %s %s", __DATE__, __TIME__);
         s->drawTextf(5, 25, "Frame: %lld (%lldms)", m_Stats.nframe,
                      m_Stats.lastdifftime / 1000000LL);
         s->drawTextf(5, 38, "Time : %lldns",
@@ -309,12 +311,12 @@ void Context::postDraw()
             // s->drawLine(300 + i * 3, 55, 300 + i * 3, (40 / 60) *
             // m_Stats.samples[i]);
             s->setStrokeColor(0xFF004400u);
-            s->drawLine(m_DebugHandler->getPropWidth() - 20 - i * 3, 55,
-                        m_DebugHandler->getPropWidth() - 20 - i * 3, 20.f);
+            s->drawLine(m_DebugHandler->getComputedWidth() - 20 - i * 3, 55,
+                        m_DebugHandler->getComputedWidth() - 20 - i * 3, 20.f);
             s->setStrokeColor(0xFF00BB00u);
             s->drawLine(
-                m_DebugHandler->getPropWidth() - 20 - i * 3, 55,
-                m_DebugHandler->getPropWidth() - 20 - i * 3,
+                m_DebugHandler->getComputedWidth() - 20 - i * 3, 55,
+                m_DebugHandler->getComputedWidth() - 20 - i * 3,
                 nidium_min(60 - ((40.f / 62.f)
                                  * static_cast<float>(m_Stats.samples[i])),
                            55));
@@ -325,6 +327,7 @@ void Context::postDraw()
         // sprintf(fps, "%d fps", currentFPS);
         // s->system(fps, 5, 10);
         s->flush();
+        m_DebugHandler->bringToFront();
     }
 #if DEBUG
     if (m_Debug2Handler) {
