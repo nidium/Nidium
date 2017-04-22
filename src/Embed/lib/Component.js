@@ -86,7 +86,6 @@ class Component extends Elements.Element {
     }
 
     createTree(children) {
-        console.log("component create tree");
         /*
             Create & Add children to the components
         */
@@ -111,23 +110,29 @@ class Component extends Elements.Element {
             return;
         }
 
-        // Add the child inside the Component, but keep the child ShadowRoot
-        let adopt = (p, ...childs) => {
-            p.empty();
-            for (let child of childs) {
-                Canvas.prototype.add.call(p, child);
+        // Add the child before the <slot> tag inside
+        // the Component, and keep the child ShadowRoot
+        let replace = (node, ...childs) => {
+            const p = node.getParent();
+            if (!p) {
+                throw new Error("<slot> doen't have a parent. This is not possible.");
             }
+
+            for (let child of childs) {
+                p.insertAfter(child, node);
+            }
+
+            node.removeFromParent();
         }
 
         if (userSlots.size == 0) {
             // Use slot as default slot
-            shadowSlots[0].empty();
-            adopt(shadowSlots[0], ...NML.CreateTree(children, null, parentShadow));
+            replace(shadowSlots[0], ...NML.CreateTree(children, null, parentShadow));
         } else {
             for (let [id, el] of userSlots) {
                 for (let slot of shadowSlots) {
                     if (slot.id == id) {
-                        adopt(slot, ...NML.CreateTree([el], null, parentShadow));
+                        replace(slot, ...NML.CreateTree([el], null, parentShadow));
                     }
                 }
             }
