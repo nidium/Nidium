@@ -13,11 +13,11 @@
         icon: {
             marginLeft:10,
             marginRight:10,
-            fontSize: 24,
-            lineHeight: 24,
+            fontSize: 18,
+            lineHeight: 22,
             flexGrow:1,
             width: 24,
-            maxWidth: 24
+            maxWidth: 24,
         },
 
         il: {

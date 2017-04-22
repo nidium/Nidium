@@ -30,7 +30,7 @@
             constructor(attr={}) {
                 super(attr);
 
-                this.sidewidth = attr.width || 320;
+                this.sidewidth = attr.width || (window.innerWidth-100);
 
                 this.style.position = "relative";
                 this.style.left = 0;
@@ -83,8 +83,12 @@
                     if (!this._start) return false;
 
                     let dx = e.x - this._event.x;
+                    let dy = e.y - this._event.y;
 
-                    if (Math.abs(dx) > 5) {
+                    if (Math.abs(dy) > 30 && Math.abs(dx) < 30) {
+                        this._moving = false;
+                        this._start = false;
+                    } else if (Math.abs(dx) > 30) {
                         this._moving = true;
                         this.slide(dx);
                     }

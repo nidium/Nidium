@@ -72,6 +72,4 @@ for (var i in ionicons) {
     window.fontShapes[i] = ionicons[i];
 }
 
-console.dump(window.fontShapes);
-
 load("embed://framework/fonts/default.js");
