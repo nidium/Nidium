@@ -8,8 +8,7 @@
             fontSize: 16,
             lineHeight: 56,
             textAlign: "left",
-            overflow: false,
-            maxHeight: "50%"
+            overflow: false
         },
 
         icon: {
@@ -55,18 +54,20 @@
             constructor(attr) {
                 super(attr);
 
-                this.currPage = 0;
-                this.items = [];
-                this.viewport = [];
-
                 this.scrollableY = true;
                 this.allowNegativeScroll = false;
 
                 this.on("scroll", (e) => {
-                   //console.log(e);
-                   //this.scrollTop -= 1 //-(2*e.yrel);
-                   //e.preventDefault();
+                   this.infiniteScrollCheck();
                 });
+
+                this.reset();
+            }
+
+            reset() {
+                this.currPage = 0;
+                this.items = [];
+                this.viewport = [];
             }
 
             select(id) {
@@ -102,22 +103,60 @@
             }
 
             setItems(list) {
-                var nml = [];
+                this.reset();
 
                 let { width, height } = this.getDimensions();
                 let itemHeight = 56;
 
+                this.currItem = 0;
                 this.page_count = Math.floor(height/itemHeight);
-
-                console.log(height, Math.floor(height/56));
 
                 for (var i=0, l=list.length; i<l; i++) {
                     let item = list[i];
-                    //nml.push(this.getItemTemplate(item));
-                    this.addItem(item);
+                    this.items[i] = item;
+                    if (i <= (2*this.page_count)) {
+                        this.addItem(item);
+                        this.currItem = i;
+                    }
                 }
+            }
 
-//                NML.CreateTree(nml.join(''), this, this.shadowRoot);
+            infiniteScrollCheck() {
+                let { width, height } = this.getDimensions();
+
+                var scale = height / this.innerHeight,
+                    maxScrollTop = Math.min(this.scrollTop, this.innerHeight - height);
+
+                /*
+                container.style.top = radius;
+                container.style.right = radius*0.5;
+                container.style.height = height - 2*radius - 0;
+                */
+
+                var handleTop = Math.round(maxScrollTop * scale);
+                var handleHeight = Math.round(height * scale);
+
+                var percentScroll = 100*(handleTop+handleHeight) / height;
+
+                if (percentScroll>80) {
+                    this.loadMore();
+                }
+            }
+
+            loadMore() {
+                this.currItem++;
+
+                var list = this.items,
+                    l = list.length,
+                    max = Math.min(this.currItem + 2*this.page_count, l);
+
+                // console.log("load more", this.currItem + '->' + max, "items");
+
+                for (var i=this.currItem; i<max; i++) {
+                    let item = list[i];
+                    this.addItem(item);
+                    this.currItem = i;
+                }
             }
         }
     </script>
