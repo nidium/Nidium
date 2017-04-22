@@ -313,10 +313,10 @@ void CanvasHandler::insertBefore(CanvasHandler *insert, CanvasHandler *ref)
 
     if (ref->m_Prev) {
         ref->m_Prev->m_Next = insert;
-        ref->m_Prev         = insert;
     } else {
         m_Children = insert;
     }
+    ref->m_Prev = insert;
 
     YGNodeInsertChild(m_YogaRef, insert->m_YogaRef, m_nChildren);
 
