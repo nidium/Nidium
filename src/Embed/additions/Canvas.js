@@ -48,7 +48,13 @@ const { setAnimation, Easing } = require("AnimationBlock");
 
         return ret;
     }
-   
+
+    Object.defineProperty(Canvas.prototype, "computed", {
+        get() {
+            return this.getDimensions();
+        }
+    })
+
     Object.defineProperty(Canvas.prototype, "inherit", {
         get: function() {
             if (!this.__inheritProxy) {
