@@ -576,145 +576,6 @@ bool JSCanvas::JSSetter_coating(JSContext *cx, JS::MutableHandleValue vp)
 }
 
 
-bool JSCanvas::JSSetter_marginLeft(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setMargin(
-                m_CanvasHandler->m_Margin.top,
-                m_CanvasHandler->m_Margin.right,
-                m_CanvasHandler->m_Margin.bottom,
-                dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_marginTop(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setMargin(
-                dval,
-                m_CanvasHandler->m_Margin.right,
-                m_CanvasHandler->m_Margin.bottom,
-                m_CanvasHandler->m_Margin.left);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_marginRight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setMargin(
-                m_CanvasHandler->m_Margin.top,
-                dval,
-                m_CanvasHandler->m_Margin.bottom,
-                m_CanvasHandler->m_Margin.left);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_marginBottom(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setMargin(
-                m_CanvasHandler->m_Margin.top,
-                m_CanvasHandler->m_Margin.right,
-                dval,
-                m_CanvasHandler->m_Margin.left);
-
-    return true;
-}
-
-
-
-bool JSCanvas::JSSetter_paddingLeft(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setPadding(
-                m_CanvasHandler->m_Padding.top,
-                m_CanvasHandler->m_Padding.right,
-                m_CanvasHandler->m_Padding.bottom,
-                dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_paddingTop(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setPadding(
-                dval,
-                m_CanvasHandler->m_Padding.right,
-                m_CanvasHandler->m_Padding.bottom,
-                m_CanvasHandler->m_Padding.left);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_paddingRight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setPadding(
-                m_CanvasHandler->m_Padding.top,
-                dval,
-                m_CanvasHandler->m_Padding.bottom,
-                m_CanvasHandler->m_Padding.left);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_paddingBottom(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setPadding(
-                m_CanvasHandler->m_Padding.top,
-                m_CanvasHandler->m_Padding.right,
-                dval,
-                m_CanvasHandler->m_Padding.left);
-
-    return true;
-}
-
-
 bool JSCanvas::JSSetter_position(JSContext *cx, JS::MutableHandleValue vp)
 {
     if (!vp.isString()) {
@@ -1067,62 +928,6 @@ bool JSCanvas::JSGetter_visible(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
-bool JSCanvas::JSGetter_marginLeft(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Margin.left);
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_marginRight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Margin.right);
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_marginTop(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Margin.top);
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_marginBottom(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Margin.bottom);
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_paddingLeft(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Padding.left);
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_paddingRight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Padding.right);
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_paddingTop(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Padding.top);
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_paddingBottom(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Padding.bottom);
-
-    return true;
-}
-
 bool JSCanvas::JSGetter_coating(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setInt32(m_CanvasHandler->p_Coating);
@@ -1445,6 +1250,14 @@ JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MaxWidth, maxWidth);
 JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MaxHeight, maxHeight);
 JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MinWidth, minWidth);
 JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MinHeight, minHeight);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MarginTop, marginTop);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MarginRight, marginRight);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MarginBottom, marginBottom);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MarginLeft, marginLeft);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(PaddingTop, paddingTop);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(PaddingRight, paddingRight);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(PaddingBottom, paddingBottom);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(PaddingLeft, paddingLeft);
 
 JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Width, width);
 JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Height, height);
@@ -1456,6 +1269,14 @@ JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MaxWidth, maxWidth);
 JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MaxHeight, maxHeight);
 JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MinWidth, minWidth);
 JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MinHeight, minHeight);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MarginTop, marginTop);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MarginRight, marginRight);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MarginBottom, marginBottom);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MarginLeft, marginLeft);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(PaddingTop, paddingTop);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(PaddingRight, paddingRight);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(PaddingBottom, paddingBottom);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(PaddingLeft, paddingLeft);
 
 JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
     JS::HandleObject obj)

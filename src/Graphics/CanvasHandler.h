@@ -85,6 +85,41 @@ struct LayerizeContext
         return this->p_##name.get(); \
     }
 
+#define CANVAS_DEF_CLASS_CARDINAL_PROPERTY(name, type, default_value, state) \
+    CANVAS_DEF_CLASS_PROPERTY(name##Top, type, default_value, state) \
+    CANVAS_DEF_CLASS_PROPERTY(name##Right, type, default_value, state) \
+    CANVAS_DEF_CLASS_PROPERTY(name##Bottom, type, default_value, state) \
+    CANVAS_DEF_CLASS_PROPERTY(name##Left, type, default_value, state)
+
+#define CANVAS_DEF_PROP_YOGA_SETTER(name, position) \
+    void setProp##name##position(float val) override \
+    { \
+        p_##name##position.set(val); \
+        if (p_##name##position.isPercentageValue()) { \
+            YGNodeStyleSet##name##Percent(m_YogaRef, YGEdge##position, isnan(val) ? YGUndefined : val); \
+        } else { \
+            YGNodeStyleSet##name(m_YogaRef, YGEdge##position, isnan(val) ? YGUndefined : val); \
+        } \
+    }
+
+#define CANVAS_DEF_PROP_YOGA_SETTER_POSITION(position) \
+    void setProp##position(float val) override \
+    { \
+        p_##position.set(val); \
+        if (p_##position.isPercentageValue()) { \
+            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdge##position, isnan(val) ? YGUndefined : val); \
+        } else { \
+            YGNodeStyleSetPosition(m_YogaRef, YGEdge##position, isnan(val) ? YGUndefined : val); \
+        } \
+    }
+
+#define CANVAS_DEF_PROP_CARDINAL_YOGA_SETTER(name) \
+    CANVAS_DEF_PROP_YOGA_SETTER(name, Top) \
+    CANVAS_DEF_PROP_YOGA_SETTER(name, Right) \
+    CANVAS_DEF_PROP_YOGA_SETTER(name, Bottom) \
+    CANVAS_DEF_PROP_YOGA_SETTER(name, Left)
+
+
 class CanvasHandlerBase
 {
 private:
@@ -113,9 +148,10 @@ public:
 
         CanvasProperty(const char *name, T val, State state, CanvasHandlerBase *h) :
             m_Name(name), m_Canvas(h), m_Value(val), m_CachedValue(val) {
-                
+#if 0
                 position = m_Canvas->m_PropertyList.size();
                 m_Canvas->m_PropertyList.push_back((void *)this);
+#endif
             };
 
         inline T get() const {
@@ -206,8 +242,9 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(Coating,      float, 0,   State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(EventReceiver,bool, true, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Display,      bool, true, State::kDefault);
-
     CANVAS_DEF_CLASS_PROPERTY(Opacity,      float, 1.0, State::kDefault);
+    CANVAS_DEF_CLASS_CARDINAL_PROPERTY(Margin,   float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_CARDINAL_PROPERTY(Padding,  float, NAN, State::kDefault);
 
     virtual CanvasHandlerBase *getParentBase()=0;
 };
@@ -229,14 +266,6 @@ public:
 
     static const uint8_t EventID = 1;
     
-
-    enum COORD_MODE
-    {
-        kLeft_Coord   = 1 << 0,
-        kRight_Coord  = 1 << 1,
-        kTop_Coord    = 1 << 2,
-        kBottom_Coord = 1 << 3
-    };
 
     enum Flags
     {
@@ -287,22 +316,6 @@ public:
     CanvasContext *m_Context;
     JS::TenuredHeap<JSObject *> m_JsObj;
     JSContext *m_JsCx;
-
-    struct
-    {
-        float top;
-        float right;
-        float bottom;
-        float left;
-    } m_Margin;
-
-    struct
-    {
-        float top;
-        float right;
-        float bottom;
-        float left;
-    } m_Padding;
 
     struct
     {
@@ -434,81 +447,18 @@ public:
         return m_NidiumContext;
     }
 
-    void setMargin(float top, float right, float bottom, float left)
-    {
-        YGNodeStyleSetMargin(m_YogaRef, YGEdgeTop, top);
-        YGNodeStyleSetMargin(m_YogaRef, YGEdgeRight, right);
-        YGNodeStyleSetMargin(m_YogaRef, YGEdgeBottom, bottom);
-        YGNodeStyleSetMargin(m_YogaRef, YGEdgeLeft, left);
-        
-        m_Margin.top    = top;
-        m_Margin.right  = right;
-        m_Margin.bottom = bottom;
-        m_Margin.left   = left;
-    }
-
-    void setPadding(float top, float right, float bottom, float left)
-    {
-        YGNodeStyleSetPadding(m_YogaRef, YGEdgeTop, top);
-        YGNodeStyleSetPadding(m_YogaRef, YGEdgeRight, right);
-        YGNodeStyleSetPadding(m_YogaRef, YGEdgeBottom, bottom);
-        YGNodeStyleSetPadding(m_YogaRef, YGEdgeLeft, left);
-
-        m_Padding.top    = top;
-        m_Padding.right  = right;
-        m_Padding.bottom = bottom;
-        m_Padding.left   = left;
-    }
+    CANVAS_DEF_PROP_CARDINAL_YOGA_SETTER(Padding);
+    CANVAS_DEF_PROP_CARDINAL_YOGA_SETTER(Margin);
+    CANVAS_DEF_PROP_YOGA_SETTER_POSITION(Top);
+    CANVAS_DEF_PROP_YOGA_SETTER_POSITION(Right);
+    CANVAS_DEF_PROP_YOGA_SETTER_POSITION(Bottom);
+    CANVAS_DEF_PROP_YOGA_SETTER_POSITION(Left);
 
     void setPropDisplay(bool state) override
     {
         p_Display.set(state);
 
         YGNodeStyleSetDisplay(m_YogaRef, state ? YGDisplayFlex : YGDisplayNone);
-    }
-
-    void setPropLeft(float val) override
-    {
-        p_Left.set(val);
-        
-        if (p_Left.isPercentageValue()) {
-            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeLeft, isnan(val) ? YGUndefined : val);
-        } else {
-            YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, isnan(val) ? YGUndefined : val);
-        }
-    }
-
-    void setPropTop(float val) override
-    {
-        p_Top.set(val);
-
-        if (p_Top.isPercentageValue()) {
-            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeTop, isnan(val) ? YGUndefined : val);
-        } else {
-            YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, isnan(val) ? YGUndefined : val);
-        }
-    }
-
-    void setPropRight(float val) override
-    {
-        p_Right.set(val);
-        
-        if (p_Right.isPercentageValue()) {
-            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeRight, isnan(val) ? YGUndefined : val);
-        } else {
-            YGNodeStyleSetPosition(m_YogaRef, YGEdgeRight, isnan(val) ? YGUndefined : val);
-        }
-    }
-
-    void setPropBottom(float val) override
-    {
-        p_Bottom.set(val);
-
-        if (p_Bottom.isPercentageValue()) {
-            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
-        } else {
-            YGNodeStyleSetPosition(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
-        }
     }
 
     void setOverflow(bool state) {
