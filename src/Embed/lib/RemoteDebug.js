@@ -6,6 +6,17 @@
 
 
 const cssParse = require("css-parse");
+const Elements      = require("Elements");
+
+function camelCase(input) {
+    return input.toLowerCase().replace(/-(.)/g, function(match, group1) {
+        return group1.toUpperCase();
+    });
+}
+
+function hyphen(input) {
+    return input.replace(/([a-zA-Z])(?=[A-Z])/g, '$1-').toLowerCase(); 
+}
 
 class RemoteDebug {
 
@@ -61,6 +72,8 @@ class RemoteDebug {
         this.wsServer.onmessage = (client, message) => {
             var obj = JSON.parse(message.data);
             var call = this.methods.get(obj.method);
+
+            console.log("got", obj.method, (call !== undefined));
 
             obj.params = obj.params || {};
 
@@ -194,7 +207,77 @@ class RemoteDebug {
             value: value,
             description: this.getStringValueDescription(value)
         };
-        
+    }
+
+    getCSS(node) {
+        /*let stylesProps = [
+            "width","height","top","left",
+            ].sort();*/
+
+        var canvas = document.getCanvasByIdx(node);
+
+        if (!canvas || !canvas.style) {
+            return null;
+        }
+
+        let stylesProps = [];
+        for (let prop in canvas.style) {
+            stylesProps.push(prop);
+        }
+
+        stylesProps.sort();
+
+        let returnedProps = [];
+        let curcol = 0;
+        let cumulText = '';
+
+        for (let style of stylesProps) {
+            let val = canvas.style[style];
+            if (val == undefined) {
+                continue;
+            }
+
+            style = hyphen(style);
+
+            let text = `${style}: ${val};`;
+            cumulText += text + ' ';
+
+            returnedProps.push({
+                name: style,
+                value: val + '',
+                text: text,
+                disabled: false,
+                implicit: false,
+                range: {
+                    startLine: 0,
+                    startColumn: curcol,
+                    endLine: 0,
+                    endColumn: curcol + text.length
+                }
+            });
+
+            curcol += text.length + 1;
+        }
+
+        cumulText = cumulText.trim();
+
+        return {
+                /*
+                    set the styleSheetId to the canvas idx.
+                    When editing the css, the debugger
+                    is sending us the styleSheedId rather than the nodeID
+                */
+                styleSheetId: node + "",
+                cssProperties: returnedProps,
+                shorthandEntries: [],
+                cssText: cumulText,
+                range: {
+                    startLine: 0,
+                    startColumn: 0,
+                    endLine: 0,
+                    endColumn: cumulText.length
+                }            
+            }
     }
 
     onReady(){};
@@ -356,6 +439,13 @@ _remotedebug.handle('Runtime.evaluate', function(reply, params) {
     Handle highlighting.
     This is called when the user hover on an element in the DOM view.
 */
+_remotedebug.handle('DOM.hideHighlight', function(reply, params) {
+
+    Elements.Node.hideHighlight();
+    
+    return reply({});
+});
+
 _remotedebug.handle('DOM.highlightNode', function(reply, params) {
     var canvas = document.getCanvasByIdx(params.nodeId);
     if (!canvas) {
@@ -382,6 +472,41 @@ _remotedebug.handle('DOM.setNodeValue', function(reply, params) {
     return reply({});
 });
 
+_remotedebug.handle('CSS.getComputedStyleForNode', function(reply, params) {
+    console.log("Get conputedstyle")
+    var canvas = document.getCanvasByIdx(params.nodeId);
+
+    if (!canvas) {
+        console.log("Not found");
+        return reply({});
+    }
+
+    var ret = [];
+    [
+        "width",
+        "height",
+        "marginTop",
+        "marginRight",
+        "marginBottom",
+        "marginLeft",
+        "paddingTop",
+        "paddingRight",
+        "paddingBottom",
+        "paddingLeft"
+    ].forEach(function(prop) {
+        ret.push({
+            name: hyphen(prop),
+            value: "10px"
+        })
+    });
+
+    console.log("send computed style");
+
+    return reply({
+        computedStyle: ret
+    });
+});
+
 /*
     Send "styles" for a specific elements
     (usually called when a user click an element).
@@ -390,73 +515,13 @@ _remotedebug.handle('DOM.setNodeValue', function(reply, params) {
 */
 _remotedebug.handle('CSS.getMatchedStylesForNode', function(reply, params) {
 
-    /*let stylesProps = [
-        "width","height","top","left",
-        ].sort();*/
-
-    var canvas = document.getCanvasByIdx(params.nodeId);
-
-    if (!canvas || !canvas.style) {
+    let styles = _remotedebug.getCSS(params.nodeId)
+    if (!styles) {
         return reply({});
     }
 
-    let stylesProps = [];
-    for (let prop in canvas.style) {
-        stylesProps.push(prop);
-    }
-
-    stylesProps.sort();
-
-    let returnedProps = [];
-    let curcol = 0;
-    let cumulText = '';
-
-    for (let style of stylesProps) {
-        let val = canvas.style[style];
-        if (val == undefined) {
-            continue;
-        }
-
-        let text = `${style}: ${val};`;
-        cumulText += text + ' ';
-
-        returnedProps.push({
-            name: style,
-            value: val + '',
-            text: text,
-            disabled: false,
-            implicit: false,
-            range: {
-                startLine: 0,
-                startColumn: curcol,
-                endLine: 0,
-                endColumn: curcol + text.length
-            }
-        });
-
-        curcol += text.length + 1;
-    }
-
-    cumulText = cumulText.trim();
-
     reply({
-        inlineStyle: {
-            /*
-                set the styleSheetId to the canvas idx.
-                When editing the css, the debugger
-                is sending us the styleSheedId rather than the nodeID
-            */
-            styleSheetId: params.nodeId + "",
-            cssProperties: returnedProps,
-            shorthandEntries: [],
-            cssText: cumulText,
-            range: {
-                startLine: 0,
-                startColumn: 0,
-                endLine: 0,
-                endColumn: cumulText.length
-            }            
-        }
+        inlineStyle: styles
     });
 
 });
@@ -566,10 +631,12 @@ _remotedebug.handle('CSS.setStyleTexts', function(reply, params) {
     }
 
     for (let declaration of ret.stylesheet.rules[0].declarations) {
-        canvas.style[declaration.property] = declaration.value;
+        canvas.style[camelCase(declaration.property)] = declaration.value;
     }
 
-    return reply({});
+    return reply({
+        styles: _remotedebug.getCSS(parseInt(params.edits[0].styleSheetId))
+    });
 });
 
 _remotedebug.onClient = function() {

@@ -255,7 +255,13 @@
             }
 
             highlightCanvas.goto(this);
-            console.log("want to highlight", highlightCanvas);
+        }
+
+        static hideHighlight() {
+            if (highlightCanvas) {
+                highlightCanvas.removeFromParent();
+                highlightCanvas = undefined;
+            }
         }
 
         onload() {}
