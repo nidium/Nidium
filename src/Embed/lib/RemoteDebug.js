@@ -526,6 +526,19 @@ _remotedebug.handle('CSS.getMatchedStylesForNode', function(reply, params) {
 
 });
 
+_remotedebug.handle('CSS.getInlineStylesForNode', function(reply, params) {
+
+    let styles = _remotedebug.getCSS(params.nodeId)
+    if (!styles) {
+        return reply({});
+    }
+
+    reply({
+        inlineStyle: styles
+    });
+
+});
+
 /*
     The debugger asks for the DOM tree.
     This is used to construct the "Elements" tab
@@ -580,10 +593,6 @@ _remotedebug.handle('DOM.getDocument', function(reply, params) {
             for (let attr in root.attributes) {
                 tree.attributes.push(attr, root.attributes[attr] + '')
             }
-        }
-
-        if (root.id) {
-            tree.attributes.push("id", root.id);
         }
 
         //console.log(tree.attributes);

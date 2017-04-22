@@ -30,7 +30,7 @@
                 elem.top    = atop;
                 elem.width  = width;
                 elem.height = height;
-            }, 160, Easing.Exponential.Out, this);
+            }, 200, Easing.Exponential.Out, this);
         }
     }
 
