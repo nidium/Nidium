@@ -631,10 +631,6 @@ public:
 
     bool JS_fireEvent(JSContext *cx, JS::CallArgs &args)
     {
-        if (!m_Events) {
-            return true;
-        }
-
         JS::RootedString name(cx);
         JS::RootedObject evobj(cx);
 
