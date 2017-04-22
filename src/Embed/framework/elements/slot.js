@@ -6,6 +6,8 @@
 
 {
     const Elements = require("Elements");
+    const { StyleContainer, ElementStyle } = require("ElementsStyles");
 
-    Elements.slot = class extends Elements.Node { }
+    Elements.slot = class extends Elements.Element { }
+    ElementStyle.Inherit(Elements.slot);
 }
