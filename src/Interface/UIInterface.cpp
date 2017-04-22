@@ -377,7 +377,7 @@ int UIInterface::HandleEvents(void *arg)
     }
 
     ttfps++;
-    return 16;
+    return 8;
 }
 
 bool UIInterface::isContextReady()
