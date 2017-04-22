@@ -90,7 +90,7 @@ class Navigator extends Elements.Element {
         var currScene = this.history.pop();
         currScene.opacity = __opacity_hi__;
 
-        setAnimation(
+        var anim = setAnimation(
             c => {
                 c.left = window.innerWidth;
                 c.opacity = __opacity_lo__;
@@ -98,14 +98,17 @@ class Navigator extends Elements.Element {
             __back_duration__,
             Easing.Exponential.Out,
             currScene
-        )(() => {
+        );
+
+        anim.onFinish = () => {
             currScene.removeFromParent();
             callback.call(this);
-        });
+        };
 
         var prevScene = this.history[this.history.length - 1];
         prevScene.left = -window.innerWidth;
         prevScene.opacity = __opacity_lo__;
+
         setAnimation(
             c => {
                 c.left = 0;

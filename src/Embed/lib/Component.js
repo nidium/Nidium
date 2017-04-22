@@ -47,7 +47,7 @@ class Component extends Elements.Element {
             XXX : This should be refactored to avoid code duplication with element.js
         */
         const tmp = [];
-        const layout    = this.constructor[s_ComponentShadow].layout;
+        const layout = this.constructor[s_ComponentShadow].layout;
 
         // Apply style defined on <layout> to the component
         const classes = layout.attributes.class;

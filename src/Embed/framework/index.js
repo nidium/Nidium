@@ -33,8 +33,9 @@ load("embed://framework/elements/radio.js");
 
 
 /*
- * Grid layout
+ * Grid & layout
  */
+load("embed://framework/elements/overlay.js");
 load("embed://framework/elements/grid/grid.js");
 load("embed://framework/elements/grid/row.js");
 load("embed://framework/elements/grid/col.js");

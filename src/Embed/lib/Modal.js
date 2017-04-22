@@ -26,7 +26,6 @@ class Modal extends Elements.Element {
         });
 
         this.addInnerModal();
-
     }
 
     addInnerModal() {
@@ -55,20 +54,29 @@ class Modal extends Elements.Element {
         this.innerModal.bringToFront();
 
         this._opening = true;
-        this.anim = setAnimation((s) => {
-            s.opacity = 0.8;
-        }, 1200, Easing.Exponential.Out, this.style);
+        this.anim = setAnimation(
+            s => {
+                s.opacity = 0.8;
+            },
+            1200,
+            Easing.Exponential.Out,
+            this.style
+        );
 
         this.anim.onFinish = () => {
             this._opening = false;
             console.log("opened");
         };
 
-        setAnimation((s) => {
-            s.top = 20;
-            s.opacity = 1.0;
-        }, 600, Easing.Exponential.Out, this.innerModal.style);
-
+        setAnimation(
+            s => {
+                s.top = 20;
+                s.opacity = 1.0;
+            },
+            600,
+            Easing.Exponential.Out,
+            this.innerModal.style
+        );
     }
 
     close() {
@@ -80,9 +88,14 @@ class Modal extends Elements.Element {
         }
 
         this._closing = true;
-        this.anim = setAnimation((s) => {
-            s.opacity = 0;
-        }, 1200, Easing.Exponential.Out, this.style);
+        this.anim = setAnimation(
+            s => {
+                s.opacity = 0;
+            },
+            1200,
+            Easing.Exponential.Out,
+            this.style
+        );
 
         this.anim.onFinish = () => {
             this._closing = false;
@@ -90,11 +103,15 @@ class Modal extends Elements.Element {
             console.log("closed");
         };
 
-        setAnimation((s) => {
-            s.top = window.innerHeight;
-            s.opacity = 1.0;
-        }, 600, Easing.Exponential.Out, this.innerModal.style);
-
+        setAnimation(
+            s => {
+                s.top = window.innerHeight;
+                s.opacity = 1.0;
+            },
+            600,
+            Easing.Exponential.Out,
+            this.innerModal.style
+        );
     }
 }
 
