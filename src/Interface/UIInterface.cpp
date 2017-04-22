@@ -125,7 +125,9 @@ bool UIInterface::createWindow(int width, int height)
 
 void UIInterface::handleEvent(const SDL_Event *event)
 {
+    float pixelRatio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
     JSWindow *window = NULL;
+
     if (this->isContextReady()) {
         this->makeMainGLCurrent();
         window = JSWindow::GetObject(this->m_NidiumCtx->getNJS());
@@ -159,7 +161,6 @@ void UIInterface::handleEvent(const SDL_Event *event)
             std::shared_ptr<InputTouch> touch = inputHandler->getKnownTouch(touchID);
 
             this->getScreenSize(&width, &height);
-            float pixelRatio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
             /*
                 The positions returned by SDL are relative to the view. It's
@@ -217,9 +218,20 @@ void UIInterface::handleEvent(const SDL_Event *event)
             break;
         case SDL_MOUSEMOTION:
             if (window) {
-                window->mouseMove(event->motion.x,
-                                  event->motion.y - NIDIUM_TITLEBAR_HEIGHT,
-                                  event->motion.xrel, event->motion.yrel);
+                int x = event->motion.x;
+                int y = event->motion.y;
+                int xrel = event->motion.xrel;
+                int yrel = event->motion.yrel;
+
+#ifdef __ANDROID__
+                // On android SDL sends the mouse position in physical
+                // pixel instead of logicial pixels like other OS
+                x /= pixelRatio;
+                y /= pixelRatio;
+                xrel /= pixelRatio;
+                yrel /= pixelRatio;
+#endif
+                window->mouseMove(x, y - NIDIUM_TITLEBAR_HEIGHT, xrel, yrel);
             }
             break;
         case SDL_MOUSEWHEEL: {
@@ -245,8 +257,16 @@ void UIInterface::handleEvent(const SDL_Event *event)
         case SDL_MOUSEBUTTONUP:
         case SDL_MOUSEBUTTONDOWN:
             if (window) {
-                window->mouseClick(event->button.x,
-                                   event->button.y - NIDIUM_TITLEBAR_HEIGHT,
+                int x = event->motion.x;
+                int y = event->motion.y;
+
+#ifdef __ANDROID__
+                // On android SDL sends the mouse position in physical
+                // pixel instead of logicial pixels like other OS
+                x /= pixelRatio;
+                y /= pixelRatio;
+#endif
+                window->mouseClick(x, y - NIDIUM_TITLEBAR_HEIGHT,
                                    event->button.state, event->button.button,
                                    event->button.clicks);
             }
