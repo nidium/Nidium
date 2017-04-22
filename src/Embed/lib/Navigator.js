@@ -20,6 +20,7 @@ class Navigator extends Elements.Element {
         this.history = [];
 
         this.style.flexGrow = 1;
+        this.style.overflow = false;
     }
 
     set(routes) {

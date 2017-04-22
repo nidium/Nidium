@@ -150,7 +150,7 @@
                     l = list.length,
                     max = Math.min(this.currItem + 2*this.page_count, l);
 
-                // console.log("load more", this.currItem + '->' + max, "items");
+                console.log("load more", this.currItem + '->' + max, "items");
 
                 for (var i=this.currItem; i<max; i++) {
                     let item = list[i];

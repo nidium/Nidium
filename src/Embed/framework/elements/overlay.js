@@ -23,9 +23,12 @@
             this.finalOpacity = a.opacity || 0.8;
         }
 
-        show() {
+        show(opacity) {
+            var opacity = opacity || this.finalOpacity;
+
             if (this.anim) this.anim.finish();
-            this.style.opacity = this.finalOpacity;
+            this.style.opacity = opacity;
+            console.log(opacity)
             this._opening = false;
             this._closing = false;
         }
