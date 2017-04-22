@@ -420,8 +420,10 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
     m_Next   = NULL;
     m_Prev   = NULL;
 
+    /*
     Args arg;
     this->fireEventSync<CanvasHandler>(UNMOUNT_EVENT, arg);
+    */
 }
 
 /*
