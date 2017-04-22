@@ -11,7 +11,6 @@
 #include <string.h>
 #include <vector>
 #include <set>
-#include <mutex>
 #include <memory>
 
 #include "Graphics/Geometry.h"
@@ -193,7 +192,11 @@ private:
 class InputHandler
 {
 public:
-    void pushEvent(InputEvent &ev);
+    void pushEvent(InputEvent &ev)
+    {
+        m_PendingInputEvents->push_back(std::move(ev));
+    }
+
     void clear();
 
     std::vector<InputEvent> *getEvents() const
@@ -266,8 +269,6 @@ private:
     std::vector<Graphics::CanvasHandler *> m_CurrentTouchedHandler {};
     Graphics::CanvasHandler *m_CurrentClickedHandler = nullptr;
     Graphics::CanvasHandler *m_CurrentScrollHandler  = nullptr;
-
-    std::mutex m_PushEventLock;
 };
 
 }
