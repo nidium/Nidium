@@ -41,6 +41,18 @@ struct JSEventListener
     JSEventListener *prev;
 };
 
+class JSEvent : public ClassMapper<JSEvent>
+{
+public:
+    static void RegisterObject(JSContext *cx);
+    static JSFunctionSpec *ListMethods();
+protected:
+
+    NIDIUM_DECL_JSCALL(stopPropagation);
+    NIDIUM_DECL_JSCALL(forcePropagation);
+    NIDIUM_DECL_JSCALL(preventDefault);
+};
+
 class JSEvents
 {
 public:
