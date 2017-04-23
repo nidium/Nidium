@@ -16,10 +16,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <ape_netlib.h>
+#include <js/Conversions.h>
 
+#include "Binding/JSUtils.h"
 #include "IO/Stream.h"
 #include "Binding/JSUtils.h"
 #include "Binding/ThreadLocalContext.h"
+
 
 using Nidium::Core::Path;
 using Nidium::Core::SharedMessages;

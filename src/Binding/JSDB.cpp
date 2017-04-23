@@ -10,6 +10,7 @@
 #include <js/StructuredClone.h>
 
 #include "Core/Path.h"
+#include "Binding/NidiumJS.h"
 
 namespace Nidium {
 namespace Binding {

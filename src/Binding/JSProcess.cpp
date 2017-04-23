@@ -12,6 +12,7 @@
 
 #include "Core/Path.h"
 #include "Binding/JSUtils.h"
+#include "Binding/NidiumJS.h"
 
 using Nidium::Core::Path;
 using Nidium::Binding::JSUtils;

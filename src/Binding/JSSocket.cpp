@@ -15,8 +15,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <js/Conversions.h>
 
 #include "Binding/JSUtils.h"
+
 
 namespace Nidium {
 namespace Binding {

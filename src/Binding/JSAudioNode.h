@@ -11,6 +11,7 @@
 #include "AV/Video.h"
 #include "Binding/JSAV.h"
 #include "Binding/JSAudioContext.h"
+#include "Binding/ClassMapperWithEvents.h"
 
 #include <vector>
 

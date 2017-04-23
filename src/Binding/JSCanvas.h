@@ -6,7 +6,7 @@
 #ifndef binding_jscanvas_h__
 #define binding_jscanvas_h__
 
-#include "Binding/ClassMapper.h"
+#include "Binding/ClassMapperWithEvents.h"
 #include "Core/Messages.h"
 
 namespace Nidium {

@@ -12,6 +12,7 @@
 
 #include "Frontend/Assets.h"
 #include "Binding/JSStream.h"
+#include "Binding/NidiumJS.h"
 #include <vector>
 #include <utility>
 

@@ -7,7 +7,7 @@
 #define binding_jswindow_h__
 
 #include "Frontend/NML.h"
-#include "Binding/ClassMapper.h"
+#include "Binding/ClassMapperWithEvents.h"
 #include "Binding/JSGlobal.h"
 
 namespace Nidium {
