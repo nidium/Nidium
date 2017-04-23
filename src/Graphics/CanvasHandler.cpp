@@ -459,11 +459,6 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
     }
 
     /*
-        |evlist| is the list of event regarding |this| canvas.
-    */
-    ape_pool_list_t *evlist = NULL;
-
-    /*
         Loop through all new events
     */
     for (auto &ev : *eventList) {
@@ -474,26 +469,8 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
             */
             ev.inc();
 
-            if (!evlist) {
-                evlist = ape_new_pool_list(0, 4);
-            }
-
-            /* 
-               Dupplicate the event and set |this|
-               as the handler of the new event 
-            */
-            InputEvent *dup = ev.dupWithHandler(this);
-
-            ape_pool_push(evlist, dup);
+            ev.addHandler({this, ev.getDepth()});
         }
-    }
-
-
-    if (evlist) {
-        /*
-            m_NidiumContext->m_CanvasEventsCanvas is a set of all lists
-        */
-        ape_pool_push(&m_NidiumContext->m_CanvasEventsCanvas, evlist);
     }
 }
 
@@ -1101,7 +1078,7 @@ void CanvasHandler::onInputEvent(InputEvent *ev)
 
     switch (ev->getType()) {
         case InputEvent::kTouchScroll_type: {
-            int consumed = ev->m_Origin->m_data[5];
+            int consumed = ev->m_data[5];
 
             if (consumed) {
                 InputEvent::ScrollState state
@@ -1139,7 +1116,7 @@ void CanvasHandler::onInputEvent(InputEvent *ev)
             args[7].set(ev->m_data[4]); // state
 
             // Mark the event as consumed
-            ev->m_Origin->m_data[5] = 1;
+            ev->m_data[5] = 1;
 
             scrollHandler->fireEvent<CanvasHandler>(CanvasHandler::SCROLL_EVENT, args);
             scrollHandler->scroll(ev->m_data[0], ev->m_data[1]);
@@ -1249,7 +1226,7 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                 break;
             case InputEvent::kScroll_type: {
             case InputEvent::kTouchScroll_type:
-                if (!handler->isScrollable() || ev->m_Origin->m_data[5] /* consumed */) {
+                if (!handler->isScrollable() || ev->m_data[5] /* consumed */) {
                     continue;
                 }
 
@@ -1262,7 +1239,7 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                 /*
                     Set a flag on the original event to mark it as consumed
                 */
-                ev->m_Origin->m_data[5] = 1;
+                ev->m_data[5] = 1;
 
                 arg[3].set(ev->m_data[0]); // scrollX
                 arg[4].set(ev->m_data[1]); // scrollY
