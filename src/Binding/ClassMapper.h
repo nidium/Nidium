@@ -204,7 +204,7 @@ public:
     /**
      *  Create an instance of an object (that is, not from the JS)
      */
-    static inline JSObject *CreateObject(JSContext *cx, T *obj = nullptr)
+    static inline JSObject *CreateObject(JSContext *cx, T *obj)
     {
 #ifdef DEBUG
         JSClass *jsclass = T::GetJSClass();
@@ -219,14 +219,14 @@ public:
                 JS_NewObjectWithGivenProto(cx,
                 T::GetJSClass(), proto));
 
-        // Create a default object if none is given
-        if (obj == nullptr) {
-            obj = new T();
-        }
-
         ClassMapper<T>::AssociateObject(cx, obj, ret);
 
         return ret;
+    }
+
+    static inline JSObject *CreateObject(JSContext *cx)
+    {
+        return CreateObject(cx, new T());
     }
 
     void setUniqueInstance()
