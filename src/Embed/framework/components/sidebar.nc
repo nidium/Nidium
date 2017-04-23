@@ -37,6 +37,7 @@
                 this.style.minWidth = 0.5*this.sidewidth;
                 this.scrollableY = true;
 
+                this._opened = false;
                 this.style.display = "none";
             }
 
@@ -71,9 +72,9 @@
 
             setEvents() {
                 document.canvas.on("mousedown", (e) => {
-                    this._opened = true;
                     this._start = true;
-                    this._moving = false;
+                    this._slided = false;
+                    this._enabled = true;
 
                     this._dat = +new Date();
 
@@ -84,50 +85,50 @@
                 });
 
                 document.canvas.on("mousemove", (e) => {
-                    if (!this._start) return false;
+                    if (!this._start || this._opened) return false;
 
                     let dx = e.x - this._event.x;
                     let dy = e.y - this._event.y;
 
-                    if (Math.abs(dy) > 30) {
-                        this._moving = false;
-                        this._start = false;
+                    let ox = Math.abs(e.xrel);
+                    let oy = Math.abs(e.yrel);
 
-                        this._event = {
-                            x : e.x,
-                            y : e.y
-                        };
-                    } else if (Math.abs(dx) > 30) {
-                        this._moving = true;
+                    if (!this._slided && oy>1 && ox<=1) {
+                        this._enabled = false;
+                    }
+
+                    if (this._enabled && Math.abs(dx)>30) {
+                        this._enabled = true;
+                        this._slided = true;
                         this.slide(dx);
                     }
                 });
 
                 document.canvas.on("mouseup", (e) => {
-                    if (!this._start && !this._opened) return false;
-
-                    this._start = false;
-                    this._opened = false;
-
-                    var time = (+new Date()) - this._dat;
+                    if (!this._start || !this._slided) return false;
 
                     let dx = e.x - this._event.x;
+                    let time = (+new Date()) - this._dat;
 
-                    if (time>160) {
-                        if (dx < 0.70*this.sidewidth) {
-                            this.close();
+                    if (this._slided) {
+                        if (time>160) {
+                            if (dx < 0.70*this.sidewidth) {
+                                this.close();
+                            } else {
+                                this.open();
+                            }
                         } else {
-                            this.open();
-                        }
-                    } else {
-                        if (dx>20) {
-                            this.open();
-                        } else {
-                            this.close();
+                            if (dx>20) {
+                                this.open();
+                            } else {
+                                this.close();
+                            }
                         }
                     }
 
-                    this._moving = false;
+                    this._start = false;
+                    this._slided = false;
+                    this._enabled = false;
                 });
             }
 
@@ -153,7 +154,9 @@
 
                 this.style.display = "flex";
 
-                setAnimation(
+                this._opened = true;
+
+                this.anim = setAnimation(
                     (side, view) => {
                         //side.width = this.sidewidth;
                         side.opacity = __opacity_hi__;
@@ -169,6 +172,8 @@
 
             close() {
                 var side = this;
+
+                this._opened = false;
 
                 this.anim = setAnimation(
                     (side, view) => {
