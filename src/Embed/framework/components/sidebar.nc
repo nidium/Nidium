@@ -59,15 +59,14 @@
                     this.close();
                 });
 
-                this.view.add(overlay);
-
                 this.view.__overlay__ = overlay;
-
                 this.view.__overlay__.style.coating = 40;
                 this.view.__overlay__.style.shadowBlur = 20;
                 this.view.__overlay__.style.shadowColor = "rgba(0, 0, 0, 0.82)";
                 this.view.__overlay__.style.shadowOffsetX = -12;
                 this.view.__overlay__.style.shadowOffsetY = 0;
+                this.view.add(overlay);
+
             }
 
             setEvents() {
@@ -100,7 +99,7 @@
                         this._enabled = false;
                     }
 
-                    if (Math.abs(dx)>30) {
+                    if (Math.abs(dx)>50) {
                         this._enabled = true;
                     }
 
@@ -181,7 +180,7 @@
                 this.view.__overlay__.open(__next_duration__);
             }
 
-            close() {
+            close(callback=function(){}) {
                 var side = this;
 
                 this._opened = false;
@@ -199,6 +198,7 @@
 
                 this.anim.onFinish = () => {
                     this.style.display = "none";
+                    callback.call(this);
                 };
 
                 this.view.__overlay__.close(__back_duration__);

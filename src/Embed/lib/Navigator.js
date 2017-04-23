@@ -21,6 +21,8 @@ class Navigator extends Elements.Element {
 
         this.style.flexGrow = 1;
         this.style.overflow = false;
+
+        this.parentWidth = window.innerWidth;
     }
 
     set(routes) {
@@ -31,19 +33,89 @@ class Navigator extends Elements.Element {
         }
     }
 
-    go(url, params) {
+    popHistory(url) {
+        var pos = -1, len = this.history.length, scene = null;
+
+        console.log("searching for url", url);
+
+        for (var i = 0; i < len; i++) {
+            var s = this.history[i];
+            console.log(i, "- seek scene", s.url);
+            if (s.url == url) {
+                scene = s;
+                pos = i;
+                console.log(i, "--> found scene with url", s.url);
+                break;
+            }
+        }
+
+        /* remove trailing scenes */
+        if (pos > -1) {
+            for (var i = pos+1; i < len; i++) {
+                var s = this.history[i];
+                s.emit("destroy", {});
+                s.removeFromParent();
+                console.log(i, "* removing scene with url", s.url);
+            }
+
+            this.dumpHistory();
+            console.log("slicing", 0, pos+1);
+            this.history.splice(pos+1, len-(pos+1));
+        }
+
+        console.log("returning scene", scene ? scene.url : null);
+        return scene;
+    }
+
+    getCurrentScene() {
+        return this.history[this.history.length - 1];
+    }
+
+    preload(url, params) {
         var component = this.routes[url];
         if (!component) return false;
 
-        for (var i = 0, len = this.history.length; i < len; i++) {
-            // if ()
-        }
-
         var scene = new component(params);
+
         scene.url = url;
         scene.navigator = this;
 
-        this.push(scene);
+        return scene;
+    }
+
+    /*
+     * load without animation
+     */
+    load(url, params) {
+        var scene = this.popHistory(url);
+
+        if (scene) {
+            console.log("found scene", scene.url);
+            this.showScene(scene);
+        } else {
+            scene = this.preload(url, params);
+            this.push(scene);
+        }
+
+        this.dumpHistory();
+    }
+
+    /*
+     * load with default animation
+     */
+    go(url, params) {
+        var scene = this.popHistory(url);
+
+        if (scene) {
+            console.log("found scene", scene.url);
+            this.showScene(scene);
+            this.dumpHistory();
+        } else {
+            scene = this.preload(url, params);
+            this.push(scene, __next_duration__);
+        }
+
+        this.dumpHistory();
     }
 
     reset() {
@@ -51,31 +123,100 @@ class Navigator extends Elements.Element {
         this.history = [];
     }
 
-    push(nextScene) {
-        if (this.history.length > 0) {
-            var currScene = this.history[this.history.length - 1];
-            currScene.opacity = __opacity_hi__;
-            setAnimation(
-                c => {
-                    c.left = -window.innerWidth;
-                    c.opacity = __opacity_lo__;
-                },
-                __next_duration__,
-                Easing.Exponential.Out,
-                currScene
-            );
+    dumpHistory() {
+        var pos = -1, len = this.history.length;
 
-            nextScene.left = window.innerWidth;
-            nextScene.opacity = __opacity_lo__;
-            setAnimation(
-                c => {
-                    c.left = 0;
-                    c.opacity = __opacity_hi__;
-                },
-                __next_duration__,
-                Easing.Exponential.Out,
-                nextScene
-            );
+        console.log("-----------");
+        for (var i = 0; i < len; i++) {
+            var s = this.history[i];
+            console.log(s.url);
+        }
+    }
+
+    showScene(scene) {
+        scene.show();
+        scene.style.left = 0;
+        scene.opacity = __opacity_hi__;
+    }
+
+    hideScene(scene) {
+        scene.style.left = -this.parentWidth;
+        scene.opacity = __opacity_lo__;
+        scene.hide();
+    }
+
+    slideToLeft(scene, duration, callback=function(){}) {
+        scene.opacity = __opacity_hi__;
+
+        var anim = setAnimation(
+            c => {
+                c.left = -this.parentWidth;
+                c.opacity = __opacity_lo__;
+            },
+            duration,
+            Easing.Exponential.Out,
+            scene
+        );
+
+        anim.onFinish = () => {
+            this.hideScene(scene);
+            callback.call(this);
+        };
+    }
+
+    slideFromRight(scene, duration, callback=function(){}) {
+        this.showScene(scene);
+
+        scene.left = this.parentWidth;
+        scene.opacity = __opacity_lo__;
+
+        var anim = setAnimation(
+            c => {
+                c.left = 0;
+                c.opacity = __opacity_hi__;
+            },
+            duration,
+            Easing.Exponential.Out,
+            scene
+        );
+
+        anim.onFinish = () => {
+            callback.call(this);
+        };
+    }
+
+    slideFromLeft(scene, duration, callback=function(){}) {
+        this.showScene(scene);
+
+        scene.left = -this.parentWidth;
+        scene.opacity = __opacity_lo__;
+
+        var anim = setAnimation(
+            c => {
+                c.left = 0;
+                c.opacity = __opacity_hi__;
+            },
+            __back_duration__,
+            Easing.Exponential.Out,
+            scene
+        );
+
+        anim.onFinish = () => {
+            callback.call(this);
+        };
+    }
+
+    push(nextScene, duration = 0) {
+        if (this.history.length > 0) {
+            var currScene = this.getCurrentScene();
+
+            if (duration > 0) {
+                this.slideToLeft(currScene, duration);
+                this.slideFromRight(nextScene, duration);
+            } else {
+                this.hideScene(currScene);
+                this.showScene(nextScene);
+            }
         }
 
         this.history.push(nextScene);
@@ -92,7 +233,7 @@ class Navigator extends Elements.Element {
 
         var anim = setAnimation(
             c => {
-                c.left = window.innerWidth;
+                c.left = this.parentWidth;
                 c.opacity = __opacity_lo__;
             },
             __back_duration__,
@@ -101,23 +242,15 @@ class Navigator extends Elements.Element {
         );
 
         anim.onFinish = () => {
+            currScene.emit("destroy", {});
             currScene.removeFromParent();
             callback.call(this);
         };
 
         var prevScene = this.history[this.history.length - 1];
-        prevScene.left = -window.innerWidth;
-        prevScene.opacity = __opacity_lo__;
+        this.slideFromLeft(prevScene, __back_duration__);
 
-        setAnimation(
-            c => {
-                c.left = 0;
-                c.opacity = __opacity_hi__;
-            },
-            __back_duration__,
-            Easing.Exponential.Out,
-            prevScene
-        );
+        this.dumpHistory();
     }
 }
 
