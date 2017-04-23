@@ -247,8 +247,8 @@ void Context::createDebugCanvas()
     static const int DEBUG_HEIGHT = 60;
     m_DebugHandler = new CanvasHandler(NAN, NAN, this);
     Canvas2DContext *ctx2d
-        = new Canvas2DContext(m_DebugHandler, NAN,
-                              NAN, NULL, false);
+        = new Canvas2DContext(m_DebugHandler, 1,
+                              1, NULL, false);
     m_DebugHandler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
 
@@ -302,8 +302,8 @@ void Context::postDraw()
                      m_Stats.lastdifftime / 1000000LL);
         s->drawTextf(5, 38, "Time : %lldns",
                      m_Stats.lastmeasuredtime - m_Stats.starttime);
-        s->drawTextf(5, 51, "FPS  : %.2f (%.2f) (%d)", m_Stats.fps,
-                     m_Stats.sampleminfps, m_ComposedCanvasCount);
+        s->drawTextf(5, 51, "FPS  : %.2f (%d/%d/%d)", m_Stats.fps,
+                     m_Stats.composed, m_Stats.repaint, m_Stats.resize);
 
         s->setLineWidth(0.0);
 
@@ -434,9 +434,9 @@ void Context::frame(bool draw)
     /* We draw on the UI fbo */
     glBindFramebuffer(GL_FRAMEBUFFER, m_UI->getFBO());
 
-    m_ComposedCanvasCount = 0;
+    m_Stats.composed = 0;
     for (auto &com : compList) {
-        m_ComposedCanvasCount++;
+        m_Stats.composed++;
         com.handler->m_Context->preComposeOn(rootctx, com.left,
             com.top, com.opacity, com.zoom, com.needClip ? &com.clip : nullptr);
     }
@@ -447,6 +447,9 @@ void Context::frame(bool draw)
     m_UI->makeMainGLCurrent();
     /* Skia context is dirty after a call to layerize */
     (static_cast<Canvas2DContext *>(m_RootHandler->getContext()))->getSkiaContext()->resetGrBackendContext();
+
+    m_Stats.repaint = 0;
+    m_Stats.resize  = 0;
 }
 
 void NidiumContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)

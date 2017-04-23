@@ -231,6 +231,8 @@ void CanvasHandler::deviceSetSize(float width, float height)
     if (m_Context) {
         m_Context->setSize(width + (p_Coating * 2),
                            height + (p_Coating * 2));
+
+        m_NidiumContext->statsIncResize();
     }
 
     Args arg;
@@ -994,6 +996,8 @@ bool CanvasHandler::checkLoaded(bool async)
 void CanvasHandler::paint()
 {
     Args arg;
+    m_NidiumContext->statsIncRepaint();
+
     this->fireEventSync<CanvasHandler>(PAINT_EVENT, arg);
 }
 

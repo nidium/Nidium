@@ -1868,6 +1868,8 @@ Canvas2DContext::Canvas2DContext(CanvasHandler *handler,
 
     m_Skia = SkiaContext::CreateWithTextureBackend(ui->getNidiumContext(), width, height);
 
+    assert(m_Skia != nullptr);
+
     /* Vertex buffers were unbound by parent constructor */
     m_Skia->resetGrBackendContext(kVertex_GrGLBackendState);
 }
@@ -1890,6 +1892,10 @@ Canvas2DContext::Canvas2DContext(
         m_Skia = SkiaContext::CreateWithTextureBackend(ui->getNidiumContext(), width, height);
     }
 
+    assert(m_Skia != nullptr);
+    if (m_Skia == nullptr) {
+        nlogf("ERROR");
+    }
     /* Vertex buffers were unbound by parent constructor */
     m_Skia->resetGrBackendContext(kVertex_GrGLBackendState);
 }

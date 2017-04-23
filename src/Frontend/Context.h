@@ -216,8 +216,19 @@ private:
         float fps;
         float minfps;
         float sampleminfps;
+
+        int repaint = 0;
+        int resize = 0;
+        int composed = 0;
     } m_Stats;
 
+    void statsIncRepaint() {
+        m_Stats.repaint++;
+    }
+
+    void statsIncResize() {
+        m_Stats.resize++;
+    }
 
     void forceLinking();
     void loadNativeObjects(int width, int height);
@@ -237,8 +248,6 @@ private:
     ape_pool_list_t m_CanvasEventsCanvas;
 
     Graphics::CanvasHandler *m_CurrentClickedHandler;
-
-    uint32_t m_ComposedCanvasCount = 0;
 
     void triggerEvents();
 
