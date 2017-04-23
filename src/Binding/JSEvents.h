@@ -10,14 +10,14 @@
 
 #include "Binding/NidiumJS.h"
 #include "Binding/ThreadLocalContext.h"
-
+#include "Binding/ClassMapper.h"
 
 namespace Nidium {
 namespace Binding {
 
-struct JSEvent
+struct JSEventListener
 {
-    JSEvent(JSContext *cx, JS::HandleValue func) : m_Function(func)
+    JSEventListener(JSContext *cx, JS::HandleValue func) : m_Function(func)
     {
         m_Once = false;
         next = prev = NULL;
@@ -27,7 +27,7 @@ struct JSEvent
         NidiumLocalContext::RootObjectUntilShutdown(m_Function);
     }
 
-    ~JSEvent()
+    ~JSEventListener()
     {
         NidiumLocalContext::UnrootObject(m_Function);
     }
@@ -37,8 +37,8 @@ struct JSEvent
 
     bool m_Once;
 
-    JSEvent *next;
-    JSEvent *prev;
+    JSEventListener *next;
+    JSEventListener *prev;
 };
 
 class JSEvents
@@ -56,7 +56,7 @@ public:
 
     ~JSEvents()
     {
-        JSEvent *ev, *tmpEv;
+        JSEventListener *ev, *tmpEv;
         for (ev = m_Head; ev != NULL;) {
             tmpEv = ev->next;
             delete ev;
@@ -66,7 +66,7 @@ public:
         free(m_Name);
     }
 
-    void add(JSEvent *ev)
+    void add(JSEventListener *ev)
     {
         ev->prev = m_Queue;
         ev->next = NULL;
@@ -84,7 +84,7 @@ public:
 
     bool fire(JSContext *cx, JS::HandleValue evobj, JS::HandleObject obj)
     {
-        JSEvent *ev;
+        JSEventListener *ev;
         m_IsFiring = true;
 
         JS::RootedObject thisobj(cx, obj);
@@ -136,7 +136,7 @@ public:
 
     void remove(JS::HandleValue func)
     {
-        JSEvent *ev;
+        JSEventListener *ev;
         for (ev = m_Head; ev != nullptr;) {
             if (ev->m_Function.address() == func.address()) {
                 if (ev->prev) {
@@ -166,12 +166,12 @@ public:
         }
     }
 
-    JSEvent *m_Head;
-    JSEvent *m_Queue;
+    JSEventListener *m_Head;
+    JSEventListener *m_Queue;
     char *m_Name;
 
 private:
-    JSEvent *m_TmpEv;
+    JSEventListener *m_TmpEv;
     bool m_IsFiring;
     bool m_DeleteAfterFire;
 };

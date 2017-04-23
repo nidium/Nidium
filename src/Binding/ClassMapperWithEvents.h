@@ -73,7 +73,7 @@ public:
 
         JSAutoByteString cname(cx, name);
 
-        this->addJSEvent(cname.ptr(), args[1]);
+        this->addJSEventListener(cname.ptr(), args[1]);
 
         return true;
     }
@@ -273,8 +273,8 @@ protected:
         */
         m_Events->setAutoDelete(false);
     }
-
-    void addJSEvent(char *name, JS::HandleValue func)
+    
+    void addJSEventListener(char *name, JS::HandleValue func)
     {
         initEvents();
 
@@ -284,7 +284,7 @@ protected:
             m_Events->set(name, events);
         }
 
-        JSEvent *ev = new JSEvent(m_Cx, func);
+        JSEventListener *ev = new JSEventListener(m_Cx, func);
         events->add(ev);
     }
 
