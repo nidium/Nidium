@@ -469,7 +469,11 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
             */
             ev.inc();
 
-            ev.addHandler({this, ev.getDepth()});
+            InputEvent::CanvasEventHandler evHandler(this, ev.getUnderneathCanvas(), ev.getDepth());
+
+            ev.addHandler(evHandler);
+
+            ev.m_PassThroughCanvas = this;
         }
     }
 }

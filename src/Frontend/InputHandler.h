@@ -62,6 +62,15 @@ public:
         kScrollState_end
     };
 
+    struct CanvasEventHandler {
+        Graphics::CanvasHandler *handler;
+        Graphics::CanvasHandler *underneath;
+        int depth;
+
+        CanvasEventHandler(Graphics::CanvasHandler *handler, Graphics::CanvasHandler *underneath, int depth)
+            : handler(handler), underneath(underneath), depth(depth) { }
+    };
+
     InputEvent(Type type,
                int ix,
                int iy,
@@ -77,12 +86,12 @@ public:
         }
     }
 
-    void addHandler(std::pair<Graphics::CanvasHandler *, int> pair)
+    void addHandler(CanvasEventHandler &evHandler)
     {
-        m_Handlers.push_back(pair);
+        m_Handlers.push_back(std::move(evHandler));
     }
 
-    std::vector<std::pair<Graphics::CanvasHandler *, int>> *getHandlers()
+    std::vector<CanvasEventHandler> *getHandlers()
     {
         return &m_Handlers;
     }
@@ -141,7 +150,7 @@ public:
 private:
     Type m_Type;
     std::shared_ptr<InputTouch> m_Touch;
-	std::vector<std::pair<Graphics::CanvasHandler *, int>> m_Handlers;
+	std::vector<CanvasEventHandler> m_Handlers;
 };
 
 class InputTouch

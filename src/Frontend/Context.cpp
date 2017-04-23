@@ -449,12 +449,13 @@ void Context::frame(bool draw)
 void Context::triggerEvents()
 {
     for (auto &event : *m_InputHandler.getEvents()) {
-        for (auto &pair : *event.getHandlers()) {
+        for (auto &evHandler : *event.getHandlers()) {
             /*
                 Fire the event only on the top most element
             */
-            if (pair.second == event.getDepth()) {
-                pair.first->_handleEvent(&event);
+            if (evHandler.depth == event.getDepth()) {
+                event.m_PassThroughCanvas = evHandler.underneath;
+                evHandler.handler->_handleEvent(&event);
             }
         }
     }
