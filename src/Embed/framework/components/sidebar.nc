@@ -72,9 +72,11 @@
 
             setEvents() {
                 document.canvas.on("mousedown", (e) => {
+                    if (this._opened) return;
+
                     this._start = true;
                     this._slided = false;
-                    this._enabled = true;
+                    this._enabled = false;
 
                     this._dat = +new Date();
 
@@ -93,19 +95,28 @@
                     let ox = Math.abs(e.xrel);
                     let oy = Math.abs(e.yrel);
 
+
                     if (!this._slided && oy>1 && ox<=1) {
                         this._enabled = false;
                     }
 
-                    if (this._enabled && Math.abs(dx)>30) {
+                    if (Math.abs(dx)>30) {
                         this._enabled = true;
+                    }
+
+                    if (this._enabled) {
                         this._slided = true;
                         this.slide(dx);
                     }
                 });
 
                 document.canvas.on("mouseup", (e) => {
-                    if (!this._start || !this._slided) return false;
+                    if (!this._start || !this._slided) {
+                        this._start = false;
+                        this._slided = false;
+                        this._enabled = false
+                        return false;
+                    }
 
                     let dx = e.x - this._event.x;
                     let time = (+new Date()) - this._dat;
@@ -128,7 +139,7 @@
 
                     this._start = false;
                     this._slided = false;
-                    this._enabled = false;
+                    this._enabled = false
                 });
             }
 
