@@ -132,9 +132,9 @@ void System::print(const char *buf)
 
 void System::showVirtualKeyboard(int flags)
 {
-    static jnipp::StaticMethod<void, jint> SetKeyboardOptions(m_NidroidClass, "SetKeyboardOptions", "(I)V");
+    jnipp::Method<void, int> setKeyboardOptions(m_NidroidClass, "setKeyboardOptions", "(I)V");
 
-    SetKeyboardOptions(flags);
+    setKeyboardOptions(m_Nidroid, flags);
 
     SDL_StartTextInput();
 }
