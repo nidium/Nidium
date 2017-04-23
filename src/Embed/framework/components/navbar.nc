@@ -20,14 +20,6 @@
             maxWidth: 24,
         },
 
-        il: {
-            textAlign: "left",
-        },
-
-        ir: {
-            textAlign: "right"
-        },
-
         flexme: {
             flexDirection: "row",
             alignItems: "center"
@@ -37,7 +29,8 @@
             flexGrow: 1,
             flexShrink: 0,
             minWidth:90,
-            backgroundColor: "rgba(0, 30, 0, 0.0)"
+            backgroundColor: "rgba(0, 30, 0, 0.0)",
+            textAlign:"left"
         },
 
         center: {
@@ -50,35 +43,25 @@
             flexGrow: 1,
             flexShrink: 0,
             minWidth:90,
-            backgroundColor: "rgba(0, 30, 0, 0.0)"
+            backgroundColor: "rgba(0, 30, 0, 0.0)",
+            textAlign:"right"
         },
 
-        icleft : {
-            textAlign:"left",
-            flexGrow:1
-        },
-
-        iccenter : {
-            textAlign:"center",
-            flexGrow:1
-        },
-
-        icright : {
-            textAlign:"right",
+        grow : {
             flexGrow:1
         }
     </nss>
     <layout class="bar">
         <span id="back" class="flexme left" on:mousedown="this.back()">
-            <icon class="icon il" shape="ion-chevron-left"></icon>
-            <span id="backLabel" class="icleft">Back</span>
+            <icon class="icon" shape="ion-chevron-left"></icon>
+            <span class="grow">Back</span>
         </span>
         <span class="flexme center">
-            <span id="title" class="iccenter">Nidium Kitchen</span>
+            <span id="title" class="grow">Nidium Kitchen</span>
         </span>
         <span id="next" class="flexme right" on:mousedown="this.next()">
-            <span class="icright">Next</span>
-            <icon class="icon ir" shape="ion-chevron-right"></icon>
+            <span class="grow">Next</span>
+            <icon class="icon" shape="ion-chevron-right"></icon>
         </span>
     </layout>
     <script>
