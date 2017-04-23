@@ -4,9 +4,7 @@
             backgroundColor: "#282728",
             position: "relative",
             height: "100%",
-        },
 
-        flex: {
             display: "flex",
             flexDirection: "column",
             flexGrow: 1,
@@ -15,11 +13,11 @@
         }
     </nss>
     <layout class="bar">
-        <slot class="flex"></slot>
+        <slot></slot>
     </layout>
     <script>
 
-        const __opacity_lo__ = 0.8;
+        const __opacity_lo__ = 0.9;
         const __opacity_hi__ = 1.0;
         const __next_duration__ = 450;
         const __back_duration__ = 420;
@@ -38,6 +36,8 @@
                 this.style.height = "100%";
                 this.style.minWidth = 0.5*this.sidewidth;
                 this.scrollableY = true;
+
+                this.style.display = "none";
             }
 
             attach(view) {
@@ -71,8 +71,11 @@
 
             setEvents() {
                 document.canvas.on("mousedown", (e) => {
+                    this._opened = true;
                     this._start = true;
                     this._moving = false;
+
+                    this._dat = +new Date();
 
                     this._event = {
                         x : e.x,
@@ -89,6 +92,11 @@
                     if (Math.abs(dy) > 30) {
                         this._moving = false;
                         this._start = false;
+
+                        this._event = {
+                            x : e.x,
+                            y : e.y
+                        };
                     } else if (Math.abs(dx) > 30) {
                         this._moving = true;
                         this.slide(dx);
@@ -96,16 +104,26 @@
                 });
 
                 document.canvas.on("mouseup", (e) => {
-                    if (!this._start) return false;
+                    if (!this._start && !this._opened) return false;
 
                     this._start = false;
+                    this._opened = false;
 
-                    if (this._moving) {
-                        let dx = e.x - this._event.x;
+                    var time = (+new Date()) - this._dat;
+
+                    let dx = e.x - this._event.x;
+
+                    if (time>160) {
                         if (dx < 0.70*this.sidewidth) {
                             this.close();
                         } else {
                             this.open();
+                        }
+                    } else {
+                        if (dx>20) {
+                            this.open();
+                        } else {
+                            this.close();
                         }
                     }
 
@@ -114,13 +132,11 @@
             }
 
             slide(x) {
-                var dim = side.getDimensions(),
-                    sidewidth = dim.width,
-                    currLeft = dim.left;
+                if (x<0) return false;
 
-                if (this.width<0) return false;
+                if (x<=this.sidewidth) {
+                    this.style.display = "flex";
 
-                if (this.width<=this.sidewidth) {
                     var opacity = (x/this.sidewidth) * (1-__opacity_lo__);
 
                     this.opacity = __opacity_lo__+opacity;
@@ -134,6 +150,8 @@
 
             open() {
                 var side = this;
+
+                this.style.display = "flex";
 
                 setAnimation(
                     (side, view) => {
@@ -152,17 +170,21 @@
             close() {
                 var side = this;
 
-                setAnimation(
-                    (c, v) => {
-                        //c.width = 0;
-                        c.opacity = __opacity_lo__;
-                        v.left = 0;
+                this.anim = setAnimation(
+                    (side, view) => {
+                        side.opacity = __opacity_lo__;
+                        view.left = 0;
                     },
                     __back_duration__,
                     Easing.Exponential.Out,
                     side,
                     this.view
                 );
+
+                this.anim.onFinish = () => {
+                    this.style.display = "none";
+                };
+
                 this.view.__overlay__.close(__back_duration__);
 
             }

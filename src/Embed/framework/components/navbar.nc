@@ -13,11 +13,26 @@
         icon: {
             marginLeft:10,
             marginRight:10,
-            fontSize: 18,
-            lineHeight: 22,
+            fontSize: 20,
             flexGrow:1,
-            width: 24,
-            maxWidth: 24,
+            width: 26,
+            height: 30,
+            lineHeight: 30,
+            maxWidth: 26
+        },
+
+        menu : {
+            display : "none",
+            flexGrow: 1,
+            minWidth:90,
+        },
+
+        big: {
+            fontSize: 28,
+            width: 30,
+            height: 30,
+            lineHeight: 33,
+            maxWidth: 30
         },
 
         flexme: {
@@ -36,7 +51,8 @@
         center: {
             flexGrow: 4,
             flexShrink: 1,
-            alignItems:"center"
+            alignItems:"center",
+            textAlign:"center"
         },
 
         right: {
@@ -52,8 +68,11 @@
         }
     </nss>
     <layout class="bar">
+        <span id="menu" class="flexme menu" on:mousedown="this.menu()">
+            <icon class="icon big" shape="ion-navicon-round"></icon>
+        </span>
         <span id="back" class="flexme left" on:mousedown="this.back()">
-            <icon class="icon" shape="ion-chevron-left"></icon>
+            <icon class="icon" shape="ion-chevron-left" style="{marginRight:0}"></icon>
             <span class="grow">Back</span>
         </span>
         <span class="flexme center">
@@ -61,26 +80,35 @@
         </span>
         <span id="next" class="flexme right" on:mousedown="this.next()">
             <span class="grow">Next</span>
-            <icon class="icon" shape="ion-chevron-right"></icon>
+            <icon class="icon" shape="ion-chevron-right" style="{marginLeft:0}"></icon>
         </span>
     </layout>
     <script>
         module.exports = class extends Component {
-            constructor(attr) {
+            constructor(attr={}) {
                 super(attr);
 
                 var node = this.getElementById("title");
                 node.textContent = attr.title || "";
 
-                if (!attr || !attr['on:back']) {
-                    var left = this.getElementById("back");
-                    left.hide();
+                if (attr['on:menu']) {
+                    var menu = this.getElementById("menu");
+                    menu.style.display = "flex";
                 }
 
-                if (!attr || !attr['on:next']) {
-                    var left = this.getElementById("next");
-                    left.hide();
+                if (!attr['on:back']) {
+                    var left = this.getElementById("back");
+                    left.style.display = "none";
                 }
+
+                if (!attr['on:next']) {
+                    var right = this.getElementById("next");
+                    right.style.display = "none";
+                }
+            }
+
+            menu() {
+                this.emit("menu", {});
             }
 
             back() {
