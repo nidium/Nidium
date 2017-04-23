@@ -195,12 +195,18 @@ void UIInterface::handleEvent(const SDL_Event *event)
         case SDL_TEXTEDITING:
             if (window && &event->text.text[0]
                 && strlen(event->text.text) > 0) {
+                window->onCompositionStart();
+                window->onCompositionUpdate(event->text.text);
+                window->onCompositionEnd();
+
+                // Legacy method
                 window->textEdit(event->text.text);
             }
            break;
         case SDL_TEXTINPUT:
             if (window && &event->text.text[0]
                 && strlen(event->text.text) > 0) {
+                window->onKeyPress(event->text.text);
                 window->textInput(event->text.text);
             }
             break;
@@ -278,21 +284,27 @@ void UIInterface::handleEvent(const SDL_Event *event)
 
             if (event->key.keysym.mod & KMOD_SHIFT
                 || SDL_KEYCODE_GET_CODE(keyCode) == 16) {
-                mod |= kKeyModifier_Shift;
+                mod |= InputEvent::kKeyModifier_Shift;
             }
             if (event->key.keysym.mod & KMOD_ALT
                 || SDL_KEYCODE_GET_CODE(keyCode) == 18) {
-                mod |= kKeyModifier_Alt;
+                mod |= InputEvent::kKeyModifier_Alt;
             }
             if (event->key.keysym.mod & KMOD_CTRL
                 || SDL_KEYCODE_GET_CODE(keyCode) == 17) {
-                mod |= kKeyModifier_Control;
+                mod |= InputEvent::kKeyModifier_Control;
             }
             if (event->key.keysym.mod & KMOD_GUI
                 || SDL_KEYCODE_GET_CODE(keyCode) == 91) {
-                mod |= kKeyModifier_Meta;
+                mod |= InputEvent::kKeyModifier_Meta;
             }
             if (window) {
+                window->onKeyUpDown(SDL_KEYCODE_GET_CODE(keyCode),
+                                    SDL_KEYCODE_GET_LOCATION(keyCode),
+                                    mod, event->key.repeat,
+                                    event->type == SDL_KEYUP ? true : false);
+
+                // Legacy method
                 window->keyupdown(SDL_KEYCODE_GET_CODE(keyCode), mod,
                                   event->key.state, event->key.repeat,
                                   SDL_KEYCODE_GET_LOCATION(keyCode));

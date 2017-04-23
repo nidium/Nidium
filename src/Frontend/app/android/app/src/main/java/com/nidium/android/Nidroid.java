@@ -39,7 +39,7 @@ public class Nidroid implements Flinger.Listener {
     private Flinger mFlinger = null;
     private ScrollPosition mScrollPosition = new ScrollPosition();
     Context mCx = null;
-    Activity mActivity = null;
+    NidiumActivity mActivity = null;
     SurfaceView mSurface = null;
     Handler mMainHandler;
     static final String TAG = "Nidroid";
@@ -51,16 +51,9 @@ public class Nidroid implements Flinger.Listener {
         public static final int END = 2;
     };
 
-    // Always keep in sync with src/Binding/JSKeyboard.h KeyboradOptions enum
-    public class KeyboardOptions {
-        public static final int NORMAL      = 1 << 0;
-        public static final int NUMERIC     = 1 << 1;
-        public static final int TEXT_ONLY   = 1 << 2;
-    }
-
     public Nidroid(Activity a, SurfaceView v, final Method sdlOnTouch) {
         mCx = a.getApplicationContext();
-        mActivity = a;
+        mActivity = (NidiumActivity)a;
         mSurface = v;
 
         mMainHandler = new Handler(mCx.getMainLooper());
@@ -176,22 +169,21 @@ public class Nidroid implements Flinger.Listener {
         mScrollPosition.y = y;
 
         Nidroid.onScroll(x / ratio, y / ratio, relX, relY, velocityX, velocityY, state);
-
     }
 
-    static void SetKeyboardOptions(int flags)
+    void setKeyboardOptions(int flags)
     {
         int outFlags = InputType.TYPE_CLASS_TEXT;
 
-        if ((flags & KeyboardOptions.NUMERIC) == KeyboardOptions.NUMERIC) {
+        if ((flags & Keyboard.KeyboardOptions.NUMERIC) == Keyboard.KeyboardOptions.NUMERIC) {
             outFlags = outFlags | InputType.TYPE_CLASS_NUMBER;
         }
 
-        if ((flags & KeyboardOptions.TEXT_ONLY) == KeyboardOptions.TEXT_ONLY) {
+        if ((flags & Keyboard.KeyboardOptions.TEXT_ONLY) == Keyboard.KeyboardOptions.TEXT_ONLY) {
             outFlags = outFlags | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
         }
 
-        SDLActivity.mKeyboardFlags = outFlags;
+        mActivity.getKeyboard().setFlags(outFlags);
     }
 
     static double getPixelRatio()
@@ -267,4 +259,6 @@ public class Nidroid implements Flinger.Listener {
 
     public static native void nidiumInit(Nidroid n);
     public static native void onScroll(float x, float y, float relX, float relY, float velocityX, float velocityY, int state);
+    public static native void onComposition(String data, int ev);
+    public static native void onKeyboardKey(int keyCode, int ev);
 }

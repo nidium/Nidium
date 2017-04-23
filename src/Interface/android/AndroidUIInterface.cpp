@@ -117,10 +117,12 @@ void AndroidUIInterface::runLoop()
 void AndroidUIInterface::onMessage(const Core::SharedMessages::Message &msg)
 {
     InputHandler *inputHandler = m_NidiumCtx->getInputHandler();
-    AndroidScrollMessage *info = static_cast<AndroidScrollMessage *>(msg.dataPtr());
 
     switch (msg.event()) {
         case kAndroidMessage_scroll: {
+            AndroidScrollMessage *info
+                = static_cast<AndroidScrollMessage *>(msg.dataPtr());
+
             InputEvent ev(InputEvent::kTouchScroll_type,
                           info->x,
                           info->y);
@@ -133,10 +135,54 @@ void AndroidUIInterface::onMessage(const Core::SharedMessages::Message &msg)
             ev.m_data[5] = 0; // consumed
 
             inputHandler->pushEvent(ev);
-        } break;
-    }
 
-    delete info;
+            delete info;
+        } break;
+        case kAndroidMessage_keyboard: {
+            __android_log_print(ANDROID_LOG_INFO, "Nidium", "keyboard event");
+            if (!this->isContextReady()) {
+                return;
+            }
+
+            JSWindow *window
+                = JSWindow::GetObject(m_NidiumCtx->getNJS());
+
+            if (!window) {
+                __android_log_print(ANDROID_LOG_INFO, "Nidium", "cannot get window");
+                return;
+            }
+
+            AndroidKeyboardMessage *info
+                = static_cast<AndroidKeyboardMessage *>(msg.dataPtr());
+
+            switch (info->ev) {
+                case InputEvent::Type::kCompositionStart_type:
+                    __android_log_print(ANDROID_LOG_INFO, "Nidium", "start");
+                    window->onCompositionStart();
+                    break;
+                case InputEvent::Type::kCompositionUpdate_type:
+                    __android_log_print(ANDROID_LOG_INFO, "Nidium", "update");
+                    window->onCompositionUpdate(info->str);
+                    break;
+                case InputEvent::Type::kCompositionEnd_type:
+                    __android_log_print(ANDROID_LOG_INFO, "Nidium", "end");
+                    window->onCompositionEnd();
+                    break;
+                case InputEvent::Type::kKeyUp_type:
+                    window->onKeyUpDown(info->keyCode, 0, 0, false, true);
+                    //window->onKeyPress(info->keyCode, 0, 0, false, true);
+                    break;
+                case InputEvent::Type::kKeyDown_type:
+                    window->onKeyUpDown(info->keyCode, 0, 0, false, false);
+                    break;
+                default:
+                    __android_log_print(ANDROID_LOG_INFO, "Nidium", "not handled");
+                    break;
+            }
+
+            delete info;
+        }
+    }
 }
 
 void AndroidUIInterface::onScroll(float x, float y,
@@ -151,6 +197,13 @@ void AndroidUIInterface::onScroll(float x, float y,
                                    static_cast<InputEvent::ScrollState>(state));
 
     this->postMessage(msg, kAndroidMessage_scroll);
+}
+
+void AndroidUIInterface::onKeyboard(int keyCode, const char *str, InputEvent::Type evType)
+{
+    AndroidKeyboardMessage *msg = new AndroidKeyboardMessage(keyCode, str, evType);
+
+    this->postMessage(msg, kAndroidMessage_keyboard);
 }
 
 } // namespace Interface
@@ -171,4 +224,27 @@ extern "C" void Java_com_nidium_android_Nidroid_onScroll(JNIEnv *env, jobject th
 {
     NIDIUM_ANDROID_UI->onScroll(x, y, relX, relY, velocityX, velocityY, state);
 }
+
+extern "C" void Java_com_nidium_android_Nidroid_onComposition(JNIEnv *env, jobject thiz,
+                                                              jstring text, int ev)
+{
+    InputEvent::Type evType = static_cast<InputEvent::Type>(ev);
+
+    if (text) {
+        const char *utftext = env->GetStringUTFChars(text, NULL);
+        NIDIUM_ANDROID_UI->onKeyboard(0, utftext, evType);
+        env->ReleaseStringUTFChars(text, utftext);
+    } else {
+        NIDIUM_ANDROID_UI->onKeyboard(0, nullptr, evType);
+    }
+}
+
+extern "C" void Java_com_nidium_android_Nidroid_onKeyboardKey(JNIEnv *env, jobject thiz,
+                                                              int keyCode, int ev)
+{
+    InputEvent::Type evType = static_cast<InputEvent::Type>(ev);
+
+    NIDIUM_ANDROID_UI->onKeyboard(keyCode, nullptr, evType);
+}
+
 #undef NIDIUM_ANDROID_UI

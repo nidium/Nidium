@@ -517,12 +517,14 @@ public class SDLActivity extends Activity {
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(w, h + HEIGHT_PADDING);
             params.leftMargin = x;
             params.topMargin = y;
-
+            Log.d("SDL", "Show textinput task");
             if (mTextEdit == null) {
+                Log.d("SDL", "No keyboard");
                 mTextEdit = new DummyEdit(getContext());
 
                 mLayout.addView(mTextEdit, params);
             } else {
+                Log.d("SDL", "Have keyboard");
                 mTextEdit.setLayoutParams(params);
             }
 

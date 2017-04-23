@@ -64,6 +64,13 @@ public:
     void textInput(const char *data);
     void textEdit(const char *data);
     void keyupdown(int keycode, int mod, int state, int repeat, int location);
+
+    void onKeyUpDown(int keyCode, int location, int mod, bool repeat, bool isUpKey);
+    void onKeyPress(const char *c);
+    void onCompositionStart();
+    void onCompositionUpdate(const char *data);
+    void onCompositionEnd();
+
     void addFrameCallback(JS::MutableHandleValue cb);
     void callFrameCallbacks(double ts, bool garbage = false);
 

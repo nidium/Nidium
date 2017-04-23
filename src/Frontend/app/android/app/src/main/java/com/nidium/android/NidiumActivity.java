@@ -12,6 +12,7 @@ import android.widget.Button;
 import org.libsdl.app.SDLActivity;
 
 import java.io.File;
+import java.security.Key;
 
 /**
  * Created by efyx on 2/7/17.
@@ -28,6 +29,14 @@ public class NidiumActivity extends SDLActivity {
         if (mNml == null) finish();
 
         super.onCreate(savedInstanceState);
+
+        // Override SDL text edit with our own implementation
+        SDLActivity.mTextEdit = new Keyboard(this, SDLActivity.mLayout);
+    }
+
+    public Keyboard getKeyboard()
+    {
+        return (Keyboard)SDLActivity.mTextEdit;
     }
 
     @Override
