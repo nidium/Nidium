@@ -23,10 +23,10 @@
             flexGrow: 1,
             color: "#c8c8c8",
             textAlign: "center",
-            fontSize: 32,
-            lineHeight: 50,
-            maxWidth: 50,
-            minHeight: 50
+            fontSize: 42,
+            lineHeight: 64,
+            maxWidth: 64,
+            minHeight: 64
         },
 
         chevron: {
@@ -35,9 +35,27 @@
             marginRight: 6
         },
 
-        title : {
+        line : {
             flexGrow: 4,
-            color: "#444444"
+            color: "#444444",
+            flexDirection : "column",
+            justifyContent : "center",
+            alignItems : "flex-start"
+        },
+
+
+        text : {
+            width : "100%",
+            height : 23,
+            lineHeight : 23
+        },
+
+        sub : {
+            width : "100%",
+            color : "#c0c0c0",
+            fontSize : 12,
+            height : 20,
+            lineHeight : 12
         },
 
         li : {
@@ -78,11 +96,15 @@
                 let id = item.id;
                 let media = item.media;
                 let title = item.title;
+                let subtitle = item.subtitle;
 
                 return (`
                     <li id="${id}" class="li" on:mousedown='this.select(${id})'>
                         <icon class="icon media" shape="${media}"></icon>
-                        <span class="title">${title}</span>
+                        <span class="line">
+                            <span class="text">${title}</span>
+                            <span class="text sub">${subtitle}</span>
+                        </span>
                         <icon class="icon chevron" shape="ion-chevron-right"></icon>
                     </li>
                 `);

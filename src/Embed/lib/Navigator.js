@@ -18,6 +18,7 @@ class Navigator extends Elements.Element {
         super(attributes);
         this.routes = {};
         this.history = [];
+        this.currentScene = null;
 
         this.style.flexGrow = 1;
         this.style.overflow = false;
@@ -36,15 +37,12 @@ class Navigator extends Elements.Element {
     popHistory(url) {
         var pos = -1, len = this.history.length, scene = null;
 
-        console.log("searching for url", url);
-
+        /* search for scene in history */
         for (var i = 0; i < len; i++) {
             var s = this.history[i];
-            console.log(i, "- seek scene", s.url);
             if (s.url == url) {
                 scene = s;
                 pos = i;
-                console.log(i, "--> found scene with url", s.url);
                 break;
             }
         }
@@ -55,15 +53,11 @@ class Navigator extends Elements.Element {
                 var s = this.history[i];
                 s.emit("destroy", {});
                 s.removeFromParent();
-                console.log(i, "* removing scene with url", s.url);
             }
 
-            this.dumpHistory();
-            console.log("slicing", 0, pos+1);
             this.history.splice(pos+1, len-(pos+1));
         }
 
-        console.log("returning scene", scene ? scene.url : null);
         return scene;
     }
 
@@ -73,7 +67,10 @@ class Navigator extends Elements.Element {
 
     preload(url, params) {
         var component = this.routes[url];
-        if (!component) return false;
+        if (!component) {
+            throw new Error("Undefined routing url " + url);
+            return false;
+        }
 
         var scene = new component(params);
 
@@ -90,14 +87,11 @@ class Navigator extends Elements.Element {
         var scene = this.popHistory(url);
 
         if (scene) {
-            console.log("found scene", scene.url);
             this.showScene(scene);
         } else {
             scene = this.preload(url, params);
             this.push(scene);
         }
-
-        this.dumpHistory();
     }
 
     /*
@@ -107,15 +101,11 @@ class Navigator extends Elements.Element {
         var scene = this.popHistory(url);
 
         if (scene) {
-            console.log("found scene", scene.url);
             this.showScene(scene);
-            this.dumpHistory();
         } else {
             scene = this.preload(url, params);
             this.push(scene, __next_duration__);
         }
-
-        this.dumpHistory();
     }
 
     reset() {
@@ -124,12 +114,11 @@ class Navigator extends Elements.Element {
     }
 
     dumpHistory() {
-        var pos = -1, len = this.history.length;
+        var len = this.history.length;
 
-        console.log("-----------");
         for (var i = 0; i < len; i++) {
-            var s = this.history[i];
-            console.log(s.url);
+            var scene = this.history[i];
+            console.log(scene.url);
         }
     }
 
@@ -255,5 +244,8 @@ class Navigator extends Elements.Element {
 }
 
 ElementStyle.Inherit(Navigator);
+
+Elements.navigator = class extends Navigator {};
+ElementStyle.Inherit(Elements.navigator);
 
 module.exports = Navigator;

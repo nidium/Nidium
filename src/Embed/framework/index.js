@@ -25,6 +25,8 @@ load("embed://framework/elements/textnode.js");
 load("embed://framework/elements/nodeoverlay.js");
 load("embed://framework/elements/li.js");
 load("embed://framework/elements/div.js");
+load("embed://framework/elements/p.js");
+load("embed://framework/elements/h1.js");
 load("embed://framework/elements/view.js");
 load("embed://framework/elements/span.js");
 load("embed://framework/elements/img.js");
@@ -41,9 +43,9 @@ load("embed://framework/elements/grid/row.js");
 load("embed://framework/elements/grid/col.js");
 
 /*
- * Native controllers (medium level)
+ * Native controllers
  */
-load("embed://framework/elements/navigator.js");
+require("Navigator");
 
 
 /*

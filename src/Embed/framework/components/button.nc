@@ -6,7 +6,7 @@
             color: "#ffffff",
             radius: 4,
             height: 40,
-            width: 80,
+            minWidth: 90,
             lineHeight: 30,
             coating: 10,
 
@@ -33,9 +33,13 @@
         <slot>Button</slot>
     </layout>
     <script>
+        const Elements = require('Elements');
+
         module.exports = class extends Component {
             constructor(attr) {
                 super(attr);
+
+                this.enableActiveElement();
             }
         }
         </script>

@@ -17,7 +17,7 @@
             flexGrow:1,
             width: 26,
             height: 30,
-            lineHeight: 30,
+            lineHeight: 26,
             maxWidth: 26
         },
 
@@ -71,16 +71,16 @@
         <span id="menu" class="flexme menu" on:mousedown="this.menu()">
             <icon class="icon big" shape="ion-navicon-round"></icon>
         </span>
-        <span id="back" class="flexme left" on:mousedown="this.back()">
+        <span id="back" class="flexme left" on:click="this.back()">
             <icon class="icon" shape="ion-chevron-left" style="{marginRight:0}"></icon>
             <span class="grow">Back</span>
         </span>
         <span class="flexme center">
             <span id="title" class="grow">Nidium Kitchen</span>
         </span>
-        <span id="next" class="flexme right" on:mousedown="this.next()">
-            <span class="grow">Next</span>
-            <icon class="icon" shape="ion-chevron-right" style="{marginLeft:0}"></icon>
+        <span class="flexme right" on:mousedown="this.next()">
+            <span id="nextLabel" class="grow">Next</span>
+            <icon id="nextIcon" class="icon" shape="ion-chevron-right" style="{marginLeft:0}"></icon>
         </span>
     </layout>
     <script>
@@ -102,8 +102,11 @@
                 }
 
                 if (!attr['on:next']) {
-                    var right = this.getElementById("next");
-                    right.style.display = "none";
+                    var nextLabel = this.getElementById("nextLabel");
+                    nextLabel.style.display = "none";
+
+                    var nextIcon = this.getElementById("nextIcon");
+                    nextIcon.style.display = "none";
                 }
             }
 

@@ -60,6 +60,140 @@
             }
         }
 
+        enableActiveElement() {
+            this.__activetime__ = 0;
+
+            var handler = (e) => {
+                this.activeElement(e);
+            };
+
+            this.on("mousedown", () => {
+                this.activeElement();
+            });
+
+            document.canvas.on("mouseup", () => {
+                this.releaseElement();
+            });
+        }
+
+        getActiveElement() {
+            var dim = this.getDimensions();
+
+            if (!this.__activelayer__) {
+                this.__activelayer__ = new Elements.element();
+                this.__activelayer__.style.position = "relative";
+                this.add(this.__activelayer__);
+            }
+
+            this.__activelayer__.style.width = dim.width;
+            this.__activelayer__.style.height = dim.height;
+
+            return this.__activelayer__;
+        }
+
+        activeElement() {
+            this.__activated__ = true;
+            this.__activedate__ = +new Date();
+
+            var node = this.getActiveElement();
+
+            if (this.activeAnimation) {
+                this.activeAnimation.cancel();
+            }
+
+            node.show();
+            node.style.opacity = 0.02;
+            this.activeAnimation = setAnimation(
+                (node) => {
+                    node.opacity = 0.12;
+                },
+                1000,
+                Easing.Exponential.In,
+                node
+            );
+
+            this.__activelayer__ = node;
+            this.setActiveElementShader();
+        }
+
+        releaseElement() {
+            if (!this.__activated__ || !this.__activelayer__) return false;
+            this.__activated__ = false;
+
+            var node = this.__activelayer__;
+            var time = (+new Date()) - this.__activedate__;
+
+            this.activeAnimation.cancel();
+
+            if (time<100) {
+                node.style.opacity = 0.0;
+            } else {
+                node.style.opacity = 0.75;
+                this.activeAnimation = setAnimation(
+                    (node) => {
+                        node.opacity = 0.0;
+                    },
+                    800,
+                    Easing.Sinusoidal.Out,
+                    node
+                );
+
+                this.activeAnimation.onFinish = () => {
+                    clearInterval(this.activeTimer);
+                    this.__activelayer__.hide();
+                };
+            }
+        }
+
+        setActiveElementShader(shader) {
+            if (!this.__activelayer__) return false;
+
+            var ctx = this.__activelayer__.getContext("2d");
+
+            var uniforms = ctx.setShader(`
+                #ifdef GL_ES
+                precision highp float;
+                #endif
+
+                #define TAU 6.28318530718
+                #define MAX_ITER 3
+
+                uniform int itime;
+
+                float iGlobalTime = float(itime)/80.;
+
+                void main() {
+                    float c = 0.9;
+                    float inten = .040;
+
+                    float time = iGlobalTime * 1.5+23.0;
+                    // uv should be the 0-1 uv of texture...
+                    vec2 uv = gl_FragCoord.xy / (1.5 * n_Resolution.xy);
+                    vec2 p = mod(uv*TAU, TAU)-60.0;
+                    vec2 i = vec2(p);
+
+                    for (int n = 0; n < MAX_ITER; n++) {
+                        float t = time * (1.0 - (3.5 / float(n+1)));
+                        i = p + vec2(cos(t - i.x) + cos(t + i.y), sin(t - i.y) + cos(t + i.x));
+                        c += 1.0/length(vec2(p.x / (cos(i.x+t)/inten),p.y / (cos(i.y+t)/inten)));
+                    }
+
+                    c /= float(MAX_ITER);
+                    c = 1.07-pow(c, 1.4);
+                    vec3 colour = vec3(pow(abs(c), 8.0));
+                    colour = clamp(colour + vec3(0.0, 0.0, 0.0), 0.0, 1.0)*0.85;
+                    
+                    gl_FragColor = vec4(colour, 0.1);
+                }
+            `);
+
+            this.__activetime__ = 0;
+            clearInterval(this.activeTimer);
+            this.activeTimer = setInterval(() => {
+                uniforms.itime = this.__activetime__++;
+            }, 16);
+        }
+
         onload() {
             this._ctx = this.getContext("2d");
         }

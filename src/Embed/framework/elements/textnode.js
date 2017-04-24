@@ -14,8 +14,10 @@
         constructor(textValue) {
             super();
             this.nodeValue = textValue;
+            this.flexGrow = 1;
             this.style.minWidth = 1;
             this.style.minHeight = 1;
+
         }
 
         cloneNode(deep = true, shadowRoot=this[s_ShadowRoot]) {
@@ -54,11 +56,12 @@
 
             if (!this.nodeValue) return false;
 
-            let actualWidth = 1;
+            var p = this.getParent();
+            var dim = p.getDimensions();
 
-            let fontSize    = this.style.fontSize || 15;
-            let lineHeight  = this.style.lineHeight || 20;
-            let color       = this.style.color || "#000000";
+            let fontSize    = (this.inherit.fontSize || this.style.fontSize) || 15;
+            let lineHeight  = (this.inherit.lineHeight || this.style.lineHeight) || 20;
+            let color       = (this.inherit.color || this.style.color) || "#000000";
 
             let offset      = Math.ceil(lineHeight/2);
 
@@ -66,15 +69,14 @@
             ctx.fillStyle       = color;
             ctx.textBaseline    = "middle";
 
-            let data = ctx.breakText(this.nodeValue, width);
+            let data = ctx.breakText(this.nodeValue, dim.width-30);
             this.height = lineHeight * data.lines.length;
 
             var ox = 0;
+            var w = 0;
 
             for (var i = 0; i<data.lines.length; i++) {
-                let w = ctx.measureText(data.lines[i]).width;
-
-                if (w > actualWidth) actualWidth = w;
+                w = ctx.measureText(data.lines[i]).width;
 
                 if (this.style.textAlign == "center") {
                     ox = (width-w)*0.5;
@@ -85,6 +87,8 @@
 
                 ctx.fillText(data.lines[i], ox, i*lineHeight + offset);
             }
+
+            //if (data.lines.length==1) this.style.minWidth = w;
         }
     }
 
