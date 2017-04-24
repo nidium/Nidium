@@ -35,10 +35,15 @@
                 this.style.width = this.sidewidth;
                 this.style.height = "100%";
                 this.style.minWidth = 0.5*this.sidewidth;
+                this.style.coating = 1;
+                this.style.borderWidth = 1;
+                this.style.borderColor = "#333";
                 this.scrollableY = true;
 
                 this._opened = false;
                 this.style.display = "none";
+
+                this.render();
             }
 
             attach(view) {
@@ -60,13 +65,13 @@
                 });
 
                 this.view.__overlay__ = overlay;
-                this.view.__overlay__.style.coating = 40;
-                this.view.__overlay__.style.shadowBlur = 20;
-                this.view.__overlay__.style.shadowColor = "rgba(0, 0, 0, 0.82)";
-                this.view.__overlay__.style.shadowOffsetX = -12;
-                this.view.__overlay__.style.shadowOffsetY = 0;
-                this.view.add(overlay);
 
+                this.view.coating = 40;
+                this.view.shadowBlur = 20;
+                this.view.shadowColor = "rgba(255, 0, 0, 0.82)";
+                this.view.shadowOffsetX = -12;
+                this.view.shadowOffsetY = 0;
+                this.view.add(overlay);
             }
 
             setEvents() {

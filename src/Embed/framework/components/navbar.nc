@@ -88,6 +88,8 @@
             constructor(attr={}) {
                 super(attr);
 
+                this.render();
+
                 var node = this.getElementById("title");
                 node.textContent = attr.title || "";
 

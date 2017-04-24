@@ -39,6 +39,7 @@
             constructor(attr) {
                 super(attr);
 
+                this.render();
                 this.enableActiveElement();
             }
         }

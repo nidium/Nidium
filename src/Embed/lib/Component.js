@@ -4,11 +4,11 @@
  * that can be found in the LICENSE file.
  */
 
-const Elements          = require("Elements");
-const VM                = require("VM");
+const Elements = require("Elements");
+const VM = require("VM");
 const s_ComponentShadow = require("../Symbols.js").ComponentShadowRoot;
-const s_ShadowHost      = require("../Symbols.js").ElementShadowHost;
-const s_ShadowRoot      = require("../Symbols.js").ElementShadowRoot;
+const s_ShadowHost = require("../Symbols.js").ElementShadowHost;
+const s_ShadowRoot = require("../Symbols.js").ElementShadowRoot;
 const { StyleContainer, ElementStyle } = require("ElementsStyles");
 
 function findUserSlots(children, ret) {
@@ -31,15 +31,15 @@ class Component extends Elements.Element {
         super(attributes);
 
         this.attachShadow({
-            "name": "ComponentInstance-" + this.name(),
-            "scope": this.constructor[s_ComponentShadow].getJSScope()
+            name: "ComponentInstance-" + this.name(),
+            scope: this.constructor[s_ComponentShadow].getJSScope()
         });
 
         // Share the NSS between the ShadowRoot of the Component and this Element
         this.shadowRoot.nss = this.constructor[s_ComponentShadow].getNSS();
 
         this.on("mount", () => {
-            if (!this.initialized) return;
+            //if (!this.initialized) return;
             this.updateNSS();
         });
     }
@@ -59,7 +59,7 @@ class Component extends Elements.Element {
     }
 
     updateNSS() {
-        if (!this.initialized) return;
+        //if (!this.initialized) return;
 
         /*
             Merge & Apply style components
@@ -98,7 +98,6 @@ class Component extends Elements.Element {
 
         // Merge all styles, into |this.style|
         this._mergeStyle(tmp);
-
     }
 
     createTree(children) {
@@ -111,22 +110,26 @@ class Component extends Elements.Element {
         */
         if (!this.allowsChild()) {
             if (children.length) {
-                console.warn(`Component <${this.name()}> does not allow children. Ignoring children.`);
+                console.warn(
+                    `Component <${this.name()}> does not allow children. Ignoring children.`
+                );
             }
             return;
         }
 
-        if (typeof(children) == "undefined" || children.length == 0) {
+        if (typeof children == "undefined" || children.length == 0) {
             return;
         }
 
         // Slot handling
-        let parentShadow    = this[s_ShadowRoot];
-        let shadowSlots     = this.shadowRoot.findNodesByTag("slot");
-        let userSlots       = findUserSlots(children);
+        let parentShadow = this[s_ShadowRoot];
+        let shadowSlots = this.shadowRoot.findNodesByTag("slot");
+        let userSlots = findUserSlots(children);
 
         if (shadowSlots.length == 0 && children.length > 0) {
-            console.warn(`Component <${this.name()}> does not expose any slot. Ignoring children.`);
+            console.warn(
+                `Component <${this.name()}> does not expose any slot. Ignoring children.`
+            );
             return;
         }
 
@@ -135,7 +138,9 @@ class Component extends Elements.Element {
         let replace = (node, ...childs) => {
             const p = node.getParent();
             if (!p) {
-                throw new Error("<slot> doen't have a parent. This is not possible.");
+                throw new Error(
+                    "<slot> doen't have a parent. This is not possible."
+                );
             }
 
             for (let child of childs) {
@@ -143,16 +148,22 @@ class Component extends Elements.Element {
             }
 
             node.removeFromParent();
-        }
+        };
 
         if (userSlots.size == 0) {
             // Use slot as default slot
-            replace(shadowSlots[0], ...NML.CreateTree(children, null, parentShadow));
+            replace(
+                shadowSlots[0],
+                ...NML.CreateTree(children, null, parentShadow)
+            );
         } else {
             for (let [id, el] of userSlots) {
                 for (let slot of shadowSlots) {
                     if (slot.id == id) {
-                        replace(slot, ...NML.CreateTree([el], null, parentShadow));
+                        replace(
+                            slot,
+                            ...NML.CreateTree([el], null, parentShadow)
+                        );
                     }
                 }
             }
@@ -160,18 +171,26 @@ class Component extends Elements.Element {
     }
 
     createComponentTree() {
-        const layout    = this.constructor[s_ComponentShadow].layout;
+        const layout = this.constructor[s_ComponentShadow].layout;
         const templates = this.constructor[s_ComponentShadow].template;
-        const scope     = this.shadowRoot.getJSScope();
+        const scope = this.shadowRoot.getJSScope();
 
-        if (layout) {
-            // Render layout
-            NML.CreateTree(layout.children, this, this.shadowRoot);
-        } else if (templates.length == 1) {
-            // XXX : Update me
-            // Render template
-            //this.addMultiple(...templates[0].render(scope));
-            throw new Error("<template> tag is not yet implemented");
+        // When rendering a component, |this| should be the instance of the component
+        const previousThis = scope["this"];
+        scope["this"] = this;
+
+        try {
+            if (layout) {
+                // Render layout
+                NML.CreateTree(layout.children, this, this.shadowRoot);
+            } else if (templates.length == 1) {
+                // XXX : Update me
+                // Render template
+                //this.addMultiple(...templates[0].render(scope));
+                throw new Error("<template> tag is not yet implemented");
+            }
+        } finally {
+            scope["this"] = previousThis;
         }
     }
 }

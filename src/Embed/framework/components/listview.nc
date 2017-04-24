@@ -80,6 +80,7 @@
                 });
 
                 this.reset();
+                this.render();
             }
 
             reset() {
