@@ -144,5 +144,12 @@ void System::hideVirtualKeyboard()
     SDL_StopTextInput();
 }
 
+void System::stopScrolling()
+{
+    jnipp::Method<void> stopScrolling(m_NidroidClass, "stopScrolling", "()V");
+
+    stopScrolling(m_Nidroid);
+}
+
 } // namespace Interface
 } // namespace Nidium

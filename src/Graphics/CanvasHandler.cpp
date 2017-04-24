@@ -1107,16 +1107,8 @@ void CanvasHandler::onInputEvent(InputEvent *ev)
                 InputEvent::ScrollState state
                     = static_cast<InputEvent::ScrollState>(ev->m_data[4]);
 
-                switch (state) {
-                    case InputEvent::kScrollState_start:
-                        inputHandler->setCurrentScrollHandler(this);
-                        break;
-                    case InputEvent::kScrollState_end:
-                        inputHandler->setCurrentScrollHandler(nullptr);
-                        break;
-                    default:
-                        break;
-
+                if (state == InputEvent::kScrollState_end) {
+                    inputHandler->setCurrentScrollHandler(nullptr);
                 }
                 return;
             }
@@ -1195,9 +1187,15 @@ void CanvasHandler::onTouch(InputEvent *ev, Args &args, CanvasHandler *handler)
     std::shared_ptr<InputTouch> touch = ev->getTouch();
 
     if (ev->getType() == InputEvent::kTouchStart_Type) {
+        if (inputHandler->getCurrentScrollHandler() == handler) {
+            Interface::SystemInterface::GetInstance()->stopScrolling();
+            inputHandler->setCurrentScrollHandler(nullptr);
+        }
+
         if (!inputHandler->getTouch(ev->getTouch()->getTouchID())) {
             inputHandler->addTouch(ev->getTouch());
         }
+
         touch->addOrigin(handler);
     } else if (ev->getType() == InputEvent::kTouchEnd_Type) {
         inputHandler->rmTouch(touch->getIdentifier());
@@ -1253,7 +1251,8 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                     continue;
                 }
 
-                canvasEvent    = SCROLL_EVENT;
+                InputHandler *inputHandler = m_NidiumContext->getInputHandler();
+                canvasEvent                = SCROLL_EVENT;
 
                 arg[0].set(ev->getType());
                 arg[1].set(ev->m_x);
@@ -1270,10 +1269,12 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                 arg[6].set(ev->m_data[3]); // velocityY
                 arg[7].set(ev->m_data[4]); // state
 
+                inputHandler->setCurrentScrollHandler(handler);
             } break;
             case InputEvent::kTouchStart_Type:
             case InputEvent::kTouchEnd_Type:
             case InputEvent::kTouchMove_Type: {
+                __android_log_print(ANDROID_LOG_ERROR, "Nidium", "handle touch event on %p", handler);
                 /*
                     If the handler isn't one of the handlers that
                     received the touchstart event ignore it.

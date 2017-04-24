@@ -69,10 +69,6 @@ public class Nidroid implements Flinger.Listener {
         v.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if (mFlinger != null) {
-                    mFlinger.forceFinished();
-                }
-
                 boolean consumed = mDetector.onTouchEvent(event);
 
                 // Invoke original SDL onTouch method
@@ -136,6 +132,11 @@ public class Nidroid implements Flinger.Listener {
         });
     }
 
+    public void stopScrolling() {
+        if (mFlinger != null) {
+            mFlinger.forceFinished();
+        }
+    }
 
     @Override
     public void onFlingerUpdate(int relX, int relY, boolean finished) {
