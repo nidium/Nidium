@@ -14,11 +14,9 @@
 
 
 namespace Nidium {
-namespace Binding {
-    class Canvas2DContext;
-}
-
 namespace Graphics {
+
+class CanvasSurface;
 
 class SurfaceCache
 {
@@ -26,10 +24,10 @@ public:
     SurfaceCache(){};
     ~SurfaceCache(){};
 
-    void addToCache(int width, int height, Binding::Canvas2DContext *ctx);
+    void addToCache(int width, int height, CanvasSurface *ctx);
 
 private:
-    std::map< std::pair<int /* width */, int /* height */>, std::vector< std::weak_ptr<Binding::Canvas2DContext> > > m_Store;
+    std::map< std::pair<int /* width */, int /* height */>, std::vector< std::weak_ptr<CanvasSurface> > > m_Store;
 };
 
 }}

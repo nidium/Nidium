@@ -340,16 +340,15 @@ SkiaContext *SkiaContext::CreateWithTextureBackend(Frontend::Context *fctx,
         return nullptr;
     }
 
-    sk_sp<SkSurface> surface = SkSurface::MakeRenderTarget(gr, SkBudgeted::kNo,
-        SkImageInfo::MakeN32Premul(ceilf(width * ratio), ceilf(height * ratio)));
+    std::shared_ptr<CanvasSurface> cs = CanvasSurface::Create(ceilf(width * ratio), ceilf(height * ratio), gr);
 
-    if (!surface) {
+    if (!cs) {
         return nullptr;
     }
 
     SkiaContext *skcontext = new SkiaContext();
 
-    skcontext->initWithSurface(surface);
+    skcontext->initWithSurface(cs);
 
     /* New canvas are transparent */
     skcontext->getCanvas()->clear(0x00000000);
@@ -359,10 +358,9 @@ SkiaContext *SkiaContext::CreateWithTextureBackend(Frontend::Context *fctx,
     return skcontext;
 }
 
-sk_sp<SkSurface> SkiaContext::CreateGLSurface(float width, float height,
+sk_sp<SkSurface> SkiaContext::CreateGLSurface(int width, int height,
     Frontend::Context *fctx, int fbo)
 {
-    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
     GrContext *gr = GetGrContext(fctx);
 
     if (!gr) {
@@ -372,8 +370,8 @@ sk_sp<SkSurface> SkiaContext::CreateGLSurface(float width, float height,
 
     GrBackendRenderTargetDesc desc;
 
-    desc.fWidth       = ceilf(width * ratio);
-    desc.fHeight      = ceilf(height * ratio);
+    desc.fWidth       = width;
+    desc.fHeight      = height;
     desc.fConfig      = kSkia8888_GrPixelConfig;
     desc.fOrigin      = kBottomLeft_GrSurfaceOrigin;
     desc.fStencilBits = 0;
@@ -387,16 +385,20 @@ sk_sp<SkSurface> SkiaContext::CreateGLSurface(float width, float height,
 SkiaContext *SkiaContext::CreateWithFBOBackend(Frontend::Context *fctx,
                                                int width, int height, uint32_t fbo)
 {
-    sk_sp<SkSurface> surface = CreateGLSurface(width, height, fctx, fbo);
+    float ratio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
+
+    sk_sp<SkSurface> surface = CreateGLSurface(ceilf(width * ratio), ceilf(height * ratio), fctx, fbo);
 
     if (!surface) {
         ndm_log(NDM_LOG_ERROR, "SkiaContext", "Can't create surface");
         return nullptr;
     }
 
+    std::shared_ptr<CanvasSurface> cs = CanvasSurface::Wrap(width, height, surface);
+
     SkiaContext *skcontext = new SkiaContext();
 
-    skcontext->initWithSurface(surface);
+    skcontext->initWithSurface(cs);
     /* Base FBO is white */
     skcontext->getCanvas()->clear(0xffffffff);
     skcontext->m_CanvasBindMode = SkiaContext::BIND_GL;
@@ -404,11 +406,11 @@ SkiaContext *SkiaContext::CreateWithFBOBackend(Frontend::Context *fctx,
     return skcontext;
 }
 
-bool SkiaContext::initWithSurface(sk_sp<SkSurface> surface)
+bool SkiaContext::initWithSurface(std::shared_ptr<CanvasSurface> surface)
 {
     float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
-    m_Surface = surface;
+    m_CSurface = surface;
 
     scale(ratio, ratio);
 
@@ -449,7 +451,7 @@ GrContext *SkiaContext::CreateGrContext(GLContext *glcontext)
 
 uint32_t SkiaContext::getOpenGLTextureId()
 {
-    GrGLTextureInfo *glinfo = (GrGLTextureInfo *)m_Surface->getTextureHandle(SkSurface::kFlushRead_BackendHandleAccess);
+    GrGLTextureInfo *glinfo = (GrGLTextureInfo *)getSurface()->getTextureHandle(SkSurface::kFlushRead_BackendHandleAccess);
 
     if (!glinfo) {
         return 0;
@@ -506,31 +508,18 @@ bool SkiaContext::setSize(float width, float height, bool redraw)
     width = nidium_max(width, 1);
     height = nidium_max(height, 1);
 
+    int rwidth = ceilf(width * ratio);
+    int rheight = ceilf(height * ratio);
+
     sk_sp<SkSurface> newSurface;
 
     if (this->m_CanvasBindMode == BIND_GL) {
-        newSurface = CreateGLSurface(width, height, nullptr);
-        if (!newSurface) {
-            ndm_logf(NDM_LOG_ERROR, "Canvas", "(BIND_GL) Can't create new surface of size %fx%f", width, height);
-            return false;
-        }
+        newSurface = CreateGLSurface(rwidth, rheight, nullptr);
+        m_CSurface.get()->replaceSurface(newSurface, width, height);
+
     } else {
-        newSurface = m_Surface->makeSurface(SkImageInfo::MakeN32Premul(ceilf(width * ratio),
-                                        ceilf(height * ratio)));
-        if (!newSurface) {
-            ndm_logf(NDM_LOG_ERROR, "Canvas", "Can't create new surface of size %fx%f", width, height);
-            return false;
-        }
-
-        newSurface->getCanvas()->clear(0x00000000);
+        m_CSurface.get()->resize(rwidth,  rheight);
     }
-
-    m_Surface->draw(newSurface->getCanvas(), 0, 0, nullptr);
-
-    // Keep the old matrix in place
-    newSurface->getCanvas()->setMatrix(m_Surface->getCanvas()->getTotalMatrix());
-
-    m_Surface = newSurface;
 
     return true;
 }
@@ -1844,7 +1833,7 @@ SkiaContext::~SkiaContext()
 {
     struct _State *nstate = m_State;
 
-    if (m_Surface != nullptr) {
+    if (m_CSurface != nullptr) {
         getCanvas()->flush();
     }
     while (nstate) {

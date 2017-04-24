@@ -11,6 +11,7 @@
 
 #include "Graphics/CanvasHandler.h"
 #include "Graphics/ShadowLooper.h"
+#include "Graphics/CanvasSurface.h"
 
 #include <SkSurface.h>
 
@@ -120,12 +121,20 @@ public:
 
     SkCanvas *getCanvas() const
     {
-        return m_Surface->getCanvas();
+        if (!m_CSurface) {
+            return nullptr;
+        }
+
+        return m_CSurface.get()->getSkiaSurface()->getCanvas();
     }
 
     sk_sp<SkSurface> getSurface()
     {
-        return m_Surface;
+        if (!m_CSurface) {
+            return nullptr;
+        }
+
+        return m_CSurface.get()->getSkiaSurface();
     }
 
     double breakText(const char *str, size_t len, struct _Line lines[],
@@ -133,7 +142,7 @@ public:
                      int *length = NULL);
 
     int bindOnScreen(int width, int height);
-    static sk_sp<SkSurface> CreateGLSurface(float width, float height,
+    static sk_sp<SkSurface> CreateGLSurface(int width, int height,
         Frontend::Context *fctx, int fbo = 0);
     int bindGL(int width, int height, Frontend::Context *nctx);
     void flush();
@@ -281,7 +290,7 @@ private:
 
     sk_sp<ShadowLooper> buildShadow();
 
-    bool initWithSurface(sk_sp<SkSurface> surface);
+    bool initWithSurface(std::shared_ptr<CanvasSurface> surface);
 
     /*
         Get Skia GrContext.
@@ -298,7 +307,8 @@ private:
     uint8_t m_AsComposite;
     SkBitmap *m_Screen;
     Shadow_t m_CurrentShadow;
-    sk_sp<SkSurface> m_Surface;
+    std::shared_ptr<CanvasSurface> m_CSurface;
+
     bool m_Debug;
     double m_FontSkew;
 

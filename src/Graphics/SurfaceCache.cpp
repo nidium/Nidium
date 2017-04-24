@@ -9,11 +9,10 @@
 namespace Nidium {
 namespace Graphics {
 
-void SurfaceCache::addToCache(int width, int height, Binding::Canvas2DContext *ctx)
+void SurfaceCache::addToCache(int width, int height, CanvasSurface *ctx)
 {
     auto &store = m_Store[std::make_pair(width, height)];
-
-    auto sctx = (std::shared_ptr<Binding::Canvas2DContext> *)ctx->getWrappedPtr();
+    auto sctx = (std::shared_ptr<CanvasSurface> *)ctx;
 
     store.push_back(*sctx);
 
