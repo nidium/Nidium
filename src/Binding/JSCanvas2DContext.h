@@ -118,6 +118,7 @@ public:
     static JSPropertySpec *ListProperties();
     static Canvas2DContext *UnWrap(void *ptr);
     static void *Wrap(Canvas2DContext *obj);
+    static void Delete(void *ptr);
 
     NIDIUM_DECL_JSTRACER();
 

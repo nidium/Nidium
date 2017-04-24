@@ -1946,6 +1946,11 @@ void *Canvas2DContext::Wrap(Canvas2DContext *obj)
     return new std::shared_ptr<Canvas2DContext>(obj);
 }
 
+void Canvas2DContext::Delete(void *ptr)
+{
+    delete (std::shared_ptr<Canvas2DContext> *)ptr;
+}
+
 // }}}
 
 // {{{ JSGradient
