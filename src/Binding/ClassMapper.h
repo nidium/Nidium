@@ -282,14 +282,31 @@ public:
         return ret->name;
     }
 
+    /*
+        Derived class can override this to control how to resolve the orifinal
+        ptr when looked up inside the JSObject's private
+    */
     static T *UnWrap(void *ptr)
     {
         return (T *)ptr;
     }
 
+    /*
+        Derived class can override this to control what's stored
+        inside the JSObject's private
+    */
     static void *Wrap(T *obj)
     {
         return (void *)obj;
+    }
+
+    void *getWrappedPtr()
+    {
+        if (!m_Instance) {
+            return nullptr;
+        }
+
+        return JS_GetPrivate(m_Instance);
     }
 
     /**
