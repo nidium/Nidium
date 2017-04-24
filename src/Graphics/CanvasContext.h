@@ -175,6 +175,7 @@ protected:
     CanvasHandler *m_Handler;
     GLState *m_GLState;
     GLResources m_Resources;
+
     void updateMatrix(float left,
                       float top,
                       float layerWidth,

@@ -123,10 +123,10 @@ bool JSCanvas::JS_getDimensions(JSContext *cx, JS::CallArgs &args)
     NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "top", top);
 
     NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "aleft", aleft);
-    NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "atop", atop);    
+    NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "atop", atop);
 
     args.rval().setObject(*out);
-    
+
     return true;
 }
 
@@ -417,14 +417,23 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
 
     /* The context is lazy-created */
     if (canvasctx == NULL) {
+        if (isnan(m_CanvasHandler->p_Width.getCachedValue())) {
+            m_CanvasHandler->p_Width.setCachedValue(1.f);
+        }
+        if (isnan(m_CanvasHandler->p_Height.getCachedValue())) {
+            m_CanvasHandler->p_Height.setCachedValue(1.f);
+        }
+
+        int width = m_CanvasHandler->p_Width.getCachedValue()
+                        + (m_CanvasHandler->p_Coating * 2);
+        int height = m_CanvasHandler->p_Height.getCachedValue()
+                        + (m_CanvasHandler->p_Coating * 2);
         switch (ctxmode) {
             case CanvasContext::CONTEXT_2D: {
                 Canvas2DContext *ctx2d = new Canvas2DContext(
                     m_CanvasHandler, cx,
-                    m_CanvasHandler->p_Width.getCachedValue()
-                        + (m_CanvasHandler->p_Coating * 2),
-                    m_CanvasHandler->p_Height.getCachedValue()
-                        + (m_CanvasHandler->p_Coating * 2),
+                    width,
+                    height,
                     ui);
 
                 if (ctx2d->getSkiaContext() == NULL) {
@@ -440,15 +449,15 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
 
                 JSCanvasCtx = Canvas2DContext::CreateObject(cx, ctx2d);
 
+                nctx->m_ContextCache.addToCache(width, height, ctx2d);
+
                 break;
             }
             case CanvasContext::CONTEXT_WEBGL:
                 JSWebGLRenderingContext *ctxWebGL = new JSWebGLRenderingContext(
                     m_CanvasHandler, cx,
-                    m_CanvasHandler->p_Width.getCachedValue()
-                        + (m_CanvasHandler->p_Coating * 2),
-                    m_CanvasHandler->p_Height.getCachedValue()
-                        + (m_CanvasHandler->p_Coating * 2),
+                    width,
+                    height,
                     ui);
 
                 m_CanvasHandler->setContext(static_cast<Canvas3DContext *>(ctxWebGL));
@@ -1044,9 +1053,9 @@ bool JSCanvas::JSGetter_flexBasis(JSContext *cx, JS::MutableHandleValue vp)
     if (isnan(val.value)) {
         vp.setUndefined();
 
-        return true;        
+        return true;
     }
-    
+
     vp.setNumber(val.value);
 
     return true;
@@ -1291,7 +1300,7 @@ JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
     if (args.length() >= 2 && !args[1].isNullOrUndefined() && !JS::ToNumber(cx, args[1], &height)) {
         height = NAN;
     }
-    
+
     handler = new CanvasHandler(width, height,
         Context::GetObject<Frontend::Context>(cx), true);
 

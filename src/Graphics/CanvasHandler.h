@@ -20,10 +20,10 @@
 #include <Yoga.h>
 #include <YGStringEnums.h>
 
-#ifndef NAN                                                                     
-static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};                 
-#define NAN (*(const float *) __nan)                                            
-#endif                                                                          
+#ifndef NAN
+static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};
+#define NAN (*(const float *) __nan)
+#endif
 
 
 /*
@@ -125,7 +125,7 @@ class CanvasHandlerBase
 private:
     /*
         This need to be initialized before properties
-    */    
+    */
     std::vector<void *> m_PropertyList;
 
 public:
@@ -177,7 +177,7 @@ public:
         inline operator T() const {
             return get();
         }
-        
+
         /* Change the computed value */
         inline void set(T val) {
             m_Value = val;
@@ -251,12 +251,12 @@ public:
 
 
 // {{{ CanvasHandler
-class CanvasHandler : public CanvasHandlerBase, public Core::Events 
+class CanvasHandler : public CanvasHandlerBase, public Core::Events
 {
 private:
     /*
         This need to be initialized before properties
-    */    
+    */
     std::vector<void *> m_PropertyList;
 
 public:
@@ -265,7 +265,7 @@ public:
     friend class Binding::JSCanvas;
 
     static const uint8_t EventID = 1;
-    
+
 
     enum Flags
     {
@@ -352,7 +352,7 @@ public:
         return p_Top.getCachedValue();
     }
 
-    float getTopScrolled() 
+    float getTopScrolled()
     {
         float top = getPropTop();
         if (m_CoordPosition == COORD_RELATIVE && m_Parent != NULL) {
@@ -596,7 +596,7 @@ public:
     CanvasHandlerBase *getParentBase() override
     {
         return m_Parent;
-    }    
+    }
 
     CanvasHandler *getFirstChild() const
     {
@@ -633,12 +633,20 @@ public:
     void computeLayoutPositions();
 
 protected:
-
-    void paint();
     void propertyChanged(EventsChangedProperty property);
 
 private:
+    /*
+        Change the underlying context size (e.g. set the FBO size).
+        Logical pixels
+    */
     void deviceSetSize(float width, float height);
+    /*
+        Send a (sync) PAINT event.
+        JSCanvas will fire a "paint" event immediatly.
+    */
+    void paint();
+
     void onTouch(Frontend::InputEvent *ev, Core::Args &args, CanvasHandler *handler);
     void onInputEvent(Frontend::InputEvent *ev);
     void onDrag(Frontend::InputEvent *ev, CanvasHandler *target, bool end = false);
