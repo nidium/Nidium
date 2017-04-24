@@ -29,6 +29,7 @@ public:
     void print(const char *buf) override;
     void showVirtualKeyboard(int options) override;
     void hideVirtualKeyboard() override;
+    void stopScrolling() override;
 
     int getSurfaceWidth();
     int getSurfaceHeight();

@@ -48,6 +48,7 @@ public:
                                   bool sound = false) {};
     virtual void showVirtualKeyboard(int flags) {}
     virtual void hideVirtualKeyboard() {}
+    virtual void stopScrolling() {}
     static SystemInterface *GetInstance()
     {
         return SystemInterface::_interface;
