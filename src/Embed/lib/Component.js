@@ -38,29 +38,13 @@ class Component extends Elements.Element {
         // Share the NSS between the ShadowRoot of the Component and this Element
         this.shadowRoot.nss = this.constructor[s_ComponentShadow].getNSS();
 
+        this.createComponentTree();
         this.on("mount", () => {
-            if (!this.initialized) return;
             this.updateNSS();
         });
     }
 
-    render(scope) {
-        this.createComponentTree(scope);
-
-        if (this._children) {
-            this.createTree(this._children);
-        }
-
-        this.initialized = true;
-
-        if (this.getParent()) {
-            this.updateNSS();
-        }
-    }
-
     updateNSS() {
-        if (!this.initialized) return;
-
         /*
             Merge & Apply style components
             XXX : This should be refactored to avoid code duplication with element.js
@@ -102,10 +86,6 @@ class Component extends Elements.Element {
     }
 
     createTree(children) {
-        if (!this.initialized) {
-            this._children = children;
-            return;
-        }
         /*
             Create & Add children to the components
         */
@@ -164,14 +144,22 @@ class Component extends Elements.Element {
         const templates = this.constructor[s_ComponentShadow].template;
         const scope     = this.shadowRoot.getJSScope();
 
-        if (layout) {
-            // Render layout
-            NML.CreateTree(layout.children, this, this.shadowRoot);
-        } else if (templates.length == 1) {
-            // XXX : Update me
-            // Render template
-            //this.addMultiple(...templates[0].render(scope));
-            throw new Error("<template> tag is not yet implemented");
+        // When rendering a component, |this| should be the instance of the component
+        const previousThis = scope["this"];
+        scope["this"] = this;
+
+        try  {
+            if (layout) {
+                // Render layout
+                NML.CreateTree(layout.children, this, this.shadowRoot);
+            } else if (templates.length == 1) {
+                // XXX : Update me
+                // Render template
+                //this.addMultiple(...templates[0].render(scope));
+                throw new Error("<template> tag is not yet implemented");
+            }
+        } finally {
+            scope["this"] = previousThis;
         }
     }
 }
