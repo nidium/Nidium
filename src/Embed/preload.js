@@ -7,11 +7,13 @@
 /**
  * Defer creation of the layout once all assets are ready
  */
+document.readyState = "loading";
 Object.defineProperty(window, "_onready", {
     configurable: false,
     writable: false,
     value: function(lst) {
         document.canvas.inject(lst);
+        document.readyState = "complete";
         window.emit("ready", {});
     }
 });
