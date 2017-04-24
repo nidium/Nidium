@@ -192,7 +192,7 @@ public:
         obj->m_Rooted = false;
 
         if (JS_GetPrivate(jsobj) == NULL) {
-            JS_SetPrivate(jsobj, obj);
+            JS_SetPrivate(jsobj, T::Wrap(obj));
         }
 
         if (implement) {
@@ -282,6 +282,16 @@ public:
         return ret->name;
     }
 
+    static T *UnWrap(void *ptr)
+    {
+        return (T *)ptr;
+    }
+
+    static void *Wrap(T *obj)
+    {
+        return (void *)obj;
+    }
+
     /**
      *  Get a ClassMapper<T> object given its JSObject.
      *  Return NULL if wrong source object
@@ -294,7 +304,7 @@ public:
             return nullptr;
         }
 
-        return (T *)JS_GetPrivate(obj);
+        return T::UnWrap(JS_GetPrivate(obj));
     }
 
     static inline T *GetInstanceUnsafe(JSObject *obj,
@@ -304,7 +314,7 @@ public:
             return nullptr;
         }
 
-        return (T *)JS_GetPrivate(obj);
+        return T::UnWrap(JS_GetPrivate(obj));
     }
 
     /**
@@ -464,7 +474,7 @@ protected:
 
     static inline void JSTrace(class JSTracer *trc, JSObject *obj)
     {
-        T *CppObj = (T *)JS_GetPrivate(obj);
+        T *CppObj = T::UnWrap(JS_GetPrivate(obj));
 
         if (CppObj) {
             CppObj->jsTrace(trc);
@@ -527,7 +537,7 @@ protected:
 
     static inline void JSFinalizer(JSFreeOp *fop, JSObject *obj)
     {
-        T *cppobj = (T *)JS_GetPrivate(obj);
+        T *cppobj = T::UnWrap(JS_GetPrivate(obj));
 
         if (cppobj) {
             delete cppobj;
