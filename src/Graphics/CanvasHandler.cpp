@@ -42,7 +42,7 @@ CanvasHandler::CanvasHandler(float width,
     m_Identifier.idx = ++nctx->m_CanvasCreatedIdx;
     m_NidiumContext->m_CanvasListIdx.insert({m_Identifier.idx, this});
     m_Identifier.str = nullptr;
-    
+
     if (!isnan(width)) {
         p_Width = nidium_max(width, 0);
         p_Width.setCachedValue(p_Width);
@@ -70,6 +70,7 @@ CanvasHandler::CanvasHandler(float width,
         YGNodeStyleSetHeight(m_YogaRef, p_Height);
     }
 
+    YGNodeStyleSetOverflow(m_YogaRef, YGOverflowScroll);
     YGNodeStyleSetMinWidth(m_YogaRef, p_MinWidth);
     YGNodeStyleSetMinHeight(m_YogaRef, p_MinHeight);
 
@@ -481,9 +482,9 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
                 evlist = ape_new_pool_list(0, 4);
             }
 
-            /* 
+            /*
                Dupplicate the event and set |this|
-               as the handler of the new event 
+               as the handler of the new event
             */
             InputEvent *dup = ev.dupWithHandler(this);
 
@@ -539,10 +540,10 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         deviceSetSize(nwidth, nheight);
         m_NeedPaint = true;
     }
-    
+
     int maxChildrenWidth  = p_Width.getCachedValue(),
         maxChildrenHeight = p_Height.getCachedValue();
-            
+
 
     /*
         This is the base surface on top of the window frame buffer
