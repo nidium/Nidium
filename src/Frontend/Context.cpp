@@ -437,6 +437,7 @@ void Context::frame(bool draw)
     m_Stats.composed = 0;
     for (auto &com : compList) {
         m_Stats.composed++;
+        com.handler->m_Context->markFrame(getCurrentFrame());
         com.handler->m_Context->preComposeOn(rootctx, com.left,
             com.top, com.opacity, com.zoom, com.needClip ? &com.clip : nullptr);
     }

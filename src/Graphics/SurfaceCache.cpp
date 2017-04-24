@@ -9,14 +9,15 @@
 namespace Nidium {
 namespace Graphics {
 
-void SurfaceCache::addToCache(int width, int height, CanvasSurface *ctx)
+void SurfaceCache::addToCache(int width, int height, std::shared_ptr<CanvasSurface> cs)
 {
     auto &store = m_Store[std::make_pair(width, height)];
-    auto sctx = (std::shared_ptr<CanvasSurface> *)ctx;
 
-    store.push_back(*sctx);
+    store.push_back(cs);
 
-    printf("[%dx%d] Element added to cache %ld\n", width, height, store.size());
+    m_Counter++;
+
+    printf("[%dx%d] Element added to cache %ld (total %d)\n", width, height, store.size(), m_Counter);
 }
 
 }}

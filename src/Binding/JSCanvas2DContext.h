@@ -126,6 +126,7 @@ public:
 
     bool m_SetterDisabled;
 
+    void markFrame(uint64_t frame) override;
     void clear(uint32_t color = 0x00000000) override;
 
     uint8_t *getPixels() override;

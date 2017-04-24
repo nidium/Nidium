@@ -224,6 +224,10 @@ private:
         int composed = 0;
     } m_Stats;
 
+    uint64_t getCurrentFrame() {
+        return m_Stats.nframe;
+    }
+
     void statsIncRepaint() {
         m_Stats.repaint++;
     }

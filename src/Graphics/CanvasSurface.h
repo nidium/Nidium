@@ -20,16 +20,7 @@ class CanvasSurface
 {
 public:
 
-    static std::shared_ptr<CanvasSurface> Create(int width, int height, GrContext *gr) {
-        sk_sp<SkSurface> surface = SkSurface::MakeRenderTarget(gr, SkBudgeted::kNo,
-                                        SkImageInfo::MakeN32Premul(width, height));
-
-        if (!surface) {
-            return nullptr;
-        }
-
-        return std::make_shared<CanvasSurface>(width, height, surface);
-    }
+    static std::shared_ptr<CanvasSurface> Create(int width, int height, GrContext *gr);
 
     static std::shared_ptr<CanvasSurface> Wrap(int width, int height, sk_sp<SkSurface> surface) {
         return std::make_shared<CanvasSurface>(width, height, surface);
@@ -46,7 +37,7 @@ public:
     }
 
     bool used() const {
-        return m_Used;
+        return true;
     }
 
     int width() const {
@@ -55,6 +46,10 @@ public:
 
     int height() const {
         return m_Height;
+    }
+
+    void mark(uint64_t frame) {
+        m_LastMarkedFrame = frame;
     }
 
     bool resize(int width, int height)
@@ -86,9 +81,9 @@ public:
     }
 
 private:
+    uint64_t m_LastMarkedFrame = 0;
     sk_sp<SkSurface> m_SkiaSurface;
     int m_Width = 0, m_Height = 0;
-    bool m_Used = true;
 };
 
 }}

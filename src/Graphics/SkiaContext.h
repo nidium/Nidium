@@ -137,6 +137,13 @@ public:
         return m_CSurface.get()->getSkiaSurface();
     }
 
+    void mark(uint64_t frame)
+    {
+        if (m_CSurface) {
+            m_CSurface.get()->mark(frame);
+        }
+    }
+
     double breakText(const char *str, size_t len, struct _Line lines[],
                      double maxWidth,
                      int *length = NULL);

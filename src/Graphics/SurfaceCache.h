@@ -24,10 +24,11 @@ public:
     SurfaceCache(){};
     ~SurfaceCache(){};
 
-    void addToCache(int width, int height, CanvasSurface *ctx);
+    void addToCache(int width, int height, std::shared_ptr<CanvasSurface> cs);
 
 private:
     std::map< std::pair<int /* width */, int /* height */>, std::vector< std::weak_ptr<CanvasSurface> > > m_Store;
+    uint32_t m_Counter = 0;
 };
 
 }}

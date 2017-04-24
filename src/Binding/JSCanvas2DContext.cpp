@@ -1924,6 +1924,13 @@ uint8_t *Canvas2DContext::getPixels()
 #endif
 }
 
+void Canvas2DContext::markFrame(uint64_t frame)
+{
+    if (m_Skia) {
+        m_Skia->mark(frame);
+    }
+}
+
 Canvas2DContext::~Canvas2DContext()
 {
     if (m_Skia) {

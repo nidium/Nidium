@@ -146,6 +146,8 @@ public:
         return NULL;
     }
 
+    virtual void markFrame(uint64_t frame) {}
+
     /*
         Create a grid of |resolution^2| points using triangle strip
 
