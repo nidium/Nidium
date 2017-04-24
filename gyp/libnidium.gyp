@@ -164,7 +164,7 @@
             '<(nidium_src_path)/Graphics/CanvasHandler.cpp',
             '<(nidium_src_path)/Graphics/Canvas3DContext.cpp',
             '<(nidium_src_path)/Graphics/SkiaContext.cpp',
-            '<(nidium_src_path)/Graphics/ContextCache.cpp',
+            '<(nidium_src_path)/Graphics/SurfaceCache.cpp',
             '<(nidium_src_path)/Binding/JSImage.cpp',
             '<(nidium_src_path)/Binding/JSWindow.cpp',
             '<(nidium_src_path)/Binding/JSDocument.cpp',

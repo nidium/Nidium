@@ -449,8 +449,6 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
 
                 JSCanvasCtx = Canvas2DContext::CreateObject(cx, ctx2d);
 
-                nctx->m_ContextCache.addToCache(width, height, ctx2d);
-
                 break;
             }
             case CanvasContext::CONTEXT_WEBGL:

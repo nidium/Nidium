@@ -3,13 +3,13 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "Graphics/ContextCache.h"
+#include "Graphics/SurfaceCache.h"
 #include "Binding/JSCanvas2DContext.h"
 
 namespace Nidium {
 namespace Graphics {
 
-void ContextCache::addToCache(int width, int height, Binding::Canvas2DContext *ctx)
+void SurfaceCache::addToCache(int width, int height, Binding::Canvas2DContext *ctx)
 {
     auto &store = m_Store[std::make_pair(width, height)];
 

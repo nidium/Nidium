@@ -269,8 +269,6 @@ public:
     friend class CanvasHandler;
     friend class JSCanvas;
 
-    static SkSurface *m_GlSurface;
-
 
 private:
     SkiaContext();
@@ -280,7 +278,7 @@ private:
 
     void initPaints();
     void addPath(const SkPath &path, SkPath *to);
-    
+
     sk_sp<ShadowLooper> buildShadow();
 
     bool initWithSurface(sk_sp<SkSurface> surface);

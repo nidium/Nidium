@@ -850,9 +850,6 @@ Context::~Context()
     destroyJS();
 
     delete m_GLState;
-
-    SkiaContext::m_GlSurface = nullptr;
-
     ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
     m_InputHandler.clear();
 

@@ -22,6 +22,7 @@
 #include "Graphics/Gradient.h"
 #include "Graphics/GLHeader.h"
 #include "Graphics/SkiaContext.h"
+#include "Graphics/GLHeader.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSDocument.h"
 #include "Binding/JSImage.h"
@@ -1930,6 +1931,7 @@ Canvas2DContext::~Canvas2DContext()
     }
 }
 
+#if 0
 Canvas2DContext *Canvas2DContext::UnWrap(void *ptr)
 {
     if (!ptr) {
@@ -1950,6 +1952,7 @@ void Canvas2DContext::Delete(void *ptr)
 {
     delete (std::shared_ptr<Canvas2DContext> *)ptr;
 }
+#endif
 
 // }}}
 

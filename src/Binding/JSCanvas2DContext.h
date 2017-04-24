@@ -116,9 +116,11 @@ public:
 
     static JSFunctionSpec *ListMethods();
     static JSPropertySpec *ListProperties();
+#if 0
     static Canvas2DContext *UnWrap(void *ptr);
     static void *Wrap(Canvas2DContext *obj);
     static void Delete(void *ptr);
+#endif
 
     NIDIUM_DECL_JSTRACER();
 

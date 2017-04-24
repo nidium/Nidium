@@ -24,7 +24,7 @@
 #include "Core/Context.h"
 #include "Frontend/InputHandler.h"
 
-#include "Graphics/ContextCache.h"
+#include "Graphics/SurfaceCache.h"
 
 #include <Yoga.h>
 
@@ -188,7 +188,7 @@ public:
 
     YGConfigRef m_YogaConfig;
     uint64_t m_CanvasCreatedIdx = 8;
-    Graphics::ContextCache m_ContextCache;
+    Graphics::SurfaceCache m_ContextCache;
 private:
     Graphics::GLResources m_Resources;
     Graphics::CanvasHandler *m_RootHandler;

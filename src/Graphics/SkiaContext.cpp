@@ -48,9 +48,6 @@ using Nidium::Frontend::Context;
 namespace Nidium {
 namespace Graphics {
 
-SkSurface *SkiaContext::m_GlSurface = nullptr;
-
-
 static struct _nidium_blend_mode
 {
     const char *str;

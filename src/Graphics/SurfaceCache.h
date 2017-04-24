@@ -20,11 +20,11 @@ namespace Binding {
 
 namespace Graphics {
 
-class ContextCache
+class SurfaceCache
 {
 public:
-    ContextCache(){};
-    ~ContextCache(){};
+    SurfaceCache(){};
+    ~SurfaceCache(){};
 
     void addToCache(int width, int height, Binding::Canvas2DContext *ctx);
 
