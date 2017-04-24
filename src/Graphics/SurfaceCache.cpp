@@ -4,6 +4,7 @@
    that can be found in the LICENSE file.
 */
 #include "Graphics/SurfaceCache.h"
+#include "Graphics/CanvasSurface.h"
 #include "Binding/JSCanvas2DContext.h"
 
 namespace Nidium {
@@ -18,6 +19,20 @@ void SurfaceCache::addToCache(int width, int height, std::shared_ptr<CanvasSurfa
     m_Counter++;
 
     printf("[%dx%d] Element added to cache %ld (total %d)\n", width, height, store.size(), m_Counter);
+}
+
+std::shared_ptr<CanvasSurface> SurfaceCache::getCachedSurface(int width, int height)
+{
+    auto &store = m_Store[std::make_pair(width, height)];
+
+    for (auto &surface : store) {
+        if (surface.get()->canBeClaimed()) {
+            printf("Return cached surface\n");
+            return surface;
+        }
+    }
+
+    return nullptr;
 }
 
 }}

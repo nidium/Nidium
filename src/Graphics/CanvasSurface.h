@@ -52,33 +52,14 @@ public:
         m_LastMarkedFrame = frame;
     }
 
-    bool resize(int width, int height)
-    {
-        sk_sp<SkSurface> newSurface = m_SkiaSurface->makeSurface(SkImageInfo::MakeN32Premul(width, height));
-
-        if (!newSurface) {
-            return false;
-        }
-
-        replaceSurface(newSurface, width, height);
-
-        return true;
+    uint64_t getMark() {
+        return m_LastMarkedFrame;
     }
 
-    void replaceSurface(sk_sp<SkSurface> newSurface, int width, int height) {
-        m_Width  = width;
-        m_Height = height;
-
-        newSurface->getCanvas()->clear(0x00000000);
-
-        // Blit the old surface into the new one
-        m_SkiaSurface->draw(newSurface->getCanvas(), 0, 0, nullptr);
-
-        // Keep the old matrix in place
-        newSurface->getCanvas()->setMatrix(m_SkiaSurface->getCanvas()->getTotalMatrix());
-
-        m_SkiaSurface = newSurface;
-    }
+    bool resize(int width, int height);
+    void replaceSurface(sk_sp<SkSurface> newSurface, int width, int height);
+    void clear();
+    bool canBeClaimed();
 
 private:
     uint64_t m_LastMarkedFrame = 0;

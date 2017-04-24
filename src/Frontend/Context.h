@@ -181,6 +181,11 @@ public:
         return &m_InputHandler;
     }
 
+
+    uint64_t getCurrentFrame() {
+        return m_Stats.nframe;
+    }
+
     void log(const char *str) override;
     void logClear() override;
     void logShow() override;
@@ -223,10 +228,6 @@ private:
         int resize = 0;
         int composed = 0;
     } m_Stats;
-
-    uint64_t getCurrentFrame() {
-        return m_Stats.nframe;
-    }
 
     void statsIncRepaint() {
         m_Stats.repaint++;
