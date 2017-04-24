@@ -537,11 +537,15 @@ protected:
 
     static inline void JSFinalizer(JSFreeOp *fop, JSObject *obj)
     {
-        T *cppobj = T::UnWrap(JS_GetPrivate(obj));
+        void *ptr = JS_GetPrivate(obj);
 
-        if (cppobj) {
-            delete cppobj;
+        if (ptr) {
+            T::Delete(ptr);
         }
+    }
+
+    static void Delete(void *ptr) {
+        delete T::UnWrap(ptr);
     }
 
     static inline JSClass *GetJSClass()
