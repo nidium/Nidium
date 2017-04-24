@@ -1281,7 +1281,6 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
             case InputEvent::kTouchStart_Type:
             case InputEvent::kTouchEnd_Type:
             case InputEvent::kTouchMove_Type: {
-                __android_log_print(ANDROID_LOG_ERROR, "Nidium", "handle touch event on %p", handler);
                 /*
                     If the handler isn't one of the handlers that
                     received the touchstart event ignore it.
