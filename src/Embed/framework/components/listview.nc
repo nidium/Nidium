@@ -89,7 +89,7 @@
             }
 
             select(id) {
-                this.emit("select", id);
+                this.emit("select", this.items[id]);
             }
 
             getItemTemplate(item){
@@ -99,7 +99,7 @@
                 let subtitle = item.subtitle;
 
                 return (`
-                    <li id="${id}" class="li" on:mousedown='this.select(${id})'>
+                    <li id="${id}" class="li" on:click='this.select(${id})'>
                         <icon class="icon media" shape="${media}"></icon>
                         <span class="line">
                             <span class="text">${title}</span>

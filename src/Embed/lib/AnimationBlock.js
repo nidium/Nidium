@@ -9,7 +9,7 @@
 
     Example on animating properties for my_obj and my_obj2 :
 
-        AnimationBlock((my_obj, my_obj2) => {
+        var handler = AnimationBlock((my_obj, my_obj2) => {
             my_obj.left = 200;
             my_obj.top = 50;
             my_obj2.opacity = 0.2;
@@ -20,20 +20,24 @@
                 
                 my_obj.left = 0;
             }
-        }, 2000, Easing.Bounce.Out, my_obj, my_obj2)(() => {
+        }, 2000, Easing.Bounce.Out, my_obj, my_obj2);
+
+        handler.onFinish = () => {
             console.log("Animation ended");
-        });
+        };
 
     Example on animating properties on a list of objects (array(lst))
 
-        AnimationBlock((...lst) => {
+        var anim = AnimationBlock((...lst) => {
             for (let o of lst) {
                 o.left = Math.random()*600;
                 o.top = Math.random()*500;
             }
-        }, 2000, Easing.Bounce.Out, ...lst)(() => {
+        }, 2000, Easing.Bounce.Out, ...lst);
+
+        handler = () => {
             console.log("Animation ended");
-        });
+        };
 */
 
 const Easing = require("easing");

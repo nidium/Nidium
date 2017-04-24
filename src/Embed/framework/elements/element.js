@@ -102,12 +102,12 @@
             }
 
             node.show();
-            node.style.opacity = 0.02;
+            node.style.opacity = 0.03;
             this.activeAnimation = setAnimation(
                 (node) => {
-                    node.opacity = 0.12;
+                    node.opacity = 0.14;
                 },
-                1000,
+                800,
                 Easing.Exponential.In,
                 node
             );
@@ -314,6 +314,9 @@
     [
         "opacity",
         "overflow",
+        "scrollable",
+        "scrollableX",
+        "scrollableY",
         "scrollLeft",
         "scrollTop",
         "allowNegativeScroll",

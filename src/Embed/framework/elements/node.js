@@ -410,7 +410,6 @@
             return;
         }
         if (o && dist<10) {
-            //console.log(this.name(), "mouseclick")
             this.fireEvent("click", e);
         }
     };

@@ -459,7 +459,6 @@ var Proxenet = function(o, callback){
         if (object){
             
             if (object.constructor == Array){
-                console.log("parsing array", object);
                 proxy = Array.observe(object, handler);
             }
 
@@ -467,7 +466,6 @@ var Proxenet = function(o, callback){
                 hash.set(object, true);
 
                 proxy = Object.observe(object, handler);
-                console.log("parsing object", object);
 
                 for (var i in object) {
                     proxy[i] = walk(object[i]);

@@ -118,7 +118,6 @@ class Navigator extends Elements.Element {
 
         for (var i = 0; i < len; i++) {
             var scene = this.history[i];
-            console.log(scene.url);
         }
     }
 

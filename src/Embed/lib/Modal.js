@@ -65,7 +65,6 @@ class Modal extends Elements.Element {
 
         this.anim.onFinish = () => {
             this._opening = false;
-            console.log("opened");
         };
 
         setAnimation(
@@ -100,7 +99,6 @@ class Modal extends Elements.Element {
         this.anim.onFinish = () => {
             this._closing = false;
             this.sendToBack();
-            console.log("closed");
         };
 
         setAnimation(

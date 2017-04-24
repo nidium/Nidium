@@ -28,7 +28,6 @@
 
             if (this.anim) this.anim.finish();
             this.style.opacity = opacity;
-            console.log(opacity)
             this._opening = false;
             this._closing = false;
         }

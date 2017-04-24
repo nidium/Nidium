@@ -20,8 +20,8 @@
             this.style.marginTop = 6;
             this.style.marginBottom = 6;
 
-            this.inherit.fontSize = this.inherit.fontSize || 40;
-            this.inherit.lineHeight = this.inherit.lineHeight || 40;
+            this.inherit.fontSize = this.inherit.fontSize || 36;
+            this.inherit.lineHeight = this.inherit.lineHeight || 36;
         }
     }
 
