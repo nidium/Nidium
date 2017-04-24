@@ -27,7 +27,7 @@ const { setAnimation, Easing } = require("AnimationBlock");
     }
 
     /*
-        Remove all child nodes 
+        Remove all child nodes
     */
     Canvas.prototype.empty = function() {
         var children = this.getChildren();
@@ -50,7 +50,9 @@ const { setAnimation, Easing } = require("AnimationBlock");
     }
 
     Object.defineProperty(Canvas.prototype, "computed", {
-        get:() => this.getDimensions()
+        get() {
+            return this.getDimensions()
+        }
     })
 
     Object.defineProperty(Canvas.prototype, "inherit", {
