@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
+import android.media.AudioManager;
 import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
@@ -15,6 +16,7 @@ import android.text.method.Touch;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
@@ -64,6 +66,36 @@ public class Nidroid implements Flinger.Listener {
         mSurface = v;
 
         mMainHandler = new Handler(mCx.getMainLooper());
+
+        v.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                int ev;
+
+                if (event.getAction() == KeyEvent.ACTION_UP) {
+                    // For now, only fire events on down action
+                    return false;
+                }
+
+                switch (keyCode) {
+                    case KeyEvent.KEYCODE_BACK:
+                        ev = 15;
+                        break;
+                    case KeyEvent.KEYCODE_VOLUME_UP:
+                        ev = 16;
+                        break;
+                    case KeyEvent.KEYCODE_VOLUME_DOWN:
+                        ev = 17;
+                        break;
+                    default:
+                        return false;
+                }
+
+                Nidroid.onHardwareKey(ev, event);
+
+                return true;
+            }
+        });
 
         // Override SDL onTouch listener so we can process scroll/fling gesture
         v.setOnTouchListener(new View.OnTouchListener() {
@@ -128,6 +160,26 @@ public class Nidroid implements Flinger.Listener {
                         return true;
                     }
                 });
+            }
+        });
+    }
+
+    public void dispatchEvent(final KeyEvent ev) {
+        mMainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                switch (ev.getKeyCode()) {
+                    case KeyEvent.KEYCODE_BACK:
+                        mActivity.onBackPressed();
+                        break;
+                    case KeyEvent.KEYCODE_VOLUME_UP:
+                    case KeyEvent.KEYCODE_VOLUME_DOWN:
+                        AudioManager am = (AudioManager) mActivity.getSystemService(Context.AUDIO_SERVICE);
+                        am.adjustVolume(ev.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP
+                                ? AudioManager.ADJUST_RAISE
+                                : AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+                        break;
+                }
             }
         });
     }
@@ -267,5 +319,6 @@ public class Nidroid implements Flinger.Listener {
     }
 
     public static native void nidiumInit(Nidroid n);
+    public static native boolean onHardwareKey(int keyCode, KeyEvent ev);
     public static native void onScroll(float x, float y, float relX, float relY, float velocityX, float velocityY, int state);
 }

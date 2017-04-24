@@ -62,6 +62,7 @@ public:
                   float relX, float relY,
                   float velocityX, float velocityY,
                   int state);
+    void onHardwareKey(int keyCode, jobject ev);
 
     void onMessage(const Core::SharedMessages::Message &msg) override;
 
@@ -75,6 +76,19 @@ private:
     enum AndroidMessage
     {
         kAndroidMessage_scroll,
+        kAndroidMessage_hardwareKey,
+    };
+
+    struct AndroidHarwareKeyMessage {
+        Frontend::InputEvent::Type evType;
+        jnipp::GlobalRef<jnipp::Object> ev;
+
+        AndroidHarwareKeyMessage(Frontend::InputEvent::Type evType, jobject ev)
+            : evType(evType)
+            {
+                jnipp::Ref<jnipp::Object> evRef(ev);
+                this->ev.set(evRef);
+            }
     };
 
     struct AndroidScrollMessage {

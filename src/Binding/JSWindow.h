@@ -7,6 +7,7 @@
 #define binding_jswindow_h__
 
 #include "Frontend/NML.h"
+#include "Frontend/InputHandler.h"
 #include "Binding/ClassMapper.h"
 #include "Binding/JSGlobal.h"
 
@@ -54,6 +55,7 @@ public:
     void mouseMove(int x, int y, int xrel, int yrel);
     void mouseClick(int x, int y, int state, int button, int clicks);
     void systemMenuClicked(const char *id);
+    bool onHardwareKey(Frontend::InputEvent::Type evType);
 
     bool dragBegin(int x, int y, const char *const *files, size_t nfiles);
     bool dragUpdate(int x, int y);

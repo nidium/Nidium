@@ -151,5 +151,12 @@ void System::stopScrolling()
     stopScrolling(m_Nidroid);
 }
 
+void System::dispatchKeyEvent(jobject ev)
+{
+    jnipp::Ref<jnipp::Object> jEv(ev);
+    jnipp::Method<void, jobject> dispatchEvent(m_NidroidClass, "dispatchEvent", "(Landroid/view/KeyEvent;)V");
+    dispatchEvent(m_Nidroid, jEv);
+}
+
 } // namespace Interface
 } // namespace Nidium

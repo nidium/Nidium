@@ -287,15 +287,18 @@ public class SDLActivity extends Activity {
            return false;
         }
 
-        int keyCode = event.getKeyCode();
-        // Ignore certain special keys so they're handled by Android
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN ||
-            keyCode == KeyEvent.KEYCODE_VOLUME_UP ||
-            keyCode == KeyEvent.KEYCODE_CAMERA ||
-            keyCode == 168 || /* API 11: KeyEvent.KEYCODE_ZOOM_IN */
-            keyCode == 169 /* API 11: KeyEvent.KEYCODE_ZOOM_OUT */
-            ) {
-            return false;
+        // Nidium needs to receive these events !
+        if (false) {
+            int keyCode = event.getKeyCode();
+            // Ignore certain special keys so they're handled by Android
+            if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN ||
+                    keyCode == KeyEvent.KEYCODE_VOLUME_UP ||
+                    keyCode == KeyEvent.KEYCODE_CAMERA ||
+                    keyCode == 168 || /* API 11: KeyEvent.KEYCODE_ZOOM_IN */
+                    keyCode == 169 /* API 11: KeyEvent.KEYCODE_ZOOM_OUT */
+                    ) {
+                return false;
+            }
         }
         return super.dispatchKeyEvent(event);
     }
@@ -1258,10 +1261,6 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
     // Key events
     @Override
     public boolean onKey(View  v, int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            return true;
-        }
-
         // Dispatch the different events depending on where they come from
         // Some SOURCE_JOYSTICK, SOURCE_DPAD or SOURCE_GAMEPAD are also SOURCE_KEYBOARD
         // So, we try to process them as JOYSTICK/DPAD/GAMEPAD events first, if that fails we try them as KEYBOARD

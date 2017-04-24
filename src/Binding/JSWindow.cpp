@@ -302,6 +302,27 @@ void JSWindow::systemMenuClicked(const char *id)
     JSOBJ_CALLFUNCNAME(obj, "_onsystemtrayclick", ev);
 }
 
+bool JSWindow::onHardwareKey(InputEvent::Type evType)
+{
+    JS::RootedObject evObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+    JS::RootedValue evValue(m_Cx);
+
+    evValue.setObjectOrNull(evObj);
+
+    const char *evName = InputEvent::GetName(evType);
+
+    this->fireJSEvent(evName, &evValue);
+
+    JS::RootedValue defaultPrevented(m_Cx);
+    if (JS_GetProperty(m_Cx, evObj, "defaultPrevented", &defaultPrevented)) {
+        if (defaultPrevented.isBoolean() && defaultPrevented.toBoolean()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
 {
 #define EVENT_PROP(name, val)                 \

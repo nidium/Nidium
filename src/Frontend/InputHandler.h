@@ -29,7 +29,8 @@ namespace Frontend {
 static const char *InputEvent_Names[]
     = { "mousemove", "mousedown", "mouseup", "dblclick", "dragstart",
         "dragend",   "dragover",  "drop",    "drag",     "mousewheel",
-        "touchstart", "touchend", "touchmove", "scroll", "scroll"};
+        "touchstart", "touchend", "touchmove", "scroll", "scroll",
+        "back", "volumeup", "volumedown"};
 
 class InputTouch;
 
@@ -52,7 +53,10 @@ public:
         kTouchEnd_Type,
         kTouchMove_Type,
         kTouchScroll_type,
-        kScroll_type
+        kScroll_type,
+        kHardwareKey_back,
+        kHardwareKey_volumeUp,
+        kHardwareKey_volumeDown,
     };
 
     enum ScrollState

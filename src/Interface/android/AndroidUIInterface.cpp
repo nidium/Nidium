@@ -20,11 +20,17 @@
 #include "Frontend/Context.h"
 #include "Frontend/InputHandler.h"
 #include "Binding/JSWindow.h"
+#include "Core/SharedMessages.h"
+#include "Core/Events.h"
+#include "Core/Utils.h"
 #include "Graphics/CanvasHandler.h"
 
 using Nidium::Binding::JSWindow;
 using Nidium::Frontend::InputEvent;
 using Nidium::Frontend::InputHandler;
+using Nidium::Core::SharedMessages;
+using Nidium::Core::Events;
+using Nidium::Core::PtrAutoDelete;
 
 namespace Nidium {
 namespace Interface {
@@ -117,10 +123,12 @@ void AndroidUIInterface::runLoop()
 void AndroidUIInterface::onMessage(const Core::SharedMessages::Message &msg)
 {
     InputHandler *inputHandler = m_NidiumCtx->getInputHandler();
-    AndroidScrollMessage *info = static_cast<AndroidScrollMessage *>(msg.dataPtr());
 
     switch (msg.event()) {
         case kAndroidMessage_scroll: {
+            AndroidScrollMessage *info
+                = static_cast<AndroidScrollMessage *>(msg.dataPtr());
+
             InputEvent ev(InputEvent::kTouchScroll_type,
                           info->x,
                           info->y);
@@ -133,10 +141,27 @@ void AndroidUIInterface::onMessage(const Core::SharedMessages::Message &msg)
             ev.m_data[5] = 0; // consumed
 
             inputHandler->pushEvent(ev);
+
+            delete info;
+        } break;
+        case kAndroidMessage_hardwareKey: {
+            JSWindow *window = JSWindow::GetObject(m_NidiumCtx->getNJS());
+            if (!window) {
+                break;
+            }
+
+            AndroidHarwareKeyMessage *info
+                = static_cast<AndroidHarwareKeyMessage *>(msg.dataPtr());
+
+            System *sys = static_cast<System *>(SystemInterface::GetInstance());
+
+            if (!window->onHardwareKey(info->evType)) {
+                sys->dispatchKeyEvent(info->ev);
+            }
+
+            delete info;
         } break;
     }
-
-    delete info;
 }
 
 void AndroidUIInterface::onScroll(float x, float y,
@@ -151,6 +176,14 @@ void AndroidUIInterface::onScroll(float x, float y,
                                    static_cast<InputEvent::ScrollState>(state));
 
     this->postMessage(msg, kAndroidMessage_scroll);
+}
+
+void AndroidUIInterface::onHardwareKey(int keyCode, jobject ev)
+{
+    AndroidHarwareKeyMessage *msg
+        = new AndroidHarwareKeyMessage(static_cast<InputEvent::Type>(keyCode), ev);
+
+    this->postMessage(msg, kAndroidMessage_hardwareKey);
 }
 
 } // namespace Interface
@@ -170,5 +203,12 @@ extern "C" void Java_com_nidium_android_Nidroid_onScroll(JNIEnv *env, jobject th
                                                          int state)
 {
     NIDIUM_ANDROID_UI->onScroll(x, y, relX, relY, velocityX, velocityY, state);
+}
+
+extern "C" void Java_com_nidium_android_Nidroid_onHardwareKey(JNIEnv *env, jobject thiz, int keyCode, jobject ev)
+{
+    jnipp::Env::Scope envScope(env);
+
+    NIDIUM_ANDROID_UI->onHardwareKey(keyCode, ev);
 }
 #undef NIDIUM_ANDROID_UI
