@@ -8,7 +8,7 @@
 #include "Graphics/SurfaceCache.h"
 #include "Frontend/Context.h"
 
-#define CANVAS_FRAME_THRESHOLD 5
+#define CANVAS_FRAME_THRESHOLD 3
 
 namespace Nidium {
 namespace Graphics {
@@ -18,17 +18,19 @@ std::shared_ptr<CanvasSurface> CanvasSurface::Create(int width,
 {
     Frontend::Context *nctx   = Frontend::Context::GetObject<Frontend::Context>();
 
+    /* Check for reusable surface */
+    auto cached = nctx->m_ContextCache.getCachedSurface(width, height);
+    if (cached) {
+        cached.get()->reset();
+        printf("[Cached] Returned a cached surface %dx%d\n", width, height);
+        return cached;
+    }
+
     sk_sp<SkSurface> surface = SkSurface::MakeRenderTarget(gr, SkBudgeted::kNo,
                                     SkImageInfo::MakeN32Premul(width, height));
 
     if (!surface) {
         return nullptr;
-    }
-
-    /* Check for reusable surface */
-    auto cached = nctx->m_ContextCache.getCachedSurface(width, height);
-    if (cached) {
-        return cached;
     }
 
     auto cs = std::make_shared<CanvasSurface>(width, height, surface);
@@ -45,6 +47,8 @@ bool CanvasSurface::resize(int width, int height)
     if (!newSurface) {
         return false;
     }
+
+    printf("Resize surface from %dx%d to %dx%d\n", m_Width, m_Height, width, height);
 
     replaceSurface(newSurface, width, height);
 
@@ -77,6 +81,19 @@ void CanvasSurface::clear()
     if (m_SkiaSurface) {
         m_SkiaSurface.get()->getCanvas()->clear(0x00000000);
     }
+}
+
+void CanvasSurface::reset()
+{
+    if (!m_SkiaSurface) {
+        return;
+    }
+
+    SkCanvas *canvas = m_SkiaSurface.get()->getCanvas();
+
+    canvas->resetMatrix();
+    canvas->restoreToCount(canvas->getSaveCount());
+    canvas->clear(0x00000000);
 }
 
 }}

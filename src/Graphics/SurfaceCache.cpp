@@ -26,8 +26,8 @@ std::shared_ptr<CanvasSurface> SurfaceCache::getCachedSurface(int width, int hei
     auto &store = m_Store[std::make_pair(width, height)];
 
     for (auto &surface : store) {
-        if (surface.get()->canBeClaimed()) {
-            printf("Return cached surface\n");
+        CanvasSurface *cs = surface.get();
+        if (cs->canBeClaimed() && cs->width() == width && cs->height() == height) {
             return surface;
         }
     }

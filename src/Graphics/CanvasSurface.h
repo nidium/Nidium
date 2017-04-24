@@ -59,6 +59,7 @@ public:
     bool resize(int width, int height);
     void replaceSurface(sk_sp<SkSurface> newSurface, int width, int height);
     void clear();
+    void reset();
     bool canBeClaimed();
 
 private:
