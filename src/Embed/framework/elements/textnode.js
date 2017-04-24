@@ -14,8 +14,7 @@
         constructor(textValue) {
             super();
             this.nodeValue = textValue;
-            this.style.minWidth = 1;
-            this.style.minHeight = 1;
+            this._textData = null;
         }
 
         cloneNode(deep = true, shadowRoot=this[s_ShadowRoot]) {
@@ -24,6 +23,24 @@
 
         getNMLContent() {
             return this.nodeValue;
+        }
+
+        computeSelfSize() {
+            setTimeout(() => {
+                let {width, height} = this.getDimensions(true);
+                /* Use document context as we don't have a self context yet */
+                var ctx = document.canvas.getContext("2d");
+                let fontSize    = this.style.fontSize || 15;
+                let lineHeight  = this.style.lineHeight || 20;
+
+                ctx.save();
+                    ctx.fontSize     = fontSize;
+                    ctx.textBaseline = "middle";
+                    this._textData   = ctx.breakText(this.nodeValue, width);
+                    this.height      = lineHeight * this._textData.lines.length;
+                ctx.restore();
+
+            }, 1);
         }
 
         set textContent(value) {
@@ -41,6 +58,7 @@
         set nodeValue(textValue) {
             if (textValue == this.nodeValue) return this;
             this[s_NodeText] = textValue.trim();
+            this.computeSelfSize();
             this.requestPaint();
             this.fireEvent("nodeValueChanged", textValue);
         }
@@ -52,7 +70,7 @@
         paint(ctx, width, height) {
             super.paint(ctx, width, height);
 
-            if (!this.nodeValue) return false;
+            if (!this.nodeValue || !this._textData) return false;
 
             let actualWidth = 1;
 
@@ -66,10 +84,9 @@
             ctx.fillStyle       = color;
             ctx.textBaseline    = "middle";
 
-            let data = ctx.breakText(this.nodeValue, width);
-            this.height = lineHeight * data.lines.length;
-
             var ox = 0;
+
+            let data = this._textData;
 
             for (var i = 0; i<data.lines.length; i++) {
                 let w = ctx.measureText(data.lines[i]).width;
