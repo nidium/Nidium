@@ -112,7 +112,7 @@ bool JSCanvas::JS_getDimensions(JSContext *cx, JS::CallArgs &args)
     if (!m_CanvasHandler->getDimensions(&width, &height, &left,
         &top, &aleft, &atop)) {
 
-        width = height = left = top = aleft = top = NAN;
+        width = height = left = top = aleft = atop = top = NAN;
     }
 
     JS::RootedObject out(cx, JS_NewPlainObject(cx));
