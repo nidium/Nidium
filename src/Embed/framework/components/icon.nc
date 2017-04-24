@@ -18,8 +18,6 @@
                 if (!this.style.lineHeight) {
                     this.style.lineHeight = this.style.height+1;
                 }
-
-                this.render();
             }
 
             paint(ctx, width, height) {

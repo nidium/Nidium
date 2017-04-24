@@ -33,8 +33,6 @@
         module.exports = class extends Component {
             constructor(attr) {
                 super(attr);
-
-                this.render();
             }
         }
     </script>

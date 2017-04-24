@@ -54,14 +54,17 @@
             if (isJS || isOn) {
 
                 if (shadowRoot && shadowRoot.jsScope) {
-                    options.scope = shadowRoot.jsScope["this"];
+                    /*
+                    options.scope = shadowRoot.jsScope;
                     options.scope.__this = shadowRoot.jsScope["this"];
+                    */
+                    options.scope = shadowRoot.jsScope["this"];
                 }
 
                 if (isOn) {
                     value = `function(){${value}}.bind(this)`;
                 } else {
-                    value = `function() { return ${value} }.apply(__this)`;
+                    //value = `function() { return ${value} }.apply(__this)`
                 }
 
                 value = "(" + value + ")";

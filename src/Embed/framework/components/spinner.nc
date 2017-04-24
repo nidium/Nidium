@@ -26,7 +26,6 @@
                 this.style.speed = attr.speed || 30;
                 this.style.lineWidth = attr.lineWidth || 6;
 
-                this.render();
                 this.play();
             }
 
