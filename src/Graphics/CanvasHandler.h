@@ -470,7 +470,7 @@ public:
     void setOverflow(bool state) {
         m_Overflow = state;
         /* TODO: We should set YGOverflowScroll only if the view is scrollable */
-        YGNodeStyleSetOverflow(m_YogaRef, state ? YGOverflowScroll : YGOverflowVisible);
+        YGNodeStyleSetOverflow(m_YogaRef, state ? YGOverflowScroll : YGOverflowHidden);
     }
 
     bool canOverflow() const {
