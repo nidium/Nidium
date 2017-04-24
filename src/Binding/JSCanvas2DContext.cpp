@@ -11,6 +11,7 @@
 
 #include <SkDevice.h>
 #include <GrContext.h>
+#include <memory>
 
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSImageData.h"
@@ -157,7 +158,7 @@ bool JSCanvasGLProgram::JS_uniform1i(JSContext *cx, JS::CallArgs &args)
     }
 
     AutoGLProgram autoProg(m_Program);
-    
+
     NIDIUM_GL_CALL_MAIN(Uniform1i(location, val));
 
     return true;
@@ -1928,6 +1929,23 @@ Canvas2DContext::~Canvas2DContext()
         delete m_Skia;
     }
 }
+
+Canvas2DContext *Canvas2DContext::UnWrap(void *ptr)
+{
+    if (!ptr) {
+        return nullptr;
+    }
+
+    auto sptr = (std::shared_ptr<Canvas2DContext> *)ptr;
+
+    return sptr->get();
+}
+
+void *Canvas2DContext::Wrap(Canvas2DContext *obj)
+{
+    return new std::shared_ptr<Canvas2DContext>(obj);
+}
+
 // }}}
 
 // {{{ JSGradient
