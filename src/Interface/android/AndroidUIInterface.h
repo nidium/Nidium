@@ -91,7 +91,6 @@ private:
                 jnipp::Ref<jnipp::Object> evRef(ev);
                 this->ev.set(evRef);
             }
->>>>>>> aaf443daba119fc910078e17985efbdb893127bd
     };
 
     struct AndroidScrollMessage {

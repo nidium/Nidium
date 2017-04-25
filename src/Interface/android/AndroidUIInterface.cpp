@@ -222,20 +222,19 @@ void AndroidUIInterface::onScroll(float x, float y,
     this->postMessage(msg, kAndroidMessage_scroll);
 }
 
-<<<<<<< HEAD
 void AndroidUIInterface::onKeyboard(int keyCode, const char *str, InputEvent::Type evType)
 {
     AndroidKeyboardMessage *msg = new AndroidKeyboardMessage(keyCode, str, evType);
 
     this->postMessage(msg, kAndroidMessage_keyboard);
-=======
+}
+
 void AndroidUIInterface::onHardwareKey(int keyCode, jobject ev)
 {
     AndroidHarwareKeyMessage *msg
         = new AndroidHarwareKeyMessage(static_cast<InputEvent::Type>(keyCode), ev);
 
     this->postMessage(msg, kAndroidMessage_hardwareKey);
->>>>>>> aaf443daba119fc910078e17985efbdb893127bd
 }
 
 } // namespace Interface
@@ -257,7 +256,6 @@ extern "C" void Java_com_nidium_android_Nidroid_onScroll(JNIEnv *env, jobject th
     NIDIUM_ANDROID_UI->onScroll(x, y, relX, relY, velocityX, velocityY, state);
 }
 
-<<<<<<< HEAD
 extern "C" void Java_com_nidium_android_Nidroid_onComposition(JNIEnv *env, jobject thiz,
                                                               jstring text, int ev)
 {
@@ -280,12 +278,10 @@ extern "C" void Java_com_nidium_android_Nidroid_onKeyboardKey(JNIEnv *env, jobje
     NIDIUM_ANDROID_UI->onKeyboard(keyCode, nullptr, evType);
 }
 
-=======
 extern "C" void Java_com_nidium_android_Nidroid_onHardwareKey(JNIEnv *env, jobject thiz, int keyCode, jobject ev)
 {
     jnipp::Env::Scope envScope(env);
 
     NIDIUM_ANDROID_UI->onHardwareKey(keyCode, ev);
 }
->>>>>>> aaf443daba119fc910078e17985efbdb893127bd
 #undef NIDIUM_ANDROID_UI
