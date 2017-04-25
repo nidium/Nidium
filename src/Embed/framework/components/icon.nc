@@ -17,7 +17,7 @@
                 this.style.coating = 4;
 
                 if (!this.style.lineHeight) {
-                    this.style.lineHeight = this.style.height;
+                    this.style.lineHeight = this.style.height-1;
                 }
             }
 
@@ -44,7 +44,7 @@
                 ctx.fillStyle     = this.style.color;
                 ctx.textBaseline  = "middle";
                 
-                ctx.fillText(icon, ox, oy-3);
+                ctx.fillText(icon, ox, oy-2);
             }
         }
     </script>
