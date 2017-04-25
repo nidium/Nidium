@@ -72,21 +72,18 @@ void CanvasSurface::replaceSurface(sk_sp<SkSurface> newSurface, int width, int h
 
 bool CanvasSurface::canBeClaimed(int width, int height)
 {
-    Frontend::Context *nctx = Frontend::Context::GetObject<Frontend::Context>();
-    return m_LastMarkedFrame > 0 && (m_LastMarkedFrame + CANVAS_FRAME_THRESHOLD) < nctx->getCurrentFrame();
+    if (m_Width == width && m_Height == height) {
+        Frontend::Context *nctx = Frontend::Context::GetObject<Frontend::Context>();
+        return m_LastMarkedFrame > 0 && (m_LastMarkedFrame + CANVAS_FRAME_THRESHOLD) < nctx->getCurrentFrame();
+    }
+
+    return false;
 }
 
 void CanvasSurface::touch()
 {
     Frontend::Context *nctx = Frontend::Context::GetObject<Frontend::Context>();
     m_LastMarkedFrame = nctx->getCurrentFrame();
-}
-
-void CanvasSurface::clear()
-{
-    if (m_SkiaSurface) {
-        m_SkiaSurface.get()->getCanvas()->clear(0x00000000);
-    }
 }
 
 void CanvasSurface::reset()

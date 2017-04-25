@@ -19,6 +19,7 @@ namespace Graphics {
 class CanvasSurface
 {
 public:
+    friend class SurfaceCache;
 
     static std::shared_ptr<CanvasSurface> Create(int width, int height, GrContext *gr);
 
@@ -32,12 +33,18 @@ public:
 
     }
 
+
+    bool resize(int width, int height);
+    void replaceSurface(sk_sp<SkSurface> newSurface, int width, int height);
+
+    /* Reset the state of the underlying SkCanvas object */
+    void reset();
+
+    /* Check whether this surface can be reused */
+    bool canBeClaimed(int width, int height);
+
     sk_sp<SkSurface> getSkiaSurface() {
         return m_SkiaSurface;
-    }
-
-    bool used() const {
-        return true;
     }
 
     int width() const {
@@ -56,14 +63,9 @@ public:
         return m_LastMarkedFrame;
     }
 
-    bool resize(int width, int height);
-    void replaceSurface(sk_sp<SkSurface> newSurface, int width, int height);
-    void clear();
-    void reset();
-    bool canBeClaimed(int width, int height);
+private:
     void touch();
 
-private:
     uint64_t m_LastMarkedFrame = 0;
     sk_sp<SkSurface> m_SkiaSurface;
     int m_Width = 0, m_Height = 0;
