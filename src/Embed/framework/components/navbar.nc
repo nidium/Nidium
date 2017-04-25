@@ -28,10 +28,10 @@
         },
 
         big: {
-            fontSize: 27,
+            fontSize: 28,
             width: 30,
             height: 30,
-            lineHeight: 32,
+            lineHeight: 30,
             maxWidth: 30
         },
 
