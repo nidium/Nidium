@@ -70,19 +70,22 @@
         }
 
         enableActiveElement() {
+            this.__activeenabled__ = true;
             this.__activetime__ = 0;
 
-            var handler = (e) => {
-                this.activeElement(e);
-            };
-
             this.on("mousedown", () => {
+                if (!this.__activeenabled__) return;
                 this.activeElement();
             });
 
             document.canvas.on("mouseup", () => {
+                if (!this.__activeenabled__) return;
                 this.releaseElement();
             });
+        }
+
+        disableActiveElement() {
+            this.__activeenabled__ = false;
         }
 
         getActiveElement() {

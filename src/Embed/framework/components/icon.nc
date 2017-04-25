@@ -14,9 +14,10 @@
                 super(attr);
 
                 this.shape = attr.shape || "";
+                this.style.coating = 4;
 
                 if (!this.style.lineHeight) {
-                    this.style.lineHeight = this.style.height+1;
+                    this.style.lineHeight = this.style.height;
                 }
             }
 
@@ -43,7 +44,7 @@
                 ctx.fillStyle     = this.style.color;
                 ctx.textBaseline  = "middle";
                 
-                ctx.fillText(icon, ox, oy);
+                ctx.fillText(icon, ox, oy-2);
             }
         }
     </script>

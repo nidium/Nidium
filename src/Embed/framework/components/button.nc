@@ -1,6 +1,7 @@
 <component name="button">
     <nss>
         button: {
+            cursor: "pointer",
             overflow: false,
             backgroundColor: "#3388ee",
             color: "#ffffff",

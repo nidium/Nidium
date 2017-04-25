@@ -18,7 +18,11 @@
         onload() {
             let prev = this.prevSibling;
 
-            if (prev.name() == 'radio' ) {
+            if (!prev) return;
+
+            let name = prev.name();
+
+            if (name == 'radio' || name == 'checkbox') {
 
                 if (prev.disabled) {
                     this.style.color = "#c0c0c0";
