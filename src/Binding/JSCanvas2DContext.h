@@ -7,6 +7,8 @@
 #define binding_jscanvas2dcontext_h__
 
 #include <stdint.h>
+#include <memory.h>
+
 
 #include "Graphics/CanvasContext.h"
 #include "Graphics/Gradient.h"
@@ -111,13 +113,21 @@ class Canvas2DContext : public ClassMapper<Canvas2DContext>,
 {
 public:
     friend class JSCanvas;
+    friend class Graphics::SkiaContext;
 
     static JSFunctionSpec *ListMethods();
     static JSPropertySpec *ListProperties();
+#if 0
+    static Canvas2DContext *UnWrap(void *ptr);
+    static void *Wrap(Canvas2DContext *obj);
+    static void Delete(void *ptr);
+#endif
+
     NIDIUM_DECL_JSTRACER();
 
     bool m_SetterDisabled;
 
+    void markFrame(uint64_t frame) override;
     void clear(uint32_t color = 0x00000000) override;
 
     uint8_t *getPixels() override;
@@ -263,8 +273,9 @@ protected:
 private:
     Graphics::SkiaContext *m_Skia;
     Canvas2DContextState *m_CurrentState;
+    bool m_CanBeRecycled = true;
 
-
+    void contextIsGone();
     void initCopyTex();
     uint32_t compileCoopFragmentShader(const char *glslversion);
     char *genModifiedFragmentShader(const char *data, const char *glslversion);

@@ -191,7 +191,7 @@
                     c = 1.07-pow(c, 1.4);
                     vec3 colour = vec3(pow(abs(c), 8.0));
                     colour = clamp(colour + vec3(0.0, 0.0, 0.0), 0.0, 1.0)*0.85;
-                    
+
                     gl_FragColor = vec4(colour, 0.1);
                 }
             `);
@@ -201,6 +201,10 @@
             this.activeTimer = setInterval(() => {
                 uniforms.itime = this.__activetime__++;
             }, 16);
+        }
+
+        oncontextlost() {
+            this._ctx = undefined;
         }
 
         onload() {
@@ -380,6 +384,6 @@
     for (var k in properties) {
         defineStyleProperty(Elements.Element, k, properties[k]);
     }
-    
+
     ElementStyle.Inherit(Elements.element);
 }

@@ -39,6 +39,11 @@ public:
     {
         return static_cast<T *>(njs->getContext());
     }
+    template <typename T>
+    static T *GetObject()
+    {
+        return static_cast<T *>(Binding::NidiumJS::GetObject(NULL)->getContext());
+    }
 
     Binding::NidiumJS *getNJS() const
     {
@@ -47,7 +52,7 @@ public:
 
     void logStartBuffering() {
         assert(m_LogBuffering == false);
-        
+
         m_LogBuffering = true;
     }
 

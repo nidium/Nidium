@@ -11,6 +11,7 @@
 
 #include "Graphics/CanvasHandler.h"
 #include "Graphics/ShadowLooper.h"
+#include "Graphics/CanvasSurface.h"
 
 #include <SkSurface.h>
 
@@ -29,6 +30,7 @@ namespace Nidium {
 namespace Binding {
 class JSDocument;
 class JSCanvasPattern;
+class Canvas2DContext;
 }
 namespace Graphics {
 
@@ -75,6 +77,9 @@ class SkiaContext
 {
 
 public:
+    friend class CanvasSurface;
+    friend class Binding::Canvas2DContext;
+
     /*
         Create a new SkiaContext backed by an OpenGL texture.
 
@@ -120,12 +125,27 @@ public:
 
     SkCanvas *getCanvas() const
     {
-        return m_Surface->getCanvas();
+        if (!m_CSurface) {
+            return nullptr;
+        }
+
+        return m_CSurface.get()->getSkiaSurface()->getCanvas();
     }
 
     sk_sp<SkSurface> getSurface()
     {
-        return m_Surface;
+        if (!m_CSurface) {
+            return nullptr;
+        }
+
+        return m_CSurface.get()->getSkiaSurface();
+    }
+
+    void mark(uint64_t frame)
+    {
+        if (m_CSurface) {
+            m_CSurface.get()->mark(frame);
+        }
     }
 
     double breakText(const char *str, size_t len, struct _Line lines[],
@@ -133,7 +153,7 @@ public:
                      int *length = NULL);
 
     int bindOnScreen(int width, int height);
-    static sk_sp<SkSurface> CreateGLSurface(float width, float height,
+    static sk_sp<SkSurface> CreateGLSurface(int width, int height,
         Frontend::Context *fctx, int fbo = 0);
     int bindGL(int width, int height, Frontend::Context *nctx);
     void flush();
@@ -269,21 +289,24 @@ public:
     friend class CanvasHandler;
     friend class JSCanvas;
 
-    static SkSurface *m_GlSurface;
-
 
 private:
-    SkiaContext();
+    SkiaContext(std::shared_ptr<CanvasSurface> surface);
+
+    void set2dContext(Binding::Canvas2DContext *ctx) {
+        m_Attached2DContext = ctx;
+
+    }
 
     sk_sp<SkSurface> createNewGPUSurface(GrContext *gr, int width, int height);
     static GrContext *CreateGrContext(GLContext *glcontext);
 
     void initPaints();
     void addPath(const SkPath &path, SkPath *to);
-    
+
     sk_sp<ShadowLooper> buildShadow();
 
-    bool initWithSurface(sk_sp<SkSurface> surface);
+    void surfaceIsGone();
 
     /*
         Get Skia GrContext.
@@ -300,9 +323,12 @@ private:
     uint8_t m_AsComposite;
     SkBitmap *m_Screen;
     Shadow_t m_CurrentShadow;
-    sk_sp<SkSurface> m_Surface;
+    std::shared_ptr<CanvasSurface> m_CSurface;
+
     bool m_Debug;
     double m_FontSkew;
+
+    Binding::Canvas2DContext *m_Attached2DContext = nullptr;
 
 };
 // }}}

@@ -420,7 +420,7 @@ void Context::frame(bool draw)
 
     m_RootHandler->computeLayoutPositions();
     /* Build the composition list */
-    m_RootHandler->layerize(ctx, compList, draw);
+    m_RootHandler->layerize(ctx, compList, draw, getCurrentFrame());
 
     m_UI->makeMainGLCurrent();
     rootctx->clear(0xffffffff);
@@ -850,9 +850,6 @@ Context::~Context()
     destroyJS();
 
     delete m_GLState;
-
-    SkiaContext::m_GlSurface = nullptr;
-
     ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
     m_InputHandler.clear();
 

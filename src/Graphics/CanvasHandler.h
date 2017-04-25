@@ -20,10 +20,10 @@
 #include <Yoga.h>
 #include <YGStringEnums.h>
 
-#ifndef NAN                                                                     
-static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};                 
-#define NAN (*(const float *) __nan)                                            
-#endif                                                                          
+#ifndef NAN
+static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};
+#define NAN (*(const float *) __nan)
+#endif
 
 
 /*
@@ -38,6 +38,7 @@ class UIInterface;
 }
 namespace Binding {
 class JSCanvas;
+class Canvas2DContext;
 }
 namespace Graphics {
 
@@ -125,7 +126,7 @@ class CanvasHandlerBase
 private:
     /*
         This need to be initialized before properties
-    */    
+    */
     std::vector<void *> m_PropertyList;
 
 public:
@@ -177,7 +178,7 @@ public:
         inline operator T() const {
             return get();
         }
-        
+
         /* Change the computed value */
         inline void set(T val) {
             m_Value = val;
@@ -251,21 +252,22 @@ public:
 
 
 // {{{ CanvasHandler
-class CanvasHandler : public CanvasHandlerBase, public Core::Events 
+class CanvasHandler : public CanvasHandlerBase, public Core::Events
 {
 private:
     /*
         This need to be initialized before properties
-    */    
+    */
     std::vector<void *> m_PropertyList;
 
 public:
     friend class SkiaContext;
     friend class Nidium::Frontend::Context;
     friend class Binding::JSCanvas;
+    friend class Binding::Canvas2DContext;
 
     static const uint8_t EventID = 1;
-    
+
 
     enum Flags
     {
@@ -289,7 +291,8 @@ public:
         SCROLL_EVENT,
         PAINT_EVENT,
         MOUNT_EVENT,
-        UNMOUNT_EVENT
+        UNMOUNT_EVENT,
+        CONTEXTLOST_EVENT
     };
 
     enum Position
@@ -352,7 +355,7 @@ public:
         return p_Top.getCachedValue();
     }
 
-    float getTopScrolled() 
+    float getTopScrolled()
     {
         float top = getPropTop();
         if (m_CoordPosition == COORD_RELATIVE && m_Parent != NULL) {
@@ -596,7 +599,7 @@ public:
     CanvasHandlerBase *getParentBase() override
     {
         return m_Parent;
-    }    
+    }
 
     CanvasHandler *getFirstChild() const
     {
@@ -617,7 +620,7 @@ public:
     int32_t countChildren() const;
     bool containsPoint(float x, float y);
     void layerize(LayerizeContext &layerContext,
-        std::vector<ComposeContext> &compList, bool draw);
+        std::vector<ComposeContext> &compList, bool draw, uint64_t frame);
 
     CanvasHandler *m_Parent;
     CanvasHandler *m_Children;
@@ -633,12 +636,21 @@ public:
     void computeLayoutPositions();
 
 protected:
-
-    void paint();
     void propertyChanged(EventsChangedProperty property);
 
 private:
+    /*
+        Change the underlying context size (e.g. set the FBO size).
+        Logical pixels
+    */
     void deviceSetSize(float width, float height);
+    /*
+        Send a (sync) PAINT event.
+        JSCanvas will fire a "paint" event immediatly.
+    */
+    void paint();
+    void contextLost();
+
     void onTouch(Frontend::InputEvent *ev, Core::Args &args, CanvasHandler *handler);
     void onInputEvent(Frontend::InputEvent *ev);
     void onDrag(Frontend::InputEvent *ev, CanvasHandler *target, bool end = false);

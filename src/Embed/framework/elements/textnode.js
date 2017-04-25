@@ -30,7 +30,7 @@
 
         computeSelfSize() {
             if (!this.nodeValue) return;
- 
+
             setTimeout(() => {
 
                 let {width, height} = this.getDimensions(true);
@@ -46,10 +46,6 @@
                     this._textData   = ctx.breakText(this.nodeValue, width);
                     this.height      = lineHeight * this._textData.lines.length;
 
-                    if ( this.getParent().name() == "label") {
-                        console.log(width, height, this.height, lineHeight, this._textData.lines.length)
-                        this.requestPaint();
-                    }
                 ctx.restore();
 
             }, 1);
@@ -101,7 +97,6 @@
             var w = 0;
 
             let data = this._textData;
-
 
             for (var i = 0; i<data.lines.length; i++) {
                 w = ctx.measureText(data.lines[i]).width;
