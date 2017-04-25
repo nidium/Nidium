@@ -5,8 +5,8 @@
  */
 
 
-const cssParse = require("css-parse");
-const Elements      = require("Elements");
+const cssParse = require("../modules/css-parse.js");
+const Elements = require("Elements");
 
 function camelCase(input) {
     return input.toLowerCase().replace(/-(.)/g, function(match, group1) {

@@ -40,7 +40,7 @@
         };
 */
 
-const Easing = require("easing");
+const Easing = require("../modules/easing.js");
 
 var AnimationsList = new Set();
 
