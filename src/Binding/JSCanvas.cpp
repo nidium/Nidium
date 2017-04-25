@@ -107,12 +107,19 @@ bool JSCanvas::JS_setScale(JSContext *cx, JS::CallArgs &args)
 
 bool JSCanvas::JS_getDimensions(JSContext *cx, JS::CallArgs &args)
 {
-    float width, height, left, top, aleft, atop;
+    float width = NAN, height = NAN, left = NAN, top = NAN, aleft = NAN, atop = NAN;
+    bool nocheck = false;
+
+    if (args.length() >= 1 && args[0].isBoolean()) {
+        nocheck = args[0].toBoolean();
+    }
 
     if (!m_CanvasHandler->getDimensions(&width, &height, &left,
         &top, &aleft, &atop)) {
 
-        width = height = left = top = aleft = atop = top = NAN;
+        if (!nocheck) {
+            width = height = left = top = aleft = atop = top = NAN;
+        }
     }
 
     JS::RootedObject out(cx, JS_NewPlainObject(cx));

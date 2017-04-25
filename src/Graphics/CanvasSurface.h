@@ -60,7 +60,8 @@ public:
     void replaceSurface(sk_sp<SkSurface> newSurface, int width, int height);
     void clear();
     void reset();
-    bool canBeClaimed();
+    bool canBeClaimed(int width, int height);
+    void touch();
 
 private:
     uint64_t m_LastMarkedFrame = 0;

@@ -22,7 +22,7 @@ std::shared_ptr<CanvasSurface> CanvasSurface::Create(int width,
     auto cached = nctx->m_ContextCache.getCachedSurface(width, height);
     if (cached) {
         cached.get()->reset();
-        printf("[Cached] Returned a cached surface %dx%d\n", width, height);
+        printf("[Cached] Returned a cached surface %dx%d %p\n", width, height, cached.get());
         return cached;
     }
 
@@ -70,10 +70,16 @@ void CanvasSurface::replaceSurface(sk_sp<SkSurface> newSurface, int width, int h
     m_SkiaSurface = newSurface;
 }
 
-bool CanvasSurface::canBeClaimed()
+bool CanvasSurface::canBeClaimed(int width, int height)
 {
-    Frontend::Context *nctx   = Frontend::Context::GetObject<Frontend::Context>();
+    Frontend::Context *nctx = Frontend::Context::GetObject<Frontend::Context>();
     return m_LastMarkedFrame > 0 && (m_LastMarkedFrame + CANVAS_FRAME_THRESHOLD) < nctx->getCurrentFrame();
+}
+
+void CanvasSurface::touch()
+{
+    Frontend::Context *nctx = Frontend::Context::GetObject<Frontend::Context>();
+    m_LastMarkedFrame = nctx->getCurrentFrame();
 }
 
 void CanvasSurface::clear()
@@ -91,6 +97,7 @@ void CanvasSurface::reset()
 
     SkCanvas *canvas = m_SkiaSurface.get()->getCanvas();
 
+    canvas->flush();
     canvas->resetMatrix();
     canvas->restoreToCount(canvas->getSaveCount());
     canvas->clear(0x00000000);
