@@ -80,13 +80,22 @@ public:
         kKeyModifier_Meta    = 1 << 3
     };
 
+    struct CanvasEventHandler {
+        Graphics::CanvasHandler *handler;
+        Graphics::CanvasHandler *underneath;
+        int depth;
+
+        CanvasEventHandler(Graphics::CanvasHandler *handler, Graphics::CanvasHandler *underneath, int depth)
+            : handler(handler), underneath(underneath), depth(depth) { }
+    };
+
     InputEvent(Type type,
                int ix,
                int iy,
                uint32_t *idata   = NULL,
                uint8_t idata_len = 0)
         : m_x(ix), m_y(iy), m_Next(NULL), m_PassThroughCanvas(NULL),
-          m_Handler(NULL), m_Origin(NULL), m_depthAffectedCanvas(0),
+          m_Handler(NULL), m_depthAffectedCanvas(0),
           m_Type(type)
     {
         if (idata && idata_len <= 8) {
@@ -94,16 +103,16 @@ public:
         }
     }
 
-    InputEvent *dupWithHandler(Graphics::CanvasHandler *handler)
+    void addHandler(CanvasEventHandler &evHandler)
     {
-        InputEvent *dup = new InputEvent(*this);
-        dup->m_Handler  = handler;
-        dup->m_Origin   = this;
-
-        m_PassThroughCanvas = handler;
-
-        return dup;
+        m_Handlers.push_back(std::move(evHandler));
     }
+
+    std::vector<CanvasEventHandler> *getHandlers()
+    {
+        return &m_Handlers;
+    }
+
 
     bool isInRect(Graphics::Rect rect)
     {
@@ -153,12 +162,12 @@ public:
     InputEvent *m_Next;
     Graphics::CanvasHandler *m_PassThroughCanvas;
     Graphics::CanvasHandler *m_Handler;
-    InputEvent *m_Origin;
     unsigned m_depthAffectedCanvas;
 
 private:
     Type m_Type;
     std::shared_ptr<InputTouch> m_Touch;
+	std::vector<CanvasEventHandler> m_Handlers;
 };
 
 class InputTouch
