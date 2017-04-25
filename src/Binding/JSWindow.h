@@ -98,6 +98,7 @@ protected:
     NIDIUM_DECL_JSCALL(setSystemTray);
     NIDIUM_DECL_JSCALL(openURL);
     NIDIUM_DECL_JSCALL(exec);
+    NIDIUM_DECL_JSCALL(alert);
 
     NIDIUM_DECL_JSGETTER(devicePixelRatio);
 
