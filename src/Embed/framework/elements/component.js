@@ -134,7 +134,7 @@
                         children.splice(i, 1);
                         break;
                     case "template":
-                        this.shadowRoo.template = child;
+                        this.shadowRoot.template = child;
                         children.splice(i, 1);
                         break;
 

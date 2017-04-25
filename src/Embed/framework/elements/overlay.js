@@ -39,7 +39,7 @@
             this._closing = false;
         }
 
-        open(duration=1200) {
+        open(duration=1200, easing=Easing.Exponential.Out) {
             if (this._opening) return false;
 
             if (this._closing) {
@@ -55,7 +55,7 @@
                     s.opacity = this.finalOpacity;
                 },
                 duration,
-                Easing.Exponential.Out,
+                easing,
                 this.style
             );
 
@@ -64,21 +64,22 @@
             };
         }
 
-        close(duration=1200) {
+        close(duration=1200, easing=Easing.Exponential.Out) {
             if (this._closing) return false;
 
             if (this._opening) {
                 this._opening = false;
-                this.anim.cancel();
+                //this.anim.cancel();
             }
 
+            this.bringToFront();
             this._closing = true;
             this.anim = setAnimation(
                 s => {
                     s.opacity = 0;
                 },
                 duration,
-                Easing.Exponential.Out,
+                easing,
                 this.style
             );
 

@@ -113,6 +113,38 @@ class Modal extends Elements.Element {
     }
 }
 
+Modal.spinner = function(state) {
+    if (state) {
+        if (!this.__overlay) {
+            var overlay = new Elements.overlay({
+                opacity : 0.50
+            });
+
+            overlay.style.justifyContent = "center";
+            overlay.style.alignItems = "center";
+
+            var spinner = new Elements.spinner({
+                color:'#ffffff',
+                width:30,
+                height:30,
+                radius:8,
+                dashes:20,
+                opacity:0.7,
+                speed:50
+            });
+
+            overlay.add(spinner);
+            document.canvas.add(overlay);
+            this.__overlay = overlay;
+        }
+
+        this.__overlay.open(200, Easing.Sinusoidal.Out);
+    } else {
+        if (!this.__overlay) return false;
+        this.__overlay.close(800, Easing.Sinusoidal.Out);
+    }
+};
+
 ElementStyle.Inherit(Modal);
 
 module.exports = Modal;

@@ -68,17 +68,17 @@
         }
     </nss>
     <layout class="bar">
-        <span id="menu" class="flexme menu" on:mousedown="this.menu()">
+        <span id="menu" class="flexme menu" on:click="menu(this)">
             <icon class="icon big" shape="ion-navicon-round"></icon>
         </span>
-        <span id="back" class="flexme left" on:click="this.back()">
+        <span id="back" class="flexme left" on:click="back()">
             <icon class="icon" shape="ion-chevron-left" style="{marginRight:0}"></icon>
             <span class="grow">Back</span>
         </span>
-        <span class="flexme center">
-            <span id="title" class="grow">Nidium Kitchen</span>
+        <span class="flexme center" on:click="center()">
+            <span id="title" class="grow"></span>
         </span>
-        <span class="flexme right" on:mousedown="this.next()">
+        <span class="flexme right" on:click="next()">
             <span id="nextLabel" class="grow">Next</span>
             <icon id="nextIcon" class="icon" shape="ion-chevron-right" style="{marginLeft:0}"></icon>
         </span>
@@ -88,20 +88,25 @@
             constructor(attr={}) {
                 super(attr);
 
-                var node = this.getElementById("title");
-                node.textContent = attr.title || "";
+                this.data = this.attributes.data || {};
+                this.title = (this.data.title || attr.title) || "";
+            }
 
-                if (attr['on:menu']) {
+            onready() {
+                var title = this.getElementById("title");
+                title.textContent = this.title;
+
+                if (this.attributes['on:menu']) {
                     var menu = this.getElementById("menu");
                     menu.style.display = "flex";
                 }
 
-                if (!attr['on:back']) {
+                if (!this.attributes['on:back']) {
                     var left = this.getElementById("back");
                     left.style.display = "none";
                 }
 
-                if (!attr['on:next']) {
+                if (!this.attributes['on:next']) {
                     var nextLabel = this.getElementById("nextLabel");
                     nextLabel.style.display = "none";
 
@@ -110,15 +115,19 @@
                 }
             }
 
-            menu() {
+            center() {
+                this.data.callback("hello");
+            }
+
+            menu(e) {
                 this.emit("menu", {});
             }
 
-            back() {
+            back(e) {
                 this.emit("back", {});
             }
 
-            next() {
+            next(e) {
                 this.emit("next", {});
             }
         }

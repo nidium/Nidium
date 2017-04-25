@@ -99,7 +99,7 @@
                 let subtitle = item.subtitle;
 
                 return (`
-                    <li id="${id}" class="li" on:click='this.select(${id})'>
+                    <li id="${id}" class="li" on:click='select(${id})'>
                         <icon class="icon media" shape="${media}"></icon>
                         <span class="line">
                             <span class="text">${title}</span>

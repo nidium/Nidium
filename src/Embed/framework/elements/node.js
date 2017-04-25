@@ -62,7 +62,8 @@
                 }
 
                 if (isOn) {
-                    value = `function(){${value}}.bind(this)`;
+                    //options.scope = this;
+                    value = `function(){${value}}`;
                 } else {
                     //value = `function() { return ${value} }.apply(__this)`
                 }
@@ -72,7 +73,7 @@
                 const result = VM.run(value, options);
 
                 if (isOn) {
-                    this["on" + attr] = result;
+                    this["on" + attr] = function(ev) { result.call(ev) };
                 } else {
                     attributes[attr] = result;
                 }

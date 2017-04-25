@@ -9,9 +9,20 @@
     const drawer = require("../core/drawer.js");
     const { ElementStyle } = require("ElementsStyles");
 
+    var hash = {};
+
     Elements.radio = class extends Elements.Element {
-        constructor(attributes) {
+        constructor(attributes={}) {
             super(attributes);
+
+            var name = attributes.name || "";
+
+            this.selected = attributes.selected === "selected" ? true : false;
+
+            if (name) {
+                if (!hash[name]) hash[name] = [];
+                hash[name].push(this);
+            }
 
             this.cursor = "pointer";
 
@@ -27,9 +38,37 @@
             this.style.radius = 18;
 
             this.on("click", ()=>{
-                this.selected = !this.selected;
-                this.requestPaint();
+                var radios = this.getPeers(name);
+
+                if (radios.length>1) {
+                    for (var i=0, l=radios.length; i<l; i++) {
+                        radios[i].unselect();
+                    }
+                    this.select();
+                } else {
+                    if (this.selected) {
+                        this.unselect();
+                    } else {
+                        this.select();
+                    }
+                }
             });
+        }
+
+        getPeers(name) {
+            return hash[name] || [];
+        }
+
+        select() {
+            this.selected = true;
+            this.value = this.attributes.value || null;
+            this.requestPaint();
+        }
+
+        unselect() {
+            this.selected = false;
+            this.value = null;
+            this.requestPaint();
         }
 
         paint(ctx, w, h) {

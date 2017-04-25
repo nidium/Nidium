@@ -38,6 +38,8 @@
                 this.scrollableY = true;
 
                 this._opened = false;
+                
+                this.hide();
                 this.style.display = "none";
             }
 
@@ -146,6 +148,7 @@
                 if (x<0) return false;
 
                 if (x<=this.sidewidth) {
+                    this.show();
                     this.style.display = "flex";
 
                     var opacity = (x/this.sidewidth) * (1-__opacity_lo__);
@@ -162,6 +165,7 @@
             open() {
                 var side = this;
 
+                this.show();
                 this.style.display = "flex";
 
                 this._opened = true;
@@ -185,6 +189,7 @@
 
                 this._opened = false;
 
+                this.show();
                 this.anim = setAnimation(
                     (side, view) => {
                         side.opacity = __opacity_lo__;
@@ -197,6 +202,7 @@
                 );
 
                 this.anim.onFinish = () => {
+                    this.hide();
                     this.style.display = "none";
                     callback.call(this);
                 };

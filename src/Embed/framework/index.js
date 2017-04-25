@@ -24,6 +24,8 @@ load("embed://framework/elements/canvas.js");
 load("embed://framework/elements/textnode.js");
 load("embed://framework/elements/nodeoverlay.js");
 load("embed://framework/elements/li.js");
+load("embed://framework/elements/label.js");
+load("embed://framework/elements/fieldset.js");
 load("embed://framework/elements/div.js");
 load("embed://framework/elements/p.js");
 load("embed://framework/elements/h1.js");

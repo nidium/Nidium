@@ -38,9 +38,14 @@ class Component extends Elements.Element {
         // Share the NSS between the ShadowRoot of the Component and this Element
         this.shadowRoot.nss = this.constructor[s_ComponentShadow].getNSS();
 
-        this.createComponentTree();
         this.on("mount", () => {
+            this.mounted = true;
             this.updateNSS();
+            this.createComponentTree();
+            if (this.children) {
+                this.createTree(this.children);
+            }
+            this.fireEvent("ready", {});
         });
     }
 
@@ -65,7 +70,14 @@ class Component extends Elements.Element {
 
         // Give priority to class defined by the user
         if (this.attributes.class) {
-            const nss = this.getParent()[s_ShadowRoot].getNSS();
+            let nss;
+            const parent = this.getParent();
+            if (parent.shadowRoot) {
+                nss = parent.shadowRoot.getNSS();
+            } else {
+                nss = this.getParent()[s_ShadowRoot].getNSS();
+
+            }
 
             for (let c of this.attributes.class.split(" ")) {
                 tmp.push(nss[c]);
@@ -82,10 +94,14 @@ class Component extends Elements.Element {
 
         // Merge all styles, into |this.style|
         this._mergeStyle(tmp);
-
     }
 
     createTree(children) {
+        if (!this.mounted && !this.children) {
+            this.children = children;
+            return;
+        }
+
         /*
             Create & Add children to the components
         */

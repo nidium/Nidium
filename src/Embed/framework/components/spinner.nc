@@ -25,7 +25,9 @@
                 this.style.radius = attr.radius || 9;
                 this.style.speed = attr.speed || 30;
                 this.style.lineWidth = attr.lineWidth || 6;
+            }
 
+            onready() {
                 this.play();
             }
 
