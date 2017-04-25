@@ -372,7 +372,7 @@ void Video::seek(double time, uint32_t flags)
 bool Video::seekMethod(int64_t target, int flags)
 {
     DPRINT("av_seek_frame\n");
-    if (!(m_SeekFlags & NIDIUM_VIDEO_SEEK_KEYFRAME)) {
+    if (!(m_SeekFlags & NIDIUM_VIDEO_SEEK_KEYFRAME) && !(flags & AVSEEK_FLAG_BACKWARD)) {
         flags |= AVSEEK_FLAG_ANY;
     }
     int ret = av_seek_frame(m_Container, m_VideoStream, target, flags);
