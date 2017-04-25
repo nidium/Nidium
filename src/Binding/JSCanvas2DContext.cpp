@@ -1869,6 +1869,7 @@ Canvas2DContext::Canvas2DContext(CanvasHandler *handler,
     height = nidium_max(height, 1);
 
     m_Skia = SkiaContext::CreateWithTextureBackend(ui->getNidiumContext(), width, height);
+    m_Skia->set2dContext(this);
 
     assert(m_Skia != nullptr);
 
@@ -1893,6 +1894,8 @@ Canvas2DContext::Canvas2DContext(
         }
         m_Skia = SkiaContext::CreateWithTextureBackend(ui->getNidiumContext(), width, height);
     }
+
+    m_Skia->set2dContext(this);
 
     assert(m_Skia != nullptr);
     if (m_Skia == nullptr) {
@@ -1928,6 +1931,13 @@ void Canvas2DContext::markFrame(uint64_t frame)
 {
     if (m_Skia) {
         m_Skia->mark(frame);
+    }
+}
+
+void Canvas2DContext::contextIsGone()
+{
+    if (m_Handler) {
+        m_Handler->contextLost();
     }
 }
 

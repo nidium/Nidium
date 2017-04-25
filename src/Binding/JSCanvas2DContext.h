@@ -113,6 +113,7 @@ class Canvas2DContext : public ClassMapper<Canvas2DContext>,
 {
 public:
     friend class JSCanvas;
+    friend class Graphics::SkiaContext;
 
     static JSFunctionSpec *ListMethods();
     static JSPropertySpec *ListProperties();
@@ -274,6 +275,7 @@ private:
     Canvas2DContextState *m_CurrentState;
     bool m_CanBeRecycled = true;
 
+    void contextIsGone();
     void initCopyTex();
     uint32_t compileCoopFragmentShader(const char *glslversion);
     char *genModifiedFragmentShader(const char *data, const char *glslversion);

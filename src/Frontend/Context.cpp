@@ -420,7 +420,7 @@ void Context::frame(bool draw)
 
     m_RootHandler->computeLayoutPositions();
     /* Build the composition list */
-    m_RootHandler->layerize(ctx, compList, draw);
+    m_RootHandler->layerize(ctx, compList, draw, getCurrentFrame());
 
     m_UI->makeMainGLCurrent();
     rootctx->clear(0xffffffff);
@@ -437,7 +437,6 @@ void Context::frame(bool draw)
     m_Stats.composed = 0;
     for (auto &com : compList) {
         m_Stats.composed++;
-        com.handler->m_Context->markFrame(getCurrentFrame());
         com.handler->m_Context->preComposeOn(rootctx, com.left,
             com.top, com.opacity, com.zoom, com.needClip ? &com.clip : nullptr);
     }

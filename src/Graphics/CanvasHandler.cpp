@@ -502,7 +502,7 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
 }
 
 void CanvasHandler::layerize(LayerizeContext &layerContext,
-    std::vector<ComposeContext> &compList, bool draw)
+    std::vector<ComposeContext> &compList, bool draw, uint64_t frame)
 {
     CanvasHandler *cur;
     Rect nclip;
@@ -590,6 +590,8 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                 .clip     = layerContext.m_Clip ? *layerContext.m_Clip : Rect()
             };
 
+            m_Context->markFrame(frame);
+
             this->dispatchMouseEvents(layerContext);
 
             /* XXX: This could mutate the current state
@@ -609,6 +611,8 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
             }
 
             compList.push_back(std::move(compctx));
+
+            assert(m_Context != nullptr);
         }
     }
 
@@ -668,7 +672,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                    .m_aZoom      = m_Zoom,
                    .m_Clip       = layerContext.m_Clip};
 
-            cur->layerize(ctx, compList, draw);
+            cur->layerize(ctx, compList, draw, frame);
 
             /*
                 Incrementaly check the bottom/right most children
@@ -1000,6 +1004,18 @@ void CanvasHandler::paint()
     m_NidiumContext->statsIncRepaint();
 
     this->fireEventSync<CanvasHandler>(PAINT_EVENT, arg);
+}
+
+void CanvasHandler::contextLost()
+{
+    Args arg;
+
+    /* The canvas will need to receive the loaded even again to get a new context */
+    m_Loaded = false;
+    m_NeedPaint = true;
+    m_Context = nullptr;
+
+    this->fireEventSync<CanvasHandler>(CONTEXTLOST_EVENT, arg);
 }
 
 void CanvasHandler::propertyChanged(EventsChangedProperty property)

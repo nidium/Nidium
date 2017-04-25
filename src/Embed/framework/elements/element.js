@@ -60,6 +60,10 @@
             }
         }
 
+        oncontextlost() {
+            this._ctx = undefined;
+        }
+
         onload() {
             this._ctx = this.getContext("2d");
         }
@@ -233,6 +237,6 @@
     for (var k in properties) {
         defineStyleProperty(Elements.Element, k, properties[k]);
     }
-    
+
     ElementStyle.Inherit(Elements.element);
 }

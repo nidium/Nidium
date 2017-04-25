@@ -38,6 +38,7 @@ class UIInterface;
 }
 namespace Binding {
 class JSCanvas;
+class Canvas2DContext;
 }
 namespace Graphics {
 
@@ -263,6 +264,7 @@ public:
     friend class SkiaContext;
     friend class Nidium::Frontend::Context;
     friend class Binding::JSCanvas;
+    friend class Binding::Canvas2DContext;
 
     static const uint8_t EventID = 1;
 
@@ -289,7 +291,8 @@ public:
         SCROLL_EVENT,
         PAINT_EVENT,
         MOUNT_EVENT,
-        UNMOUNT_EVENT
+        UNMOUNT_EVENT,
+        CONTEXTLOST_EVENT
     };
 
     enum Position
@@ -617,7 +620,7 @@ public:
     int32_t countChildren() const;
     bool containsPoint(float x, float y);
     void layerize(LayerizeContext &layerContext,
-        std::vector<ComposeContext> &compList, bool draw);
+        std::vector<ComposeContext> &compList, bool draw, uint64_t frame);
 
     CanvasHandler *m_Parent;
     CanvasHandler *m_Children;
@@ -646,6 +649,7 @@ private:
         JSCanvas will fire a "paint" event immediatly.
     */
     void paint();
+    void contextLost();
 
     void onTouch(Frontend::InputEvent *ev, Core::Args &args, CanvasHandler *handler);
     void onInputEvent(Frontend::InputEvent *ev);

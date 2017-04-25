@@ -120,9 +120,10 @@ CanvasSurface *CanvasSurface::reclaim()
     if (m_CurrentSkiaContext) {
         /* Tell the old SkiaContext that its surface is gone */
         m_CurrentSkiaContext->surfaceIsGone();
+        m_CurrentSkiaContext = nullptr;
+    } else {
+        printf("Reclaim without context -_-\n");
     }
-
-    this->dettachSkiaContext();
 
     return this;
 }

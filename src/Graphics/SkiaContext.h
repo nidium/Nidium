@@ -30,6 +30,7 @@ namespace Nidium {
 namespace Binding {
 class JSDocument;
 class JSCanvasPattern;
+class Canvas2DContext;
 }
 namespace Graphics {
 
@@ -77,6 +78,7 @@ class SkiaContext
 
 public:
     friend class CanvasSurface;
+    friend class Binding::Canvas2DContext;
 
     /*
         Create a new SkiaContext backed by an OpenGL texture.
@@ -291,6 +293,11 @@ public:
 private:
     SkiaContext(std::shared_ptr<CanvasSurface> surface);
 
+    void set2dContext(Binding::Canvas2DContext *ctx) {
+        m_Attached2DContext = ctx;
+
+    }
+
     sk_sp<SkSurface> createNewGPUSurface(GrContext *gr, int width, int height);
     static GrContext *CreateGrContext(GLContext *glcontext);
 
@@ -320,6 +327,8 @@ private:
 
     bool m_Debug;
     double m_FontSkew;
+
+    Binding::Canvas2DContext *m_Attached2DContext = nullptr;
 
 };
 // }}}

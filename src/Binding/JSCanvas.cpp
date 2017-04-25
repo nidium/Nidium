@@ -1519,6 +1519,17 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             this->fireJSEvent("paint", &eventValue);
             break;
         }
+        case NIDIUM_EVENT(CanvasHandler, CONTEXTLOST_EVENT): {
+            /* No longer retain a reference to the context */
+            JS_SetReservedSlot(m_Instance, 0, JS::UndefinedValue());
+
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            JS::RootedValue eventValue(m_Cx);
+
+            eventValue.setObjectOrNull(eventObj);
+            this->fireJSEvent("contextlost", &eventValue);
+            break;
+        }
         case NIDIUM_EVENT(CanvasHandler, LOADED_EVENT): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);

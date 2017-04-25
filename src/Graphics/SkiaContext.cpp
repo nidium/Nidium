@@ -1821,7 +1821,9 @@ double SkiaContext::measureText(const char *str, size_t length)
 
 void SkiaContext::surfaceIsGone()
 {
-    printf("Surface is gone\n");
+    if (m_Attached2DContext) {
+        m_Attached2DContext->contextIsGone();
+    }
 }
 
 
