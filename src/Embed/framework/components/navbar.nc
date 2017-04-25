@@ -28,7 +28,7 @@
         },
 
         big: {
-            fontSize: 28,
+            fontSize: 27,
             width: 30,
             height: 30,
             lineHeight: 33,

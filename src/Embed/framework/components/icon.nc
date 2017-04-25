@@ -44,7 +44,7 @@
                 ctx.fillStyle     = this.style.color;
                 ctx.textBaseline  = "middle";
                 
-                ctx.fillText(icon, ox, oy-2);
+                ctx.fillText(icon, ox, oy-3);
             }
         }
     </script>
