@@ -69,8 +69,10 @@ public:
         m_CurrentSkiaContext = sc;
     }
 
-    void dettachSkiaContext() {
-        m_CurrentSkiaContext = nullptr;
+    void dettachSkiaContext(SkiaContext *onlyif) {
+        if (m_CurrentSkiaContext == onlyif) {
+            m_CurrentSkiaContext = nullptr;
+        }
     }
 
     CanvasSurface *reclaim();
