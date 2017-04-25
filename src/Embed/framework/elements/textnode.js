@@ -10,6 +10,9 @@
     const s_NodeText = Symbol("NodeText");
     const { StyleContainer, ElementStyle } = require("ElementsStyles");
 
+    document.canvas.inherit._Style_fontFamily = "Roboto Regular";
+    document.canvas.inherit._Style_fontSize = 15;
+
     Elements.textnode = class extends Elements.Element {
         constructor(textValue) {
             super();
@@ -26,11 +29,15 @@
         }
 
         computeSelfSize() {
+            if (!this.nodeValue) return;
+ 
             setTimeout(() => {
+
                 let {width, height} = this.getDimensions(true);
+
                 /* Use document context as we don't have a self context yet */
                 var ctx = document.canvas.getContext("2d");
-                let fontSize    = this.style.fontSize || 15;
+                let fontSize    = this.style.fontSize || 20;
                 let lineHeight  = this.style.lineHeight || 20;
 
                 ctx.save();
@@ -38,6 +45,11 @@
                     ctx.textBaseline = "middle";
                     this._textData   = ctx.breakText(this.nodeValue, width);
                     this.height      = lineHeight * this._textData.lines.length;
+
+                    if ( this.getParent().name() == "label") {
+                        console.log(width, height, this.height, lineHeight, this._textData.lines.length)
+                        this.requestPaint();
+                    }
                 ctx.restore();
 
             }, 1);
@@ -75,9 +87,9 @@
             var p = this.getParent();
             var dim = p.getDimensions();
 
-            let fontSize    = (this.inherit.fontSize || this.style.fontSize) || 15;
-            let lineHeight  = (this.inherit.lineHeight || this.style.lineHeight) || 20;
-            let color       = (this.inherit.color || this.style.color) || "#000000";
+            let fontSize    = this.style.fontSize || 20;
+            let lineHeight  = this.style.lineHeight || 20;
+            let color       = this.style.color || "#000000";
 
             let offset      = Math.ceil(lineHeight/2);
 
@@ -89,6 +101,7 @@
             var w = 0;
 
             let data = this._textData;
+
 
             for (var i = 0; i<data.lines.length; i++) {
                 w = ctx.measureText(data.lines[i]).width;

@@ -12,15 +12,17 @@
         constructor(attributes) {
             super(attributes);
 
-            this.style.flexDirection = "row";
+            this.setDefaultStyle({
+                fontSize : 15,
+                lineHeight : 20
+            });
+
+            this.style.minHeight = this.style.lineHeight || 20;
+            this.style.textAlign = "left";
             this.style.flexWrap = "nowrap";
             this.style.width = "100%";
-            this.style.textAlign = "left";
-            this.style.minHeight = this.style.lineHeight || 20;
             this.style.marginTop = 6;
             this.style.marginBottom = 6;
-
-            this.inherit.fontSize = this.inherit.fontSize || 15;
         }
     }
 

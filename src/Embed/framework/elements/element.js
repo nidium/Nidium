@@ -25,38 +25,47 @@
                 this.opacity = attributes.opacity;
             }
 
-            this.style = new (StyleContainer.Create(Object.getPrototypeOf(this)))(this);
+            let self = Object.getPrototypeOf(this);
+            this.style = new (StyleContainer.Create(self))(this);
 
-            this.style.fontFamily = "Roboto Regular";
-            this.style.fontSize = 15;
+            attributes.class && this.processClasses(attributes.class);
+            attributes.style && this.processInlineStyle(attributes.style);
+        }
 
-            const classes = attributes.class;
-            if (classes) {
-                let nss;
-                if (this.shadowRoot) {
-                    // If element is a ShadowRoot, we need to get the styling
-                    // information from the parent ShadowRoot
-                    nss = this.getParent()[s_ShadowRoot].getNSS();
-                } else {
-                    nss = this[s_ShadowRoot].getNSS();
-                }
+        processClasses(classes) {
+            let nss;
+            let tmp = [];
 
-                let tmp = [];
-
-                // Add all NSS style defined by every classes
-                for (let c of classes.split(" ")) {
-                    tmp.push(nss[c]);
-                }
-
-                // Merge all style into |this.style|
-                this._mergeStyle(tmp);
+            // If element is a ShadowRoot, we need to get the styling
+            // information from the parent ShadowRoot
+            if (this.shadowRoot) {
+                nss = this.getParent()[s_ShadowRoot].getNSS();
+            } else {
+                nss = this[s_ShadowRoot].getNSS();
             }
 
-            if (attributes.style) {
-                var style = VM.run("(" + attributes.style + ")", {
-                    scope: this[s_ShadowRoot].getJSScope()
-                });
-                Object.assign(this.style, style);
+            // Add all NSS style defined by every classes
+            for (let c of classes.split(" ")) {
+                tmp.push(nss[c]);
+            }
+
+            // Merge all style into |this.style|
+            this._mergeStyle(tmp);
+        }
+
+        processInlineStyle(nss) {
+            var style = VM.run("(" + nss + ")", {
+                scope: this[s_ShadowRoot].getJSScope()
+            });
+
+            Object.assign(this.style, style);
+        }
+
+        setDefaultStyle(style) {
+            for (var i in style){
+                !this.style[i] && (
+                    this.style[i] = style[i]
+                );
             }
         }
 
@@ -301,6 +310,7 @@
             for (let styles of stylesArray) {
                 for (let prop in styles) {
                     if (styles[prop] != undefined) {
+                        if (this.id == "title") console.log("====", prop, styles[prop])
                         this.style[prop] = styles[prop]
                     }
                 }

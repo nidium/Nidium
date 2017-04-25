@@ -11,7 +11,7 @@
 
     var hash = {};
 
-    Elements.radio = class extends Elements.Element {
+    Elements.checkbox = class extends Elements.Element {
         constructor(attributes={}) {
             super(attributes);
 
@@ -24,18 +24,18 @@
                 hash[name].push(this);
             }
 
+            this.cursor = "pointer";
+
             this.style.maxWidth = 36;
             this.style.height = 36;
+
             this.style.flexGrow = 1;
 
-            this.setDefaultStyle({
-                cursor : "pointer",
-                lineHeight : 20,
-                borderWidth : 2,
-                borderColor : "#3388EE",
-                selectedColor : "#3388EE",
-                radius : 18
-            });
+            this.style.lineHeight = 20;
+            this.style.borderWidth = 2;
+            this.style.borderColor = "#3388EE";
+            this.style.selectedColor = "#3388EE";
+            this.style.radius = 18;
 
             this.on("click", ()=>{
                 var radios = this.getPeers(name);
@@ -140,5 +140,5 @@
         }
     }
 
-    ElementStyle.Inherit(Elements.radio);
+    ElementStyle.Inherit(Elements.checkbox);
 }

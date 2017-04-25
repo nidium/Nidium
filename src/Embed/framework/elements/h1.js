@@ -12,16 +12,17 @@
         constructor(attributes) {
             super(attributes);
 
-            this.style.flexDirection = "row";
-            this.style.flexWrap = "nowrap";
-            this.style.width = "100%";
-            this.style.textAlign = "left";
-            this.style.minHeight = this.style.lineHeight || 20;
-            this.style.marginTop = 6;
-            this.style.marginBottom = 6;
+            this.setDefaultStyle({
+                fontSize: 36,
+                lineHeight: 36,
+                width: "100%",
+                textAlign: "left",
+                minHeight: this.style.lineHeight || 20,
+                marginTop: 6,
+                marginBottom: 6
+            });
 
-            this.inherit.fontSize = this.inherit.fontSize || 36;
-            this.inherit.lineHeight = this.inherit.lineHeight || 36;
+            /* FROZEN ------ */
         }
     }
 
