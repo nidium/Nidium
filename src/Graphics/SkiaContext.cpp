@@ -214,6 +214,8 @@ SkiaContext::SkiaContext(std::shared_ptr<CanvasSurface> surface)
     initPaints();
 
     this->setSmooth(true);
+
+    surface.get()->attachToSkiaContext(this);
 }
 
 SkColor
@@ -1816,7 +1818,12 @@ double SkiaContext::measureText(const char *str, size_t length)
 {
     return SkScalarToDouble(PAINT->measureText(str, length));
 }
-// }}}
+
+void SkiaContext::surfaceIsGone()
+{
+    printf("Surface is gone\n");
+}
+
 
 SkiaContext::~SkiaContext()
 {
@@ -1824,6 +1831,7 @@ SkiaContext::~SkiaContext()
 
     if (m_CSurface != nullptr) {
         getCanvas()->flush();
+        m_CSurface.get()->dettachSkiaContext();
     }
     while (nstate) {
         struct _State *tmp = nstate->next;

@@ -13,6 +13,8 @@
 namespace Nidium {
 namespace Graphics {
 
+class SkiaContext;
+
 /*
     All size are expressed in device pixel
 */
@@ -63,12 +65,24 @@ public:
         return m_LastMarkedFrame;
     }
 
+    void attachToSkiaContext(SkiaContext *sc) {
+        m_CurrentSkiaContext = sc;
+    }
+
+    void dettachSkiaContext() {
+        m_CurrentSkiaContext = nullptr;
+    }
+
+    CanvasSurface *reclaim();
+
 private:
     void touch();
 
     uint64_t m_LastMarkedFrame = 0;
     sk_sp<SkSurface> m_SkiaSurface;
     int m_Width = 0, m_Height = 0;
+
+    SkiaContext *m_CurrentSkiaContext = nullptr;
 };
 
 }}

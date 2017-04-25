@@ -6,6 +6,7 @@
 
 #include "Graphics/CanvasSurface.h"
 #include "Graphics/SurfaceCache.h"
+#include "Graphics/SkiaContext.h"
 #include "Frontend/Context.h"
 
 #define CANVAS_FRAME_THRESHOLD 3
@@ -109,6 +110,21 @@ void CanvasSurface::reset()
     canvas->resetMatrix();
     canvas->restoreToCount(canvas->getSaveCount());
     canvas->clear(0x00000000);
+}
+
+CanvasSurface *CanvasSurface::reclaim()
+{
+    /* Mark it to the current frame so it can't be reclaimed right away */
+    this->touch();
+
+    if (m_CurrentSkiaContext) {
+        /* Tell the old SkiaContext that its surface is gone */
+        m_CurrentSkiaContext->surfaceIsGone();
+    }
+
+    this->dettachSkiaContext();
+
+    return this;
 }
 
 }}

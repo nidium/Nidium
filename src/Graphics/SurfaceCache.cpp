@@ -28,9 +28,7 @@ std::shared_ptr<CanvasSurface> SurfaceCache::getCachedSurface(int width, int hei
     for (auto &surface : store) {
         CanvasSurface *cs = surface.get();
         if (cs->canBeClaimed(width, height)) {
-            /* Mark it to the current frame so it can't be reclaimed right away */
-            cs->touch();
-
+            cs->reclaim();
             return surface;
         }
     }

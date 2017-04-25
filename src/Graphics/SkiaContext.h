@@ -76,6 +76,8 @@ class SkiaContext
 {
 
 public:
+    friend class CanvasSurface;
+
     /*
         Create a new SkiaContext backed by an OpenGL texture.
 
@@ -296,6 +298,8 @@ private:
     void addPath(const SkPath &path, SkPath *to);
 
     sk_sp<ShadowLooper> buildShadow();
+
+    void surfaceIsGone();
 
     /*
         Get Skia GrContext.
