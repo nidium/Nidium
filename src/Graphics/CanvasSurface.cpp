@@ -23,7 +23,7 @@ std::shared_ptr<CanvasSurface> CanvasSurface::Create(int width,
     auto cached = nctx->m_ContextCache.getCachedSurface(width, height);
     if (cached) {
         cached.get()->reset();
-        printf("[Cached] Returned a cached surface %dx%d %p\n", width, height, cached.get());
+        //printf("[Cached] Returned a cached surface %dx%d %p\n", width, height, cached.get());
         return cached;
     }
 
@@ -49,7 +49,7 @@ bool CanvasSurface::resize(int width, int height)
         return false;
     }
 
-    printf("Resize surface from %dx%d to %dx%d\n", m_Width, m_Height, width, height);
+    //printf("Resize surface from %dx%d to %dx%d\n", m_Width, m_Height, width, height);
 
     // TODO: replace surface in cache
 
@@ -121,8 +121,6 @@ CanvasSurface *CanvasSurface::reclaim()
         /* Tell the old SkiaContext that its surface is gone */
         m_CurrentSkiaContext->surfaceIsGone();
         m_CurrentSkiaContext = nullptr;
-    } else {
-        printf("Reclaim without context -_-\n");
     }
 
     return this;
