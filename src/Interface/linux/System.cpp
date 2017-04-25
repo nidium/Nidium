@@ -168,6 +168,7 @@ void System::alert(const char *message, AlertType type)
         (GtkWindow *)NULL, GTK_DIALOG_DESTROY_WITH_PARENT, gtkType,
         GTK_BUTTONS_CLOSE, "%s", message);
 
+    //gtk_widget_show(dialog); // Non blocking dialog box, but how to close the dialog ?
     gtk_dialog_run(GTK_DIALOG(dialog));
 
     gtk_widget_destroy(dialog);

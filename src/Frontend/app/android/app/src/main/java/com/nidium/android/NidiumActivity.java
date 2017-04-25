@@ -40,17 +40,6 @@ public class NidiumActivity extends SDLActivity {
     }
 
     @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        int keyCode = event.getKeyCode();
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            finish();
-            return false;
-        }
-
-        return super.dispatchKeyEvent(event);
-    }
-
-    @Override
     protected String[] getArguments() {
         return new String[] {mNml};
     }

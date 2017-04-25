@@ -386,6 +386,27 @@ void JSWindow::systemMenuClicked(const char *id)
     JSOBJ_CALLFUNCNAME(obj, "_onsystemtrayclick", ev);
 }
 
+bool JSWindow::onHardwareKey(InputEvent::Type evType)
+{
+    JS::RootedObject evObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+    JS::RootedValue evValue(m_Cx);
+
+    evValue.setObjectOrNull(evObj);
+
+    const char *evName = InputEvent::GetName(evType);
+
+    this->fireJSEvent(evName, &evValue);
+
+    JS::RootedValue defaultPrevented(m_Cx);
+    if (JS_GetProperty(m_Cx, evObj, "defaultPrevented", &defaultPrevented)) {
+        if (defaultPrevented.isBoolean() && defaultPrevented.toBoolean()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
 {
 #define EVENT_PROP(name, val)                 \
@@ -822,6 +843,20 @@ bool JSWindow::JS_exec(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
+bool JSWindow::JS_alert(JSContext *cx, JS::CallArgs &args)
+{
+
+    JS::RootedString msg(cx);
+    if (!JS_ConvertArguments(cx, args, "S", msg.address())) {
+        return false;
+    }
+
+    JSAutoByteString cmsg(cx, msg);
+    SystemInterface::GetInstance()->alert(cmsg.ptr());
+
+    return true;
+}
+
 bool JSWindow::JS_openDirDialog(JSContext *cx, JS::CallArgs &args)
 {
     JS::RootedValue callback(cx);
@@ -1236,6 +1271,7 @@ JSFunctionSpec *JSWindow::ListMethods()
         CLASSMAPPER_FN(JSWindow, setSystemTray, 1),
         CLASSMAPPER_FN(JSWindow, openURL, 1),
         CLASSMAPPER_FN(JSWindow, exec, 1),
+        CLASSMAPPER_FN(JSWindow, alert, 1),
         JS_FS_END
     };
 

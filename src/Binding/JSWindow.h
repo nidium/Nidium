@@ -8,6 +8,7 @@
 
 #include "Frontend/NML.h"
 #include "Binding/ClassMapperWithEvents.h"
+#include "Frontend/InputHandler.h"
 #include "Binding/JSGlobal.h"
 
 namespace Nidium {
@@ -54,6 +55,7 @@ public:
     void mouseMove(int x, int y, int xrel, int yrel);
     void mouseClick(int x, int y, int state, int button, int clicks);
     void systemMenuClicked(const char *id);
+    bool onHardwareKey(Frontend::InputEvent::Type evType);
 
     bool dragBegin(int x, int y, const char *const *files, size_t nfiles);
     bool dragUpdate(int x, int y);
@@ -103,6 +105,7 @@ protected:
     NIDIUM_DECL_JSCALL(setSystemTray);
     NIDIUM_DECL_JSCALL(openURL);
     NIDIUM_DECL_JSCALL(exec);
+    NIDIUM_DECL_JSCALL(alert);
 
     NIDIUM_DECL_JSGETTER(devicePixelRatio);
 

@@ -4,11 +4,6 @@
 namespace Nidium {
 namespace Frontend {
 
-void InputHandler::pushEvent(InputEvent &ev)
-{
-    m_PendingInputEvents->push_back(std::move(ev));
-}
-
 void InputHandler::clear()
 {
     m_InputEvents->clear();

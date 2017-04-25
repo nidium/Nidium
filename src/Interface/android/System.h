@@ -30,6 +30,7 @@ public:
     void showVirtualKeyboard(int options) override;
     void hideVirtualKeyboard() override;
     void stopScrolling() override;
+    void dispatchKeyEvent(jobject ev);
 
     int getSurfaceWidth();
     int getSurfaceHeight();

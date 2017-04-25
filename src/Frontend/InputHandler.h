@@ -11,6 +11,7 @@
 #include <string.h>
 #include <vector>
 #include <set>
+#include <memory>
 
 #include "Graphics/Geometry.h"
 
@@ -29,7 +30,8 @@ static const char *InputEvent_Names[]
     = { "mousemove", "mousedown", "mouseup", "dblclick", "dragstart",
         "dragend",   "dragover",  "drop",    "drag",     "mousewheel",
         "touchstart", "touchend", "touchmove", "scroll", "scroll",
-        "compositionstart", "compositionupdate", "compositionend"};
+        "back", "volumeup", "volumedown", "compositionstart", 
+        "compositionupdate", "compositionend"};
 
 class InputTouch;
 
@@ -53,6 +55,9 @@ public:
         kTouchMove_Type,
         kTouchScroll_type,
         kScroll_type,
+        kHardwareKey_back,
+        kHardwareKey_volumeUp,
+        kHardwareKey_volumeDown,
         kCompositionStart_type,
         kCompositionUpdate_type,
         kCompositionEnd_type,
