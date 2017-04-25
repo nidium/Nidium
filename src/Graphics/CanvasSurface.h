@@ -33,9 +33,9 @@ public:
 
     }
 
-
     bool resize(int width, int height);
-    void replaceSurface(sk_sp<SkSurface> newSurface, int width, int height);
+    void replaceSurface(sk_sp<SkSurface> newSurface, int width,
+        int height, bool addToCache = false);
 
     /* Reset the state of the underlying SkCanvas object */
     void reset();

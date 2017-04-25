@@ -16,7 +16,7 @@ namespace Graphics {
 std::shared_ptr<CanvasSurface> CanvasSurface::Create(int width,
     int height, GrContext *gr)
 {
-    Frontend::Context *nctx   = Frontend::Context::GetObject<Frontend::Context>();
+    Frontend::Context *nctx = Frontend::Context::GetObject<Frontend::Context>();
 
     /* Check for reusable surface */
     auto cached = nctx->m_ContextCache.getCachedSurface(width, height);
@@ -50,12 +50,16 @@ bool CanvasSurface::resize(int width, int height)
 
     printf("Resize surface from %dx%d to %dx%d\n", m_Width, m_Height, width, height);
 
+    // TODO: replace surface in cache
+
     replaceSurface(newSurface, width, height);
 
     return true;
 }
 
-void CanvasSurface::replaceSurface(sk_sp<SkSurface> newSurface, int width, int height) {
+void CanvasSurface::replaceSurface(sk_sp<SkSurface> newSurface, int width,
+    int height, bool addToCache) {
+
     m_Width  = width;
     m_Height = height;
 
@@ -68,6 +72,13 @@ void CanvasSurface::replaceSurface(sk_sp<SkSurface> newSurface, int width, int h
     newSurface->getCanvas()->setMatrix(m_SkiaSurface->getCanvas()->getTotalMatrix());
 
     m_SkiaSurface = newSurface;
+
+    if (addToCache) {
+        Frontend::Context *nctx = Frontend::Context::GetObject<Frontend::Context>();
+#if 0
+        nctx->m_ContextCache.addToCache(width, height, std::shared_ptr<CanvasSurface>(this));
+#endif
+    }
 }
 
 bool CanvasSurface::canBeClaimed(int width, int height)

@@ -287,7 +287,7 @@ public:
 
 
 private:
-    SkiaContext();
+    SkiaContext(std::shared_ptr<CanvasSurface> surface);
 
     sk_sp<SkSurface> createNewGPUSurface(GrContext *gr, int width, int height);
     static GrContext *CreateGrContext(GLContext *glcontext);
@@ -296,8 +296,6 @@ private:
     void addPath(const SkPath &path, SkPath *to);
 
     sk_sp<ShadowLooper> buildShadow();
-
-    bool initWithSurface(std::shared_ptr<CanvasSurface> surface);
 
     /*
         Get Skia GrContext.

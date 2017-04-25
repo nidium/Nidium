@@ -195,12 +195,25 @@ static inline bool isBreakable(const unsigned char c)
     return (c == ' ' || c == '.' || c == ',' || c == '-' /*|| c == 0xAD*/);
 }
 
-SkiaContext::SkiaContext()
+SkiaContext::SkiaContext(std::shared_ptr<CanvasSurface> surface)
     : m_CanvasBindMode(SkiaContext::BIND_NO), m_State(NULL),
       m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0),
       m_AsComposite(0), m_Screen(NULL), m_CurrentShadow({ 0, 0, 0, 0 }),
-      m_Debug(false), m_FontSkew(-0.25)
+      m_Debug(false), m_FontSkew(-0.25), m_CSurface(surface)
 {
+    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
+
+    scale(ratio, ratio);
+
+    m_GlobalAlpha = 255;
+    m_CurrentPath = NULL;
+
+    m_State       = new struct _State;
+    m_State->next = NULL;
+
+    initPaints();
+
+    this->setSmooth(true);
 }
 
 SkColor
@@ -346,9 +359,7 @@ SkiaContext *SkiaContext::CreateWithTextureBackend(Frontend::Context *fctx,
         return nullptr;
     }
 
-    SkiaContext *skcontext = new SkiaContext();
-
-    skcontext->initWithSurface(cs);
+    SkiaContext *skcontext = new SkiaContext(cs);
 
     /* New canvas are transparent */
     skcontext->getCanvas()->clear(0x00000000);
@@ -396,35 +407,13 @@ SkiaContext *SkiaContext::CreateWithFBOBackend(Frontend::Context *fctx,
 
     std::shared_ptr<CanvasSurface> cs = CanvasSurface::Wrap(width, height, surface);
 
-    SkiaContext *skcontext = new SkiaContext();
+    SkiaContext *skcontext = new SkiaContext(cs);
 
-    skcontext->initWithSurface(cs);
     /* Base FBO is white */
     skcontext->getCanvas()->clear(0xffffffff);
     skcontext->m_CanvasBindMode = SkiaContext::BIND_GL;
 
     return skcontext;
-}
-
-bool SkiaContext::initWithSurface(std::shared_ptr<CanvasSurface> surface)
-{
-    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
-
-    m_CSurface = surface;
-
-    scale(ratio, ratio);
-
-    m_GlobalAlpha = 255;
-    m_CurrentPath = NULL;
-
-    m_State       = new struct _State;
-    m_State->next = NULL;
-
-    initPaints();
-
-    this->setSmooth(true);
-
-    return true;
 }
 
 GrContext *SkiaContext::CreateGrContext(GLContext *glcontext)
