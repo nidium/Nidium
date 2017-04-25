@@ -1833,7 +1833,7 @@ SkiaContext::~SkiaContext()
 
     if (m_CSurface != nullptr) {
         getCanvas()->flush();
-        m_CSurface.get()->dettachSkiaContext();
+        m_CSurface.get()->dettachSkiaContext(this);
     }
     while (nstate) {
         struct _State *tmp = nstate->next;

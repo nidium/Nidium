@@ -118,9 +118,10 @@ CanvasSurface *CanvasSurface::reclaim()
     this->touch();
 
     if (m_CurrentSkiaContext) {
-        /* Tell the old SkiaContext that its surface is gone */
-        m_CurrentSkiaContext->surfaceIsGone();
+        SkiaContext *tmp = m_CurrentSkiaContext;
         m_CurrentSkiaContext = nullptr;
+        /* Tell the old SkiaContext that its surface is gone */
+        tmp->surfaceIsGone();
     }
 
     return this;
