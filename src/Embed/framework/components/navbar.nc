@@ -31,7 +31,7 @@
             fontSize: 28,
             width: 30,
             height: 30,
-            lineHeight: 30,
+            lineHeight: 29,
             maxWidth: 30
         },
 
