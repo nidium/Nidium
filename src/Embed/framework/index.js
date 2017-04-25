@@ -33,7 +33,9 @@ load("embed://framework/elements/view.js");
 load("embed://framework/elements/span.js");
 load("embed://framework/elements/img.js");
 load("embed://framework/elements/section.js");
+
 load("embed://framework/elements/radio.js");
+load("embed://framework/elements/checkbox.js");
 
 
 /*

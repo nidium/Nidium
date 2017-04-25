@@ -166,13 +166,16 @@
             }
 
             loadMore() {
-                this.currItem++;
-
                 var list = this.items,
                     l = list.length,
-                    max = Math.min(this.currItem + 2 /*2*this.page_count*/, l);
+                    num_to_load = 1; /*2*this.page_count*/
 
-                console.log("load more", this.currItem + '->' + max, "items");
+                if (this.currItem + num_to_load > l) return;
+
+                this.currItem++;
+                var max = Math.min(this.currItem + num_to_load, l);
+
+                console.log("load ", this.currItem + '->' + max, "of", l, "items");
 
                 for (var i=this.currItem; i<max; i++) {
                     let item = list[i];

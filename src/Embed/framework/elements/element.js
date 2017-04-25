@@ -111,12 +111,12 @@
             }
 
             node.show();
-            node.style.opacity = 0.03;
+            node.style.opacity = 0.15;
             this.activeAnimation = setAnimation(
                 (node) => {
-                    node.opacity = 0.14;
+                    node.opacity = 0.25;
                 },
-                800,
+                500,
                 Easing.Exponential.In,
                 node
             );
@@ -134,7 +134,7 @@
 
             this.activeAnimation.cancel();
 
-            if (time<100) {
+            if (time<50) {
                 node.style.opacity = 0.0;
             } else {
                 node.style.opacity = 0.75;

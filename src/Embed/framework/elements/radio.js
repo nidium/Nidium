@@ -18,6 +18,7 @@
             var name = attributes.name || "";
 
             this.selected = attributes.selected === "selected" ? true : false;
+            this.disabled = attributes.disabled === "disabled" ? true : false;
 
             if (name) {
                 if (!hash[name]) hash[name] = [];
@@ -59,13 +60,32 @@
             return hash[name] || [];
         }
 
+        set disabled(value) {
+            if (value != this._disabled) {
+                this._disabled = value;
+                if (value) {
+                    this.cursor = "default";
+                } else {
+                    this.cursor = "pointer";
+                }
+                this.requestPaint();
+            }
+        }
+
+        get disabled() {
+            return this._disabled;
+        }
+
         select() {
+            if (this._disabled) return false;
+
             this.selected = true;
             this.value = this.attributes.value || null;
             this.requestPaint();
         }
 
         unselect() {
+            if (this._disabled) return false;
             this.selected = false;
             this.value = null;
             this.requestPaint();
@@ -74,11 +94,20 @@
         paint(ctx, w, h) {
             let s = this.style;
 
+            var backgroundColor = s.backgroundColor;
+            var selectedColor = s.selectedColor;
+            var borderColor = s.borderColor;
+
+            if (this._disabled) {
+                borderColor = "#c0c0c0";
+                selectedColor = "#c0c0c0";
+            }
+
             var bounds = this.getDrawingBounds(),
                 radius = h/2.5;
 
-            if (s.backgroundColor) {
-                ctx.fillStyle = s.backgroundColor;
+            if (backgroundColor) {
+                ctx.fillStyle = backgroundColor;
                 ctx.fillRect(0, 0, w, h, s.radius);
             }
 
@@ -89,7 +118,7 @@
             var pad = 6.5;
 
             s.shadowBlur && drawer.setShadow(ctx, s);
-                ctx.strokeStyle = s.borderColor;
+                ctx.strokeStyle = borderColor;
 
                 drawer.roundbox(ctx, {
                         x : bounds.x + pad,
@@ -98,8 +127,8 @@
                         h : bounds.h - 2*pad
                     },
                     s.radius-1,
-                    s.backgroundColor, 
-                    s.borderColor,
+                    backgroundColor, 
+                    borderColor,
                     s.borderWidth
                 );
             s.shadowBlur && drawer.disableShadow(ctx);
@@ -110,7 +139,7 @@
             ctx.lineWidth = 0;
 
             if (this.selected){
-                ctx.fillStyle = s.selectedColor;
+                ctx.fillStyle = selectedColor;
                 ctx.strokeStyle = "rgba(0, 0, 0, 0.7)";
 
                 ctx.beginPath();
@@ -120,12 +149,12 @@
                     radius-r, 0, 6.283185307179586, false
                 );
 
-                ctx.strokeStyle = s.borderColor;
+                ctx.strokeStyle = borderColor;
                 ctx.fill();
             } else {
                 r = 8;
                 ctx.fillStyle = "rgba(0, 0, 0, 0.00)";
-                ctx.strokeStyle = s.borderColor;
+                ctx.strokeStyle = borderColor;
             }
 
             ctx.beginPath();

@@ -14,6 +14,24 @@
 
             this.style.flexGrow = 1;
         }
+
+        onload() {
+            let prev = this.prevSibling;
+
+            if (prev.name() == 'radio' ) {
+
+                if (prev.disabled) {
+                    this.style.color = "#c0c0c0";
+                }
+
+                this.cursor = prev.cursor;
+                this.on("click", () => {
+                    prev.emit("click", {});
+                });
+
+            }
+
+        }
     }
 
     ElementStyle.Inherit(Elements.label);

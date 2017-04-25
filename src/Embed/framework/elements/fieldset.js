@@ -14,11 +14,8 @@
 
             this.style.flexGrow = 1;
             this.style.flexDirection = "row";
-        }
-
-        onload() {
-            var dim = this.getDimensions();
-            this.style.lineHeight = dim.height;
+            this.style.justifyContent = "flex-start";
+            this.style.alignItems = "center";
         }
     }
 
