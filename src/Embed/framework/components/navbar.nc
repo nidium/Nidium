@@ -116,7 +116,6 @@
             }
 
             center() {
-                this.data.callback("hello");
             }
 
             menu(e) {

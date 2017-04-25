@@ -13,8 +13,8 @@
             super(attributes);
 
             this.setDefaultStyle({
-                fontSize: 36,
-                lineHeight: 36,
+                fontSize: 34,
+                lineHeight: 34,
                 width: "100%",
                 textAlign: "left",
                 minHeight: this.style.lineHeight || 20,
