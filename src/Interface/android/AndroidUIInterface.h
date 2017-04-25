@@ -77,10 +77,8 @@ private:
     enum AndroidMessage
     {
         kAndroidMessage_scroll,
-<<<<<<< HEAD
-        kAndroidMessage_keyboard
-=======
         kAndroidMessage_hardwareKey,
+        kAndroidMessage_keyboard
     };
 
     struct AndroidHarwareKeyMessage {
