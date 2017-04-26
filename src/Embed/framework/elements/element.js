@@ -317,7 +317,6 @@
             for (let styles of stylesArray) {
                 for (let prop in styles) {
                     if (styles[prop] != undefined) {
-                        if (this.id == "title") console.log("====", prop, styles[prop])
                         this.style[prop] = styles[prop]
                     }
                 }
