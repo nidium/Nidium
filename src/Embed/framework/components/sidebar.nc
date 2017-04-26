@@ -101,7 +101,7 @@
                         this._enabled = false;
                     }
 
-                    if (Math.abs(dx)>50) {
+                    if (Math.abs(dx)>60) {
                         this._enabled = true;
                     }
 
