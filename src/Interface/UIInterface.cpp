@@ -151,6 +151,7 @@ void UIInterface::handleEvent(const SDL_Event *event)
         case SDL_FINGERMOTION:
         case SDL_FINGERDOWN:
         case SDL_FINGERUP: {
+            return;
 #ifdef TARGET_OS_MAC
             // Don't handle touch events on OSX for now
             return;
