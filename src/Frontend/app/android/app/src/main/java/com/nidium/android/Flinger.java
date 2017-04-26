@@ -11,7 +11,7 @@ import android.widget.Scroller;
 
 public class Flinger implements Runnable {
     public interface Listener {
-        void onFlingerUpdate(int relX, int relY, boolean finished);
+        void onFlingerUpdate(Flinger f, int relX, int relY, boolean finished);
     }
     private static final String TAG = "Flinger";
     private Scroller mScroller;
@@ -50,7 +50,7 @@ public class Flinger implements Runnable {
 
     public void run() {
         if (mScroller.isFinished()) {
-            mListener.onFlingerUpdate(0, 0, true /* finished */);
+            mListener.onFlingerUpdate(this, 0, 0, true /* finished */);
             return;
         }
 
@@ -60,7 +60,7 @@ public class Flinger implements Runnable {
         int y = (int)(mScroller.getCurrY() / mPixelRatio);
 
         if (mListener != null && x != mLastX || y != mLastY) {
-            mListener.onFlingerUpdate(mLastX - x, mLastY - y, !more);
+            mListener.onFlingerUpdate(this, mLastX - x, mLastY - y, !more);
         }
 
         mLastX = x;

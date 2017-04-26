@@ -184,9 +184,9 @@ public class Nidroid implements Flinger.Listener {
     }
 
     @Override
-    public void onFlingerUpdate(int relX, int relY, boolean finished) {
-        int startX = mFlinger.getStartX();
-        int startY = mFlinger.getStartY();
+    public void onFlingerUpdate(Flinger f, int relX, int relY, boolean finished) {
+        int startX = f.getStartX();
+        int startY = f.getStartY();
 
         if (finished) {
             mIsScrolling = false;
