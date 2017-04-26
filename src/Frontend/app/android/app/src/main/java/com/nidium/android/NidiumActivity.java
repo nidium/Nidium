@@ -14,7 +14,6 @@ import org.libsdl.app.SDLActivity;
 
 import java.io.File;
 import java.io.IOException;
->>>>>>> Android : Enable resources/app bundling for Android
 
 /**
  * Created by efyx on 2/7/17.
