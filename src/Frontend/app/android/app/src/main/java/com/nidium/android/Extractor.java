@@ -27,21 +27,40 @@ public class Extractor {
     }
 
     private boolean setupApp() {
-        File dest = null;
         try {
+            File dest = null;
             dest = new File(mActivity.getFilesDir().getCanonicalPath() + "/nidium");
+            if (!dest.exists()) {
+                dest.mkdir();
+            }
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
 
-        if (dest.exists()) {
-            return true;
+        try {
+            File dest = null;
+            dest = new File(mActivity.getFilesDir().getCanonicalPath() + "/nidium/" + BuildConfig.VERSION_NAME);
+            if (dest.exists()) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
         }
 
-        dest.mkdir();
+        boolean success = unpackAssets("nidium");
+        if (success) {
+            try {
+                File dest = new File(mActivity.getFilesDir().getCanonicalPath() + "/nidium/" + BuildConfig.VERSION_NAME);
+                dest.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
 
-        return unpackAssets("nidium");
+        return success;
     }
 
     private boolean unpackAssets(String path) {
