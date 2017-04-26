@@ -11,11 +11,17 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
-
     buildTypes {
+        debug {
+            buildConfigField "boolean", "BundleApp", "false"
+            buildConfigField "String", "AppIndex", "\"no-op\""
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "AppIndex", "\"05-kitchen/index.nml\""
+            buildConfigField "boolean", "BundleApp", "true"
+            signingConfig signingConfigs.config
         }
     }
     /*
@@ -28,7 +34,7 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
