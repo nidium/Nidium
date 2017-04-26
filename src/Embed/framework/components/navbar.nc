@@ -22,9 +22,9 @@
         },
 
         menu : {
-            display : "none",
             flexGrow: 1,
             minWidth:90,
+            display:"none"
         },
 
         big: {
@@ -71,16 +71,16 @@
         <span id="menu" class="flexme menu" on:click="menu(this)">
             <icon class="icon big" shape="ion-navicon-round"></icon>
         </span>
-        <span id="back" class="flexme left" on:click="back()">
+        <span id="left" class="flexme left" on:click="back()">
             <icon class="icon" shape="ion-chevron-left" style="{marginRight:0}"></icon>
             <span class="grow">Back</span>
         </span>
         <span class="flexme center" on:click="center()">
             <span id="title" class="grow"></span>
         </span>
-        <span class="flexme right" on:click="next()">
-            <span id="nextLabel" class="grow">Next</span>
-            <icon id="nextIcon" class="icon" shape="ion-chevron-right" style="{marginLeft:0}"></icon>
+        <span id="right" class="flexme right" on:click="next()">
+            <span class="grow">Next</span>
+            <icon class="icon" shape="ion-chevron-right" style="{marginLeft:0}"></icon>
         </span>
     </layout>
     <script>
@@ -96,23 +96,32 @@
                 var title = this.getElementById("title");
                 title.textContent = this.title;
 
+                var left = this.getElementById("left");
+                if (this.attributes['on:back']) {
+                    left.show();
+                } else {
+                    left.hide();
+                }
+
+                var right = this.getElementById("right");
+                if (this.attributes['on:next']) {
+                    right.show();
+                } else {
+                    right.hide();
+                }
+
+                var menu = this.getElementById("menu");
                 if (this.attributes['on:menu']) {
-                    var menu = this.getElementById("menu");
-                    menu.style.display = "flex";
-                }
-
-                if (!this.attributes['on:back']) {
-                    var left = this.getElementById("back");
                     left.style.display = "none";
+                    left.hide();
+                    menu.style.display = "flex";
+                    menu.show();
+                } else {
+                    console.log("hide")
+                    menu.style.display = "none";
+                    menu.hide();
                 }
 
-                if (!this.attributes['on:next']) {
-                    var nextLabel = this.getElementById("nextLabel");
-                    nextLabel.style.display = "none";
-
-                    var nextIcon = this.getElementById("nextIcon");
-                    nextIcon.style.display = "none";
-                }
             }
 
             center() {

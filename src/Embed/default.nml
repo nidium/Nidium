@@ -16,8 +16,8 @@
 
         bgimg: {
             top: -128,
-            width: 128,
-            height: 128,
+            width: 100,
+            height: 100,
             position: "relative"
         },
 
@@ -35,18 +35,30 @@
     </layout>
 
     <script>
-        setAnimation(function(style) {
-            style.top = 200
-        }, 3000, Easing.Elastic.Out, document.getElementById("logo").style);
+        var logo = document.getElementById("logo");
+        var nav = document.getElementById("nav");
 
-        setTimeout(function() {
-            var nav = document.getElementById("nav");
+        setAnimation(
+            (style) => {
+                style.top = 230
+            },
+            3000,
+            Easing.Elastic.Out,
+            logo.style
+        );
+
+        setTimeout(() => {
             var { left } = nav.getDimensions();
             nav.left = left;
 
-            setAnimation(function(bar) {
-                bar.left = 0;
-            }, 500, Easing.Exponential.Out, nav.style);
+            setAnimation(
+                (bar) => {
+                    bar.left = 0;
+                },
+                500,
+                Easing.Exponential.Out,
+                nav.style
+            );
         }, 1000);
     </script>
 </application>
