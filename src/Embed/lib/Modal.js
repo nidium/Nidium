@@ -33,13 +33,65 @@ class Modal extends Elements.Element {
         this.innerModal.style.position = "relative";
         this.innerModal.style.left = "5%";
         this.innerModal.style.width = "90%";
-        this.innerModal.style.height = "90%";
+        this.innerModal.style.height = "400";
         this.innerModal.style.backgroundColor = "#ffffff";
-        this.innerModal.style.radius = 9;
+        this.innerModal.style.radius = 4;
         this.innerModal.style.opacity = 0;
+        this.innerModal.style.flexDirection = "column";
+        this.innerModal.style.justifyContent = "space-around";
+        this.innerModal.style.alignItems = "flex-start";
         this.innerModal.style.top = window.innerHeight;
 
         document.canvas.add(this.innerModal);
+
+        this.head = new Elements.view();
+        this.head.style.position = "relative";
+        this.head.style.left = "0";
+        this.head.style.width = "100%";
+        this.head.style.height = "55";
+        this.head.style.flexDirection = "row";
+        this.head.style.justifyContent = "space-between";
+        this.head.style.alignItems = "center";
+        this.head.style.backgroundColor = "#e0e0e0";
+
+        this.body = new Elements.view();
+        this.body.style.position = "relative";
+        this.body.style.left = "0";
+        this.body.style.top = "55";
+        this.body.style.width = "100%";
+        this.body.style.height = "345";
+        this.body.style.flexDirection = "column";
+        this.body.style.justifyContent = "center";
+        this.body.style.alignItems = "center";
+
+        this.innerModal.add(this.head);
+        this.innerModal.add(this.body);
+
+        var t = new Elements.element();
+        t.style.flexGrow = 1;
+        t.style.fontSize = 18;
+        t.style.height = 30;
+        t.style.lineHeight = 30;
+        t.style.color = "#555555";
+        t.style.marginLeft = 6;
+        t.textContent = "Title";
+
+        var b = new Elements.button();
+        b.style.maxWidth = "80";
+        b.style.marginRight = 6;
+        b.textContent = "Close";
+        b.on("click", () => {
+            this.close();
+        });
+
+        this.head.add(t);
+        this.head.add(b);
+
+        this.modalTitle = t;
+    }
+    
+    setTitle(title) {
+        this.modalTitle.textContent = title;
     }
 
     open() {
@@ -91,7 +143,7 @@ class Modal extends Elements.Element {
             s => {
                 s.opacity = 0;
             },
-            1200,
+            400,
             Easing.Exponential.Out,
             this.style
         );
@@ -106,7 +158,7 @@ class Modal extends Elements.Element {
                 s.top = window.innerHeight;
                 s.opacity = 1.0;
             },
-            600,
+            700,
             Easing.Exponential.Out,
             this.innerModal.style
         );
