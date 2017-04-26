@@ -115,37 +115,41 @@
 
             /* Inner Background --------------------------------------------- */
 
-            var r = 8;
+            var r = 3;
             ctx.lineWidth = 0;
 
             if (this.selected){
-                ctx.fillStyle = selectedColor;
-                ctx.strokeStyle = "rgba(0, 0, 0, 0.7)";
 
-                ctx.beginPath();
-                ctx.arc(
-                    bounds.x+radius+(w/10),
-                    bounds.y+bounds.h*0.5, 
-                    radius-r, 0, 6.283185307179586, false
+                drawer.roundbox(ctx, {
+                        x : bounds.x + pad + r,
+                        y : bounds.y + pad + r,
+                        w : bounds.h - 2*pad - 2*r, // yes, h
+                        h : bounds.h - 2*pad - 2*r
+                    },
+                    s.radius-2,
+                    selectedColor, 
+                    null,
+                    null
                 );
 
-                ctx.strokeStyle = borderColor;
-                ctx.fill();
             } else {
-                r = 8;
+                r = 5;
                 ctx.fillStyle = "rgba(0, 0, 0, 0.00)";
                 ctx.strokeStyle = borderColor;
-            }
 
-            ctx.beginPath();
-            ctx.arc(
-                bounds.x+radius+(w/10),
-                bounds.y+bounds.h*0.5, 
-                radius-r, 0, 6.283185307179586, false
-            );
-            ctx.fill();
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
+                drawer.roundbox(ctx, {
+                        x : bounds.x + pad + r,
+                        y : bounds.y + pad + r,
+                        w : bounds.h - 2*pad - 2*r, // yes, h
+                        h : bounds.h - 2*pad - 2*r
+                    },
+                    1,
+                    null, 
+                    borderColor,
+                    1
+                );
+
+            }
         }
     }
 
