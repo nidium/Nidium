@@ -1221,6 +1221,8 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
 {
     Events canvasEvent = MOUSE_EVENT;
 
+    InputHandler *inputHandler = m_NidiumContext->getInputHandler();
+
     for (CanvasHandler *handler = this; handler != NULL;
          handler = handler->getParent()) {
 
@@ -1244,6 +1246,13 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                 arg[5].set(ev->m_x - p_Left.getCachedValue()); // layerX
                 arg[6].set(ev->m_y - p_Top.getCachedValue());  // layerY
                 arg[7].set(this);              // target
+
+                if (ev->getType() == InputEvent::kMouseClick_Type
+                        && ev->m_data[0] == 1
+                        && inputHandler->getCurrentScrollHandler() == handler) {
+                    Interface::SystemInterface::GetInstance()->stopScrolling();
+                    inputHandler->setCurrentScrollHandler(nullptr);
+                }
                 break;
             case InputEvent::kScroll_type: {
             case InputEvent::kTouchScroll_type:
@@ -1251,8 +1260,7 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                     continue;
                 }
 
-                InputHandler *inputHandler = m_NidiumContext->getInputHandler();
-                canvasEvent                = SCROLL_EVENT;
+                canvasEvent = SCROLL_EVENT;
 
                 arg[0].set(ev->getType());
                 arg[1].set(ev->m_x);
