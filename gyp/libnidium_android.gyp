@@ -27,6 +27,13 @@
             'JNIPP_USE_TYPE_TRAITS',
             'JNIPP_THREAD_LOCAL_PTHREAD',
         ],
+        'conditions': [
+            ['nidium_android_bundle==0', {
+                'defines':[
+                    'NDM_ANDROID_DEVELOPMENT'
+                ],
+            }]
+        ],
         'link_settings': {
             'libraries!': [
                 # Android has pthread & rt by default

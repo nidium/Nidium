@@ -425,6 +425,13 @@ def testStudio(unitTests):
 
     Tests.register(tests)
 
+@CommandLine.option("--bundle", default=False)
+def frontendAndroidBundle(bundle):
+    if not bundle:
+        return
+
+    Gyp.set("nidium_android_bundle", 1)
+
 @CommandLine.option("--android")
 def frontendAndroid(android):
     if not android:
@@ -455,12 +462,15 @@ def frontendAndroid(android):
             env.set("ANDROID_HOME", os.path.join(ROOT, "third-party", "android-sdk"))
 
             Log.info("Building android app")
-            #Utils.run("./gradlew assemble%s" % Gyp.getConfiguration(), env=env)
-            Utils.run("./gradlew assembleDebug", env=env)
+            if Gyp.get("nidium_android_bundle"):
+                Utils.run("./gradlew assembleRelease installRelease", env=env)
+            else:
+                #Utils.run("./gradlew assemble%s" % Gyp.getConfiguration(), env=env)
+                Utils.run("./gradlew assembleDebug", env=env)
 
-            Log.info("Installing android app")
-            #Utils.run("./gradlew install%s" % Gyp.getConfiguration(), env=env)
-            Utils.run("./gradlew installDebug", env=env)
+                Log.info("Installing android app")
+                #Utils.run("./gradlew install%s" % Gyp.getConfiguration(), env=env)
+                Utils.run("./gradlew installDebug", env=env)
 
 @CommandLine.option("--debug-opengl", default=False)
 def glDebug(debug):

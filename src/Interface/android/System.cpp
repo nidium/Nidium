@@ -43,10 +43,17 @@ System::System(JNIEnv *env, jobject nidroid)
     m_CacheDirectory = getCacheDirectory(m_Nidroid)->str();
     m_Language = getLanguage()->str();
 
+#ifdef NDM_ANDROID_DEVELOPMENT
     static const char embedDir[] = "/nidium/Embed/";
     size_t size = (strlen(m_UserDirectory) + strlen(embedDir) + 1);
     m_EmbedDirectory = (char *)malloc(sizeof(char) * size);
     snprintf(m_EmbedDirectory, size, "%s%s", m_UserDirectory, embedDir);
+#else
+    static const char embedDir[] = "/nidium/Embed/";
+    size_t size = (strlen(m_CacheDirectory) + strlen(embedDir) + 1);
+    m_EmbedDirectory = (char *)malloc(sizeof(char) * size);
+    snprintf(m_EmbedDirectory, size, "%s%s", m_CacheDirectory, embedDir);
+#endif
 }
 
 System::~System()

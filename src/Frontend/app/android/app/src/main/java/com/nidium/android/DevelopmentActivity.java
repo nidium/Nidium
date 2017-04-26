@@ -4,7 +4,9 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.renderscript.ScriptGroup;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -16,9 +18,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 
-public class MainActivity extends Activity {
+import static android.R.id.list;
+
+public class DevelopmentActivity extends Activity {
+    private static final String TAG = "MainActivity";
     private ListView mNMLListView;
     private TextView mNMLListTitle;
     private static final String nidiumDirName = "nidium";
@@ -39,8 +48,8 @@ public class MainActivity extends Activity {
             mHasStoragePermission = true;
         }
 
-        final Button b = (Button)findViewById(R.id.load_remote_nml);
-        final EditText url = (EditText)findViewById(R.id.nml_url);
+        final Button b = (Button) findViewById(R.id.load_remote_nml);
+        final EditText url = (EditText) findViewById(R.id.nml_url);
 
         b.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -78,7 +87,7 @@ public class MainActivity extends Activity {
 
     private void updateNMLs()
     {
-        final String dirName = Nidroid.getUserDirectory() + '/' + MainActivity.nidiumDirName + '/';
+        final String dirName = Nidroid.getUserDirectory() + '/' + DevelopmentActivity.nidiumDirName + '/';
         if (!mHasStoragePermission) {
             mNMLListTitle.setText("Application does not have permission to read " + dirName);
             return;
@@ -89,10 +98,10 @@ public class MainActivity extends Activity {
             nmls = new ArrayList<String>();
             mNMLListTitle.setText("No '" + dirName + "' directory on your phone");
         } else {
-            if (nmls.size() > 0 ) {
+            if (nmls.size() > 0) {
                 mNMLListTitle.setText("Found " + nmls.size() + " .nml files in directory '" + dirName + "'. ");
             } else {
-                mNMLListTitle.setText("No .nml files in directory '" + dirName + "'." );
+                mNMLListTitle.setText("No .nml files in directory '" + dirName + "'.");
             }
         }
 
