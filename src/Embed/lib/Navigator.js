@@ -24,6 +24,14 @@ class Navigator extends Elements.Element {
         this.style.overflow = false;
 
         this.parentWidth = window.innerWidth;
+
+        window.on("back", (e) => {
+            if (this.history.length>1) {
+                this.back();
+                e.preventDefault();
+                return false;
+            }
+        });
     }
 
     set(routes) {
@@ -214,7 +222,9 @@ class Navigator extends Elements.Element {
     back(callback) {
         var callback = callback || function() {};
 
-        if (this.history.length <= 1) return false;
+        if (this.history.length <= 1) {
+            return false;
+        }
 
         var currScene = this.history.pop();
         currScene.opacity = __opacity_hi__;
@@ -238,7 +248,7 @@ class Navigator extends Elements.Element {
         var prevScene = this.history[this.history.length - 1];
         this.slideFromLeft(prevScene, __back_duration__);
 
-        this.dumpHistory();
+        return true;
     }
 }
 
