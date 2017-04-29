@@ -110,7 +110,7 @@ protected:
 
 private:
     bool dragEvent(const char *name, int x, int y);
-
+    static void RegisterNidiumObject(JSContext *cx);
     void createMainCanvas(int width, int height, JS::HandleObject docObj);
 
     struct _requestedFrame

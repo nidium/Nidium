@@ -1194,6 +1194,27 @@ JSFunctionSpec *JSWindow::ListMethods()
     return funcs;
 }
 
+void JSWindow::RegisterNidiumObject(JSContext *cx)
+{
+    JS::RootedObject windowObj(cx, JS::CurrentGlobalOrNull(cx));
+    JS::RootedObject nidiumObj(cx, JS_NewPlainObject(cx));
+
+    JS::RootedString jVersion(cx, JS_NewStringCopyZ(cx, NIDIUM_VERSION_STR));
+    JS_DefineProperty(cx, nidiumObj, "version", jVersion,
+                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+    JS::RootedString jBuild(cx, JS_NewStringCopyZ(cx, NIDIUM_BUILD));
+    JS_DefineProperty(cx, nidiumObj, "build", jBuild,
+                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+    JS::RootedString jRevision(cx, JS_NewStringCopyZ(cx, NIDIUM_BUILD));
+    JS_DefineProperty(cx, nidiumObj, "revision", jRevision,
+                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+    JS::RootedValue val(cx, JS::ObjectValue(*nidiumObj));
+    JS_SetProperty(cx, windowObj, "__nidium__", val);
+}
+
 JSWindow *JSWindow::RegisterObject(JSContext *cx,
                                    int width,
                                    int height,
@@ -1208,28 +1229,9 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx,
     jwin->setUniqueInstance();
 
     jwin->createMainCanvas(width, height, docObj);
+    jwin->RegisterNidiumObject(cx);
 
-    // Set the __nidium__ properties
-    JS::RootedObject nidiumObj(cx, JS_NewPlainObject(cx));
-
-    JS::RootedValue val(cx);
-
-    JS::RootedString jVersion(cx, JS_NewStringCopyZ(cx, NIDIUM_VERSION_STR));
-    JS_DefineProperty(cx, nidiumObj, "version", jVersion,
-                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-
-    JS::RootedString jBuild(cx, JS_NewStringCopyZ(cx, NIDIUM_BUILD));
-    JS_DefineProperty(cx, nidiumObj, "build", jBuild,
-                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-
-    JS::RootedString jRevision(cx, JS_NewStringCopyZ(cx, NIDIUM_BUILD));
-    JS_DefineProperty(cx, nidiumObj, "revision", jRevision,
-                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-
-    val = JS::ObjectValue(*nidiumObj);
-    JS_SetProperty(cx, windowObj, "__nidium__", val);
-
-#if 0
+    #if 0
     //@TODO: intented to be used in a future
     JS::RootedObject titleBar(cx, JSCanvas::GenerateJSObject(cx, width, 35));
     static_cast<CanvasHandler *>(JS_GetPrivate(canvas))->translate(0, 35);
