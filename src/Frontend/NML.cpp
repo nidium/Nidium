@@ -120,6 +120,19 @@ bool callNMLCallback(NML *instance, NML::tag_callback cbk, rapidxml::xml_node<> 
     return true;
 }
 
+static int findLine(const char *str, const char *originalStr, const char *chr)
+{
+    int line = 1;
+    int i = 0;
+    int pos = chr - str;
+    while(originalStr[i] && i < pos) {
+        if (originalStr[i] == '\n') line++;
+        i++;
+    }
+
+    return line;
+}
+
 bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
 {
     using namespace rapidxml;
@@ -130,15 +143,17 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
         return false;
     }
 
+    char *originalStr = strdup(data);
+    Core::PtrAutoDelete<char *> _str(originalStr, free);
     try {
         doc.parse<0>(data);
     } catch (rapidxml::parse_error &err) {
         char cerr[2048];
-
-        sprintf(cerr, "NML error : %s", err.what());
+        int line = findLine(data, originalStr, err.where<char>());
+        sprintf(cerr, "NML parse error at line %d %s\n", line, err.what());
+        //sprintf(cerr, "NML error : %s", err.what());
         SystemInterface::GetInstance()->alert(cerr,
                                               SystemInterface::ALERT_CRITIC);
-
         return false;
     }
 
@@ -186,19 +201,6 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
     m_Assets->endListUpdate(m_Net);
 
     return true;
-}
-
-static int findLine(const char *str, const char *originalStr, const char *chr)
-{
-    int line = 1;
-    int i = 0;
-    int pos = chr - str;
-    while(originalStr[i] && i < pos) {
-        if (originalStr[i] == '\n') line++;
-        i++;
-    }
-
-    return line;
 }
 
 JSObject *NML::BuildLST(JSContext *cx, char *str)
