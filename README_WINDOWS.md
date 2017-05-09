@@ -37,6 +37,8 @@ The 'konstruktor.py' build tools does a lot of symlink juggling. By default, (nt
 * Start 'gpupdate /force'
 * Log in as your user
 
+If you are running into user rights issue when creating symlink it could be because you are running the configure scripts with an Administrator account. In this case, go to 'Local Policies' > 'Security options' and disable `User Account Control: Run all administrators in Admin Approval Mode` 
+
 # Software
 
 ## Microsoft Visual Studio Community edition 2015
