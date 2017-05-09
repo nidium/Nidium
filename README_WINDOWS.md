@@ -157,7 +157,7 @@ For some reason that fails, let's install it manually.
 ```
 cd c:\Data\ProgramFiles\
 c:\mozilla-build\7zip\7z.exe x c:\Data\Downloads\svn_bin.zip
-set PATH=%PATH;C:\Data\ProgramFiles\svn_bin
+set PATH=%PATH%;C:\Data\ProgramFiles\svn_bin
 // If you are using powershell
 $env:Path +=";c:\Users\efyx\Desktop\svn_bin\"
 ```
