@@ -226,6 +226,7 @@ File::~File()
     if (m_Mmap.addr) {
         PR_MemUnmap(m_Mmap.addr, m_Mmap.size);
     }
+
     if (m_Mmap.fmap) {
         PR_CloseFileMap(m_Mmap.fmap);
     }
@@ -667,15 +668,16 @@ ssize_t File::mmapSync(char **buffer, int *err)
     }
     size_t size = this->getFileSize();
 
-    m_Mmap.fmap = PR_CreateFileMap(m_Fdesc, size, PR_PROT_READWRITE);
+    m_Mmap.fmap = PR_CreateFileMap(m_Fdesc, size, PR_PROT_READONLY);
     if (m_Mmap.fmap == NULL) {
         *err = PR_GetError();
         return -1;
     }
-    m_Mmap.addr = PR_MemMap(m_Mmap.fmap, 0, size);
 
+    m_Mmap.addr = PR_MemMap(m_Mmap.fmap, 0, size);
     if (m_Mmap.addr == NULL) {
         PR_CloseFileMap(m_Mmap.fmap);
+        m_Mmap.fmap = nullptr;
         *err = errno;
         return -1;
     }
