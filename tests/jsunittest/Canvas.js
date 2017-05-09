@@ -24,10 +24,10 @@ Tests.registerVisual("Canvas.left", function(shot) {
 
     ctx.fillStyle = "blue";
     ctx.fillRect(0, 0, 200, 200);
-	
-	c.left = 20;
 
-	Assert.equal(c.left, 20, "Unexpected left value for canvas");
+    c.left = 20;
+
+    Assert.equal(c.left, 20, "Unexpected left value for canvas");
 
     shot();
 });

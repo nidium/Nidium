@@ -21,7 +21,9 @@ typedef struct _TRANSMIT_FILE_BUFFERS TRANSMIT_FILE_BUFFERS;
 
 #include "Binding/NidiumJS.h"
 
-#include <private/primpl.h>
+#ifdef __linux__
+#include <private/pprio.h>
+#endif
 
 using Nidium::IO::Stream;
 
@@ -339,13 +341,19 @@ void HTTPStream::onHeader()
     m_Mapped.size = (!m_Http->m_HTTP.m_ContentLength
                          ? MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH
                          : m_Http->m_HTTP.m_ContentLength);
-    int fd = m_Mapped.fdesc->secret->md.osfd;
+#ifdef __linux__
+    /*
+        NSPR doesn't have PR_Truncate() function, for now workaround that on linux
+        XXX : See https://bug88341.bmoattachments.org/attachment.cgi?id=115542 for a possible implementation
+    */
+    PRInt32 fd = PR_FileDesc2NativeHandle(m_Mapped.fdesc);
     if (ftruncate(fd, m_Mapped.size) == -1) {
         m_Mapped.size = 0;
         this->stop();
 
         return;
     }
+#endif
 
     m_Mapped.fmap = PR_CreateFileMap(m_Mapped.fdesc, m_Mapped.size, PR_PROT_READWRITE);
     if (!m_Mapped.fmap) {
