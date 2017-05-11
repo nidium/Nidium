@@ -47,7 +47,7 @@ class ShadowRoot {
 
     addID(id, instance) {
         if (this.idAssociation[id] && this.idAssociation[id] != instance) {
-            console.warn(`[WARNING] shadowRoot already have an element with id ${id}. Adding new element will override current element with same id`);
+            console.warn(`[WARNING] shadowRoot already have an element with id "${id}". Reference to previous element will be lost.`);
         }
         this.idAssociation[id] = instance;
     }
