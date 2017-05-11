@@ -112,7 +112,12 @@ class ShadowRoot {
             this.addID(el.id, el);
         }
 
-        this.addTag(el.name(), el);
+        let name = "canvas";
+        if (el instanceof Elements.Node) {
+            name = el.name();
+        }
+
+        this.addTag(name, el);
 
         if (el instanceof Elements.nss) {
             this.addNSS(el.nss);
