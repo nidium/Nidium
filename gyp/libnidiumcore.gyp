@@ -78,6 +78,8 @@
                     ],
                     'defines': [
                         'WIN32',
+                        # This flag or EXPORT_JS_API seems to be needed for getting the correct signature of JS_Init() functions
+                        'STATIC_JS_API',
                     ],
                 }],
             ],
@@ -99,19 +101,9 @@
                     ],
                     "link_settings": {
                         'libraries': [
-                            'mozglue.lib',
-                            'Initialization.obj',
-                            'Compression.obj', 
-                            'Decimal.obj', 
-                            #'Unified_cpp_mfbt_staticruntime0.obj',
                             'js_static.lib',
 
-                            'libnspr4.lib',
-                            'libplds4.lib',
-                            'libplc4.lib',
-                            'libnspr4_s.lib',
-                            'libplds4_s.lib',
-                            'libplc4_s.lib',
+
                             'icuin.lib',
                             'icuuc.lib',
                             'icudt.lib',
@@ -126,6 +118,17 @@
 
                             'http_parser.lib',
                             'libleveldb.a',
+
+
+                            'libnspr4.lib',
+                            'libplds4.lib',
+                            'libplc4.lib',
+
+                            # Temporary workaround some link issues. There must be a better way.
+                            'Compression.obj',
+                            'Decimal.obj',
+
+                            'mozglue.lib',
                        ]
                     }
                 }],

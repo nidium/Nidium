@@ -44,7 +44,6 @@
             '<(third_party_path)/yoga/',
         ],
         'defines': [
-            'EXPORT_JS_API',
             'GR_GL_CUSTOM_SETUP_HEADER=<../patch/skia_gl_config.h>',
             'IMPL_MFBT',
             'JS_THREADSAFE',
