@@ -131,7 +131,7 @@ def mozilla():
             configure += " --target=x86_64-pc-mingw32 --host=x86_64-pc-mingw32"
         nsprFlags += ''' --with-nspr-libs="'%s/dist/lib/libnspr4' '%s/dist/lib/libplds4' '%s/dist/lib/libplc4'"''' % (nsprDir, nsprDir, nsprDir)
         outputs = ["mozglue/build/mozglue.lib$", "js/src/js_static.lib$", "js/src/Initialization.obj"] \
-                + ["mfbt/staticruntime/%s.obj" % (l) for l in ["Compression", "Decimal", "Unified_cpp_mfbt_staticruntime0"] ] \
+                + ["mfbt/%s.obj" % (l) for l in ["Compression", "Decimal"] ] \
                 + ["intl/icu/target/lib/%s.lib" % (l) for l in ["icuin", "icuuc", "icudt"] ]
     else:
         make = "make"
