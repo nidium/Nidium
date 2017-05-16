@@ -10,6 +10,8 @@
 #include <direct.h>
 #include <process.h>
 #include <sys/types.h>
+#include <fcntl.h>
+#include <io.h>
 
 #include <Port/MSWindows.h>
 
@@ -59,8 +61,40 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor,
 } // namespace App
 } // namespace Nidium
 
+// Attach output of application to parent console
+// Source : https://www.tillett.info/2013/05/13/how-to-create-a-windows-program-that-works-as-both-as-a-gui-and-console-application/
+static BOOL attachOutputToConsole(void) {
+    HANDLE consoleHandleOut, consoleHandleError;
+
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        // Redirect unbuffered STDOUT to the console
+        consoleHandleOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        if (consoleHandleOut != INVALID_HANDLE_VALUE) {
+            freopen("CONOUT$", "w", stdout);
+            setvbuf(stdout, nullptr, _IONBF, 0);
+        } else {
+            return false;
+        }
+
+        // Redirect unbuffered STDERR to the console
+        consoleHandleError = GetStdHandle(STD_ERROR_HANDLE);
+        if (consoleHandleError != INVALID_HANDLE_VALUE) {
+            freopen("CONOUT$", "w", stderr);
+            setvbuf(stderr, nullptr, _IONBF, 0);
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    //Not a console application
+    return false;
+}
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdShow)
 {
+    attachOutputToConsole();
+
     Nidium::Interface::UIWinInterface UI;
 
 #ifdef NIDIUM_ENABLE_CRASHREPORTER
@@ -68,6 +102,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdShow
     google_breakpad::ExceptionHandler eh(descriptor, NULL, dumpCallback, NULL,
                                          true, -1);
 #endif
+
     Nidium::Interface::__NidiumUI = &UI;
     _ape_seed = time(NULL) ^ (getpid() << 16);
     if (getcwd(Nidium::App::_root, PATH_MAX)) {
