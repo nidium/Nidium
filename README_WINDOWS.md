@@ -37,7 +37,7 @@ The 'konstruktor.py' build tools does a lot of symlink juggling. By default, (nt
 * Start 'gpupdate /force'
 * Log in as your user
 
-If you are running into user rights issue when creating symlink it could be because you are running the configure scripts with an Administrator account. In this case, go to 'Local Policies' > 'Security options' and disable `User Account Control: Run all administrators in Admin Approval Mode` 
+If you are running into user rights issue when creating symlink it could be because you are running the configure scripts with an Administrator account. In this case, go to 'Local Policies' > 'Security options' and disable `User Account Control: Run all administrators in Admin Approval Mode` (but please not this is not recommended, you should create a non administrator account for building nidium)
 
 # Software
 
@@ -166,6 +166,12 @@ $env:Path +=";c:\Users\efyx\Desktop\svn_bin\"
 
 * Download from https://cmake.org/download/
 * Install
+
+# Perl
+OpenSSL require Perl 5.10+, install StrawberryPerl from http://strawberryperl.com/ and add it to your path :
+```
+set PATH=C:\Strawberry\perl\bin\;%PATH%
+```
 
 ## Finetune your shell experience
 
