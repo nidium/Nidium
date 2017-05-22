@@ -185,7 +185,8 @@ void HTTPStream::onStart(size_t packets, size_t seek)
         PR_Close(m_Mapped.fdesc);
     }
 
-// FIXME : Temporary workaround, we need to make this more generic
+    char *filename;
+// FIXME : Temporary workaround, this needs to be done with SystemInterface
 #ifdef _MSC_VER
     char tmpfname[] = "C:\\Temp\\nidiumtmp.XXXXXXXX";
     filename = _mktemp(tmpfname);

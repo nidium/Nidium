@@ -562,10 +562,10 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
             draw current context on top of the root layer
         */
         willDraw = (!layerContext.m_Clip || m_CoordPosition == COORD_ABSOLUTE
-               	    || (layerContext.m_Clip->checkIntersect(
-                      p_Left.getAlternativeValue() - p_Coating, p_Top.getAlternativeValue() - p_Coating,
-                      p_Left.getAlternativeValue() + p_Coating + YGNodeLayoutGetWidth(m_YogaRef),
-                      p_Top.getAlternativeValue() + p_Coating + YGNodeLayoutGetHeight(m_YogaRef))));
+                    || (layerContext.m_Clip->checkIntersect(
+                      p_Left.getCachedValue() - p_Coating, p_Top.getCachedValue() - p_Coating,
+                      p_Left.getCachedValue() + p_Coating + YGNodeLayoutGetWidth(m_YogaRef),
+                      p_Top.getCachedValue() + p_Coating + YGNodeLayoutGetHeight(m_YogaRef))));
 
         if (willDraw && !m_Loaded) {
             m_Loaded = true;
@@ -1131,7 +1131,7 @@ void CanvasHandler::onInputEvent(InputEvent *ev)
             // Mark the event as consumed
             ev->m_Origin->m_data[5] = 1;
 
-            scrollHandler->fireEvent<CanvasHandler>(CanvasHandler::SCROLL_EVENT, args);
+            scrollHandler->fireEvent<CanvasHandler>(kEvents_Scroll, args);
             scrollHandler->scroll(ev->m_data[0], ev->m_data[1]);
         } break;
         case InputEvent::kTouchStart_Type:
@@ -1145,7 +1145,7 @@ void CanvasHandler::onInputEvent(InputEvent *ev)
             if (!ev->getTouch()->hasOrigin(this)) {
                 Args arg;
                 this->onTouch(ev, arg, nullptr);
-                ev->getTouch()->getTarget()->fireEvent<CanvasHandler>(CanvasHandler::TOUCH_EVENT, arg);
+                ev->getTouch()->getTarget()->fireEvent<CanvasHandler>(kEvents_Touch, arg);
             }
 
             this->checkDrag(ev, inputHandler->getCurrentTouchHandler(ev->getTouch()->getIdentifier()));
@@ -1217,7 +1217,7 @@ void CanvasHandler::onTouch(InputEvent *ev, Args &args, CanvasHandler *handler)
 */
 bool CanvasHandler::_handleEvent(InputEvent *ev)
 {
-    Events canvasEvent = MOUSE_EVENT;
+    Events canvasEvent = kEvents_Mouse;
 
     InputHandler *inputHandler = m_NidiumContext->getInputHandler();
 
@@ -1258,7 +1258,7 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                     continue;
                 }
 
-                canvasEvent = SCROLL_EVENT;
+                canvasEvent = kEvents_Scroll;
 
                 arg[0].set(ev->getType());
                 arg[1].set(ev->m_x);
@@ -1289,7 +1289,7 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                     continue;
                 }
 
-                canvasEvent = TOUCH_EVENT;
+                canvasEvent = kEvents_Touch;
 
                 this->onTouch(ev, arg, handler);
             } break;
@@ -1298,7 +1298,7 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
         EventState evState;
         handler->fireEventSync<CanvasHandler>(canvasEvent, arg, &evState);
 
-        if (canvasEvent == SCROLL_EVENT) {
+        if (canvasEvent == kEvents_Scroll) {
             if (!evState.defaultPrevented) {
                 handler->scroll(ev->m_data[0], ev->m_data[1]);
             }

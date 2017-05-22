@@ -1609,7 +1609,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
                 break;
             }
         } break;
-        case NIDIUM_EVENT(CanvasHandler, SCROLL_EVENT): {
+        case NIDIUM_EVENT(CanvasHandler, kEvents_Scroll): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
 
             JSObjectBuilder obj(m_Cx, eventObj);
@@ -1625,7 +1625,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
                 break;
             }
         } break;
-        case NIDIUM_EVENT(CanvasHandler, TOUCH_EVENT): {
+        case NIDIUM_EVENT(CanvasHandler, kEvents_Touch): {
             Frontend::InputHandler *inputHandler
                 = Context::GetObject<Frontend::Context>(m_Cx)->getInputHandler();
             std::vector<std::shared_ptr<Frontend::InputTouch>> touches

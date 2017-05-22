@@ -283,8 +283,9 @@ public:
         kEvents_Loaded,
         kEvents_Change,
         kEvents_Mouse,
+        kEvents_Touch,
         kEvents_Drag,
-	kEvents_Scroll,
+	    kEvents_Scroll,
         kEvents_Paint,
         kEvents_Mount,
         kEvents_Unmount
