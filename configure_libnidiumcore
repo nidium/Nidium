@@ -156,13 +156,13 @@ def httpParser():
                -G Platform=%s -Dplatform=%s" % (platform, platform)
         build = [gyp, Platform.MsBuild("http_parser.vcxproj")]
         output = "Release/lib/http_parser.lib"
-        patch = [os.path.join(CONFIGURE_PATH, "patch", "http_parser_windows.patch")]
+        patchs = [os.path.join(CONFIGURE_PATH, "patch", "http_parser_windows.patch")]
     elif Konstruct.config("android"):
         env.update(Variables.get("androidEnvClang"))
 
     return {
         "location": Deps.GitRepo("https://github.com/nodejs/http-parser.git", tag="v2.6.2"),
-        "build": ["make package"],
+        "build": build,
         "env": env,
         "patchs": patchs,
         "outputs": [output]
