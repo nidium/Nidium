@@ -101,9 +101,10 @@ def mozilla():
 
     if Platform.system == "Windows":
         env.set("TARGET_CPU", ("x86" if Platform.wordSize == 32 else "x64"))
-        #patchs = [os.path.join(CONFIGURE_PATH, "patch", "mozilla-central_windows.patch")]
+        patchs = [os.path.join(CONFIGURE_PATH, "patch", "mozilla-central_windows.patch")]
         make = "mozmake"
-        configure = "bash ../configure --enable-build-backend=VisualStudio"
+        # mozilla-central configure script needs to be run with "bash"
+        configure = "bash " + configure + " --enable-build-backend=VisualStudio"
 
         if Platform.wordSize == 64:
             configure += " --target=x86_64-pc-mingw32 --host=x86_64-pc-mingw32"
