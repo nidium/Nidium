@@ -61,9 +61,9 @@ def leveldb():
         patchs = [os.path.join(CONFIGURE_PATH, "patch", "leveldb_windows.patch")]
 
         # -j1 : Parallel build seems to lock make
-        # liblevedb.lib : Tell make to ignore the shared libray, just create the static one
-        build = ["make -j1 libleveldb.lib"]
-        output = "libleveldb.lib"
+        # liblevedb.a : Tell make to ignore the shared libray, just create the static one
+        build = ["make -j1 libleveldb.a"]
+        output = ["libleveldb.a", "libleveldb.lib"]
     else:
         if Konstruct.config("android"):
             env.update(Variables.get("androidEnvClang"))
@@ -78,7 +78,8 @@ def leveldb():
         "location": Deps.GitRepo("https://github.com/bitcoin-core/leveldb.git", revision="d40bc3f"),
         "build": build,
         "patchs": patchs,
-        "outputs": [output]
+        "outputs": [output],
+        "env": env
     }
 
 @Deps.register("mozilla-central")
