@@ -1,7 +1,7 @@
 # Disable SDL2 audio (not needed)
 # Disable OpenGL & D3D support (not needed, nidium use OpenGLES with ANGLE on windows)
---- include/SDL_config_windows.h	2017-05-18 16:27:02.512391191 +0200
-+++ include/SDL_config_windows.h	2017-05-18 16:28:05.265725885 +0200
+--- SDL2/include/SDL_config_windows.h	2017-05-18 16:27:02.512391191 +0200
++++ SDL2/include/SDL_config_windows.h	2017-05-18 16:28:05.265725885 +0200
 @@ -154,11 +154,11 @@
  #endif
  
