@@ -25,6 +25,8 @@ Gyp = Builder.Gyp
 
 if Platform.system == "Windows":
     Platform.setEnviron("DEPOT_TOOLS_WIN_TOOLCHAIN=0")
+    # On windows, nidium use OpenGLES trough ANGLE
+    Gyp.set("nidium_opengles2", 1)
 
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_FRONTEND")
