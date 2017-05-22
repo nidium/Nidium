@@ -143,7 +143,7 @@ void Context::onMessage(const SharedMessages::Message &msg)
         {
             const char *str = (char *)msg.dataPtr();
 
-#ifdef NIDUM_PRODUCT_FRONTEND
+#ifdef NIDIUM_PRODUCT_FRONTEND
             Interface::SystemInterface::GetInstance()->print(str);
 #else
             fwrite(str, 1, strlen(str), stdout);

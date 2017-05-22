@@ -18,6 +18,38 @@ class CanvasHandler;
 }
 namespace Binding {
 
+
+#define JSCANVAS_GENERIC_PERCENT_PROP_GETTER(name, prop) \
+    bool JSCanvas::JSGetter_##prop(JSContext *cx, JS::MutableHandleValue vp) \
+    { \
+        float name = m_CanvasHandler->getProp##name(); \
+        if (isnan(name)) { \
+            vp.setUndefined(); \
+            return true; \
+        } \
+        if (m_CanvasHandler->p_##name.isPercentageValue()) { \
+            char ret[8]; \
+            int len = sprintf(ret, "%.2f%%", name); \
+            vp.setString(JS_NewStringCopyN(cx, ret, len)); \
+            return true; \
+        }   \
+        vp.setNumber(m_CanvasHandler->getProp##name()); \
+        return true; \
+    }
+
+#define JSCANVAS_GENERIC_PERCENT_PROP_SETTER(name, prop) \
+    bool JSCanvas::JSSetter_##prop(JSContext *cx, JS::MutableHandleValue vp) \
+    { \
+        double dval; \
+        if (vp.isNullOrUndefined()) { \
+            m_CanvasHandler->setProp##name(NAN); \
+            return true; \
+        } \
+        m_CanvasHandler->p_##name.setIsPercentageValue(JSUtils::ValuePercent(cx, vp, &dval)); \
+        m_CanvasHandler->setProp##name((float)dval); \
+        return true; \
+    }
+
 class JSCanvas : public ClassMapperWithEvents<JSCanvas>, public Core::Messages
 {
 public:
@@ -74,6 +106,9 @@ protected:
 
     NIDIUM_DECL_JSGETTERSETTER(opacity);
     NIDIUM_DECL_JSGETTERSETTER(overflow);
+    NIDIUM_DECL_JSGETTERSETTER(scrollable);
+    NIDIUM_DECL_JSGETTERSETTER(scrollableX);
+    NIDIUM_DECL_JSGETTERSETTER(scrollableY);
     NIDIUM_DECL_JSGETTERSETTER(scrollLeft);
     NIDIUM_DECL_JSGETTERSETTER(scrollTop);
     NIDIUM_DECL_JSGETTERSETTER(allowNegativeScroll);
@@ -135,6 +170,8 @@ protected:
 
 private:
     Graphics::CanvasHandler *m_CanvasHandler;
+
+    bool fireInputEvent(int event, JS::HandleObject ev, const Core::SharedMessages::Message &msg);
 };
 
 } // namespace Binding

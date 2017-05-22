@@ -33,6 +33,7 @@ using Nidium::Graphics::CanvasHandler;
 using Nidium::Graphics::Rect;
 using Nidium::Frontend::Context;
 using Nidium::Frontend::InputEvent;
+using Nidium::Core::Events;
 
 namespace Nidium {
 namespace Binding {
@@ -421,9 +422,9 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
             case CanvasContext::CONTEXT_2D: {
                 Canvas2DContext *ctx2d = new Canvas2DContext(
                     m_CanvasHandler, cx,
-                    m_CanvasHandler->p_Width.getAlternativeValue()
+                    m_CanvasHandler->p_Width.getCachedValue()
                         + (m_CanvasHandler->p_Coating * 2),
-                    m_CanvasHandler->p_Height.getAlternativeValue()
+                    m_CanvasHandler->p_Height.getCachedValue()
                         + (m_CanvasHandler->p_Coating * 2),
                     ui);
 
@@ -445,9 +446,9 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
             case CanvasContext::CONTEXT_WEBGL:
                 JSWebGLRenderingContext *ctxWebGL = new JSWebGLRenderingContext(
                     m_CanvasHandler, cx,
-                    m_CanvasHandler->p_Width.getAlternativeValue()
+                    m_CanvasHandler->p_Width.getCachedValue()
                         + (m_CanvasHandler->p_Coating * 2),
-                    m_CanvasHandler->p_Height.getAlternativeValue()
+                    m_CanvasHandler->p_Height.getCachedValue()
                         + (m_CanvasHandler->p_Coating * 2),
                     ui);
 
@@ -546,164 +547,9 @@ bool JSCanvas::JSSetter_allowNegativeScroll(JSContext *cx, JS::MutableHandleValu
     return true;
 }
 
-bool JSCanvas::JSSetter_width(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    if (!m_CanvasHandler->setWidth((float)dval)) {
-        // JS_ReportError(cx, "Can't set canvas width (this canvas has a
-        // dynamic width)");
-
-        return true;
-    }
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_height(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    if (!m_CanvasHandler->setHeight((float)dval)) {
-        return true;
-    }
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_left(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->setPropLeft(NAN);
-        return true;
-    }
 
 
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
 
-    m_CanvasHandler->setPropLeft((float)dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_right(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->setPropRight(NAN);
-        return true;
-    }
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setPropRight((float)dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_top(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->setPropTop(NAN);
-        return true;
-    }
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setPropTop((float)dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->setPropRight(NAN);
-        return true;
-    }
-
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setPropBottom((float)dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_minWidth(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setPropMinWidth((float)dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_minHeight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setPropMinHeight((float)dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_maxWidth(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setPropMaxWidth((float)dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_maxHeight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setPropMaxHeight((float)dval);
-
-    return true;
-}
 
 bool JSCanvas::JSSetter_visible(JSContext *cx, JS::MutableHandleValue vp)
 {
@@ -726,145 +572,6 @@ bool JSCanvas::JSSetter_coating(JSContext *cx, JS::MutableHandleValue vp)
     }
 
     m_CanvasHandler->setPropCoating(dval);
-
-    return true;
-}
-
-
-bool JSCanvas::JSSetter_marginLeft(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setMargin(
-                m_CanvasHandler->m_Margin.top,
-                m_CanvasHandler->m_Margin.right,
-                m_CanvasHandler->m_Margin.bottom,
-                dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_marginTop(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setMargin(
-                dval,
-                m_CanvasHandler->m_Margin.right,
-                m_CanvasHandler->m_Margin.bottom,
-                m_CanvasHandler->m_Margin.left);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_marginRight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setMargin(
-                m_CanvasHandler->m_Margin.top,
-                dval,
-                m_CanvasHandler->m_Margin.bottom,
-                m_CanvasHandler->m_Margin.left);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_marginBottom(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setMargin(
-                m_CanvasHandler->m_Margin.top,
-                m_CanvasHandler->m_Margin.right,
-                dval,
-                m_CanvasHandler->m_Margin.left);
-
-    return true;
-}
-
-
-
-bool JSCanvas::JSSetter_paddingLeft(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setPadding(
-                m_CanvasHandler->m_Padding.top,
-                m_CanvasHandler->m_Padding.right,
-                m_CanvasHandler->m_Padding.bottom,
-                dval);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_paddingTop(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setPadding(
-                dval,
-                m_CanvasHandler->m_Padding.right,
-                m_CanvasHandler->m_Padding.bottom,
-                m_CanvasHandler->m_Padding.left);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_paddingRight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setPadding(
-                m_CanvasHandler->m_Padding.top,
-                dval,
-                m_CanvasHandler->m_Padding.bottom,
-                m_CanvasHandler->m_Padding.left);
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_paddingBottom(JSContext *cx, JS::MutableHandleValue vp)
-{
-    double dval;
-
-    if (!JS::ToNumber(cx, vp, &dval)) {
-        return true;
-    }
-
-    m_CanvasHandler->setPadding(
-                m_CanvasHandler->m_Padding.top,
-                m_CanvasHandler->m_Padding.right,
-                dval,
-                m_CanvasHandler->m_Padding.left);
 
     return true;
 }
@@ -901,13 +608,13 @@ bool JSCanvas::JSSetter_display(JSContext *cx, JS::MutableHandleValue vp)
     }
     JSAutoByteString cdisplay(cx, sdisplay);
 
-    if (strcmp("flex", cdisplay.ptr()) == 0) {
-        m_CanvasHandler->setPropFlex(true);
+    if (strcmp("none", cdisplay.ptr()) == 0) {
+        m_CanvasHandler->setPropDisplay(false);
 
         return true;
     }
 
-    m_CanvasHandler->setPropFlex(false);
+    m_CanvasHandler->setPropDisplay(true);
 
     return true;
 }
@@ -967,7 +674,7 @@ bool JSCanvas::JSGetter_cursor(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_clientWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->p_Width.getAlternativeValue() +
+    vp.setInt32(m_CanvasHandler->p_Width.getCachedValue() +
         (m_CanvasHandler->p_Coating * 2));
 
     return true;
@@ -975,7 +682,7 @@ bool JSCanvas::JSGetter_clientWidth(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_clientHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->p_Height.getAlternativeValue() +
+    vp.setInt32(m_CanvasHandler->p_Height.getCachedValue() +
         (m_CanvasHandler->p_Coating * 2));
 
     return true;
@@ -1083,7 +790,7 @@ bool JSCanvas::JSSetter_opacity(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_overflow(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(m_CanvasHandler->m_Overflow);
+    vp.setBoolean(m_CanvasHandler->canOverflow());
 
     return true;
 }
@@ -1095,7 +802,62 @@ bool JSCanvas::JSSetter_overflow(JSContext *cx, JS::MutableHandleValue vp)
         return true;
     }
 
-    m_CanvasHandler->m_Overflow = vp.toBoolean();
+    m_CanvasHandler->setOverflow(vp.toBoolean());
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_scrollable(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->m_ScrollableX && m_CanvasHandler->m_ScrollableY);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_scrollable(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+        return true;
+    }
+
+    m_CanvasHandler->m_ScrollableX = vp.toBoolean();
+    m_CanvasHandler->m_ScrollableY = vp.toBoolean();
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_scrollableX(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->m_ScrollableX);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_scrollableX(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+        return true;
+    }
+
+    m_CanvasHandler->m_ScrollableX = vp.toBoolean();
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_scrollableY(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->m_ScrollableY);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_scrollableY(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+        return true;
+    }
+
+    m_CanvasHandler->m_ScrollableY = vp.toBoolean();
 
     return true;
 }
@@ -1121,71 +883,15 @@ bool JSCanvas::JSGetter_allowNegativeScroll(JSContext *cx, JS::MutableHandleValu
     return true;
 }
 
-bool JSCanvas::JSGetter_width(JSContext *cx, JS::MutableHandleValue vp)
-{
-    float width = m_CanvasHandler->getPropWidth();
-    if (isnan(width)) {
-        vp.setUndefined();
-
-        return true;
-    }
-
-    vp.setNumber(m_CanvasHandler->getPropWidth());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_height(JSContext *cx, JS::MutableHandleValue vp)
-{
-    float height = m_CanvasHandler->getPropHeight();
-    if (isnan(height)) {
-        vp.setUndefined();
-
-        return true;
-    }
-
-    vp.setNumber(m_CanvasHandler->getPropHeight());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_maxWidth(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setNumber(m_CanvasHandler->getPropMaxWidth());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_maxHeight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setNumber(m_CanvasHandler->getPropMaxHeight());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_minWidth(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setNumber(m_CanvasHandler->getPropMinWidth());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_minHeight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setNumber(m_CanvasHandler->getPropMinHeight());
-
-    return true;
-}
-
 bool JSCanvas::JSGetter_display(JSContext *cx, JS::MutableHandleValue vp)
 {
-    if (m_CanvasHandler->getPropFlex()) {
+    if (m_CanvasHandler->getPropDisplay()) {
         vp.setString(JS_NewStringCopyZ(cx, "flex"));
 
         return true;
     }
 
-    vp.setString(JS_NewStringCopyZ(cx, "default"));
+    vp.setString(JS_NewStringCopyZ(cx, "none"));
 
     return true;
 }
@@ -1216,121 +922,9 @@ bool JSCanvas::JSGetter_position(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
-bool JSCanvas::JSGetter_top(JSContext *cx, JS::MutableHandleValue vp)
-{
-    float top = m_CanvasHandler->getPropTop();
-    if (isnan(top)) {
-        vp.setUndefined();
-
-        return true;
-    }
-
-    vp.setNumber(m_CanvasHandler->getPropTop());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_left(JSContext *cx, JS::MutableHandleValue vp)
-{
-    float left = m_CanvasHandler->getPropLeft();
-    if (isnan(left)) {
-        vp.setUndefined();
-
-        return true;
-    }
-
-    vp.setNumber(m_CanvasHandler->getPropLeft());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_right(JSContext *cx, JS::MutableHandleValue vp)
-{
-    float right = m_CanvasHandler->getPropRight();
-    if (isnan(right)) {
-        vp.setUndefined();
-
-        return true;
-    }
-
-    vp.setNumber(m_CanvasHandler->getPropRight());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
-{
-    float bottom = m_CanvasHandler->getPropBottom();
-    if (isnan(bottom)) {
-        vp.setUndefined();
-
-        return true;
-    }
-
-    vp.setNumber(m_CanvasHandler->getPropBottom());
-
-    return true;
-}
-
 bool JSCanvas::JSGetter_visible(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setBoolean(!m_CanvasHandler->isHidden());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_marginLeft(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Margin.left);
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_marginRight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Margin.right);
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_marginTop(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Margin.top);
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_marginBottom(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Margin.bottom);
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_paddingLeft(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Padding.left);
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_paddingRight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Padding.right);
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_paddingTop(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Padding.top);
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_paddingBottom(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(m_CanvasHandler->m_Padding.bottom);
 
     return true;
 }
@@ -1371,65 +965,117 @@ bool JSCanvas::JSGetter_idx(JSContext *cx, JS::MutableHandleValue vp)
 /* Flexbox container getter */
 bool JSCanvas::JSGetter_flexDirection(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    vp.setString(JS_NewStringCopyZ(cx,
+        YGFlexDirectionToString(
+            YGNodeStyleGetFlexDirection(m_CanvasHandler->m_YogaRef))));
+
     return true;
 }
 
 bool JSCanvas::JSGetter_flexWrap(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    vp.setString(JS_NewStringCopyZ(cx,
+        YGWrapToString(
+            YGNodeStyleGetFlexWrap(m_CanvasHandler->m_YogaRef))));
+
     return true;
 }
 
 bool JSCanvas::JSGetter_justifyContent(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    vp.setString(JS_NewStringCopyZ(cx,
+        YGJustifyToString(
+            YGNodeStyleGetJustifyContent(m_CanvasHandler->m_YogaRef))));
+
     return true;
 }
 
 bool JSCanvas::JSGetter_alignItems(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    vp.setString(JS_NewStringCopyZ(cx,
+        YGAlignToString(
+            YGNodeStyleGetAlignItems(m_CanvasHandler->m_YogaRef))));
+
     return true;
 }
 
 bool JSCanvas::JSGetter_alignContent(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    vp.setString(JS_NewStringCopyZ(cx,
+        YGAlignToString(
+            YGNodeStyleGetAlignContent(m_CanvasHandler->m_YogaRef))));
+
     return true;
 }
 
 /* Flexbox items setter */
 bool JSCanvas::JSGetter_flexGrow(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    float val = YGNodeStyleGetFlexGrow(m_CanvasHandler->m_YogaRef);
+
+    if (isnan(val)) {
+        vp.setUndefined();
+
+        return true;
+    }
+
+    vp.setNumber(val);
+
     return true;
 }
 
 bool JSCanvas::JSGetter_flexShrink(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    float val = YGNodeStyleGetFlexShrink(m_CanvasHandler->m_YogaRef);
+
+    if (isnan(val)) {
+        vp.setUndefined();
+
+        return true;
+    }
+
+    vp.setNumber(val);
+
     return true;
 }
 
 bool JSCanvas::JSGetter_flexBasis(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    YGValue val = YGNodeStyleGetFlexBasis(m_CanvasHandler->m_YogaRef);
+    if (isnan(val.value)) {
+        vp.setUndefined();
+
+        return true;        
+    }
+    
+    vp.setNumber(val.value);
+
     return true;
 }
 
 bool JSCanvas::JSGetter_alignSelf(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    vp.setString(JS_NewStringCopyZ(cx,
+        YGAlignToString(
+            YGNodeStyleGetAlignSelf(m_CanvasHandler->m_YogaRef))));
+
     return true;
 }
 
 bool JSCanvas::JSGetter_aspectRatio(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(true);
+    float val = YGNodeStyleGetAspectRatio(m_CanvasHandler->m_YogaRef);
+
+    if (isnan(val)) {
+        vp.setUndefined();
+
+        return true;
+    }
+
+    vp.setNumber(val);
+
     return true;
 }
-
 
 
 /* Flexbox container setter */
@@ -1594,6 +1240,45 @@ bool JSCanvas::JSSetter_aspectRatio(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
+/* Generic getter/setter for CanvasHandler properties */
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(Width, width);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(Height, height);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(Left, left);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(Top, top);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(Bottom, bottom);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(Right, right);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MaxWidth, maxWidth);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MaxHeight, maxHeight);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MinWidth, minWidth);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MinHeight, minHeight);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MarginTop, marginTop);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MarginRight, marginRight);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MarginBottom, marginBottom);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(MarginLeft, marginLeft);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(PaddingTop, paddingTop);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(PaddingRight, paddingRight);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(PaddingBottom, paddingBottom);
+JSCANVAS_GENERIC_PERCENT_PROP_SETTER(PaddingLeft, paddingLeft);
+
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Width, width);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Height, height);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Left, left);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Top, top);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Bottom, bottom);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(Right, right);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MaxWidth, maxWidth);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MaxHeight, maxHeight);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MinWidth, minWidth);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MinHeight, minHeight);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MarginTop, marginTop);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MarginRight, marginRight);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MarginBottom, marginBottom);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(MarginLeft, marginLeft);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(PaddingTop, paddingTop);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(PaddingRight, paddingRight);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(PaddingBottom, paddingBottom);
+JSCANVAS_GENERIC_PERCENT_PROP_GETTER(PaddingLeft, paddingLeft);
+
 JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
     JS::HandleObject obj)
 {
@@ -1658,6 +1343,9 @@ JSPropertySpec *JSCanvas::ListProperties()
     static JSPropertySpec props[] = {
         CLASSMAPPER_PROP_GS(JSCanvas, opacity),
         CLASSMAPPER_PROP_GS(JSCanvas, overflow),
+        CLASSMAPPER_PROP_GS(JSCanvas, scrollable),
+        CLASSMAPPER_PROP_GS(JSCanvas, scrollableX),
+        CLASSMAPPER_PROP_GS(JSCanvas, scrollableY),
         CLASSMAPPER_PROP_GS(JSCanvas, scrollLeft),
         CLASSMAPPER_PROP_GS(JSCanvas, scrollTop),
         CLASSMAPPER_PROP_GS(JSCanvas, allowNegativeScroll),
@@ -1753,8 +1441,8 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx,
     handler->setContext(ctx2d);
     handler->getContext()->setGLState(nctx->getGLState());
 
-    /* window.canvas.overflow default to false */
-    handler->m_Overflow = false;
+    /* document.canvas.overflow default to false */
+    handler->setOverflow(false);
 
     JSCanvas *jscanvas = new JSCanvas(handler);
 
@@ -1768,6 +1456,25 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx,
     *out = handler;
 
     return ret;
+}
+
+static JS::Value TouchToJSVal(JSContext *cx, Frontend::InputTouch *touch)
+{
+    JSObjectBuilder obj(cx);
+
+    JS::RootedObject targetObj(cx, touch->getTarget()->m_JsObj);
+
+    obj.set("screenX", touch->x);
+    obj.set("screenY", touch->y);
+    obj.set("clientX", touch->x);
+    obj.set("clientY", touch->y);
+    obj.set("pageX", touch->x);
+    obj.set("pageY", touch->y);
+
+    obj.set("target", (JS::HandleObject)targetObj);
+    obj.set("identifier", touch->getIdentifier());
+
+    return obj;
 }
 
 void JSCanvas::onMessage(const SharedMessages::Message &msg)
@@ -1898,21 +1605,74 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
                     break;
             }
 
-            JS::RootedValue evVal(cx, obj.jsval());
-            if (!this->fireJSEvent(InputEvent::GetName(msg.m_Args[1].toInt()),
-                                   &evVal)) {
+            if (!this->fireInputEvent(msg.m_Args[1].toInt(), eventObj, msg)) {
                 break;
             }
+        } break;
+        case NIDIUM_EVENT(CanvasHandler, SCROLL_EVENT): {
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
 
-            JS::RootedValue cancelBubble(cx);
-            JS::RootedObject robj(cx, obj.obj());
-            if (JS_GetProperty(cx, robj, "cancelBubble", &cancelBubble)) {
-                if (cancelBubble.isBoolean() && cancelBubble.toBoolean()) {
-                    /* TODO: sort out this dirty hack */
-                    SharedMessages::Message *nonconstmsg
-                        = (SharedMessages::Message *)&msg;
-                    nonconstmsg->m_Priv = 1;
+            JSObjectBuilder obj(m_Cx, eventObj);
+            obj.set("x", msg.m_Args[2].toInt());
+            obj.set("y", msg.m_Args[3].toInt());
+            obj.set("relX", msg.m_Args[4].toInt());
+            obj.set("relY", msg.m_Args[5].toInt());
+            obj.set("velocityX", msg.m_Args[6].toInt());
+            obj.set("velocityY", msg.m_Args[7].toInt());
+            obj.set("state", msg.m_Args[8].toInt());
+
+            if (!this->fireInputEvent(msg.m_Args[1].toInt(), eventObj, msg)) {
+                break;
+            }
+        } break;
+        case NIDIUM_EVENT(CanvasHandler, TOUCH_EVENT): {
+            Frontend::InputHandler *inputHandler
+                = Context::GetObject<Frontend::Context>(m_Cx)->getInputHandler();
+            std::vector<std::shared_ptr<Frontend::InputTouch>> touches
+                = inputHandler->getTouches();
+            std::set<std::shared_ptr<Frontend::InputTouch>> changedTouches
+                = inputHandler->getChangedTouches();
+            InputEvent::Type evType = static_cast<InputEvent::Type>(msg.m_Args[1].toInt());
+
+            JS::AutoValueVector jsTouchesVector(m_Cx);
+            JS::AutoValueVector jsTargetTouchesVector(m_Cx);
+            for(auto const& touch : touches) {
+                if (!touch) continue;
+
+                jsTouchesVector.append(TouchToJSVal(m_Cx, touch.get()));
+
+                if (touch->hasOrigin(this->getHandler())) {
+                    jsTargetTouchesVector.append(TouchToJSVal(m_Cx, touch.get()));
                 }
+            }
+
+            JS::AutoValueVector jsChangedTouchesVector(m_Cx);
+            if (evType == InputEvent::kTouchStart_Type || evType == InputEvent::kTouchEnd_Type) {
+                Frontend::InputTouch *touch
+                    = static_cast<Frontend::InputTouch *>(msg.m_Args[2].toPtr());
+                if (touch) {
+                    jsChangedTouchesVector.append(TouchToJSVal(m_Cx, touch));
+                }
+            } else {
+                for(auto const& touch : changedTouches) {
+                    if (!touch) continue;
+                    jsChangedTouchesVector.append(TouchToJSVal(m_Cx, touch.get()));
+                }
+            }
+
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            JSObjectBuilder obj(m_Cx, eventObj);
+
+            JS::RootedObject jsTouchesObj(m_Cx, JS_NewArrayObject(m_Cx, jsTouchesVector));
+            JS::RootedObject jsChangedTouchesObj(m_Cx, JS_NewArrayObject(m_Cx, jsChangedTouchesVector));
+            JS::RootedObject jsTargetTouchesObj(m_Cx, JS_NewArrayObject(m_Cx, jsTargetTouchesVector));
+
+            obj.set("touches", (JS::HandleObject)jsTouchesObj);
+            obj.set("changedTouches", (JS::HandleObject)jsChangedTouchesObj);
+            obj.set("targetTouches", (JS::HandleObject)jsTargetTouchesObj);
+
+            if (!this->fireInputEvent(msg.m_Args[1].toInt(), eventObj, msg)) {
+                break;
             }
         } break;
         default:
@@ -1933,6 +1693,36 @@ JSCanvas::JSCanvas(CanvasHandler *handler)
         Trigger "loaded" event if not lazy loaded
     */
     m_CanvasHandler->checkLoaded(true);
+}
+
+bool JSCanvas::fireInputEvent(int ev, JS::HandleObject evObj, const Core::SharedMessages::Message &msg)
+{
+    JS::RootedValue evVal(m_Cx);
+    evVal.setObjectOrNull(evObj);
+    if (!this->fireJSEvent(InputEvent::GetName(ev), &evVal)) {
+        // No listeners
+        return true;
+    }
+
+    SharedMessages::Message *nonconstmsg = (SharedMessages::Message *)&msg;
+
+    /* TODO: sort out this dirty hack */
+
+    JS::RootedValue cancelBubble(m_Cx);
+    if (JS_GetProperty(m_Cx, evObj, "cancelBubble", &cancelBubble)) {
+        if (cancelBubble.isBoolean() && cancelBubble.toBoolean()) {
+            nonconstmsg->m_Priv |= Events::kEventStateFlag_stopped;;
+        }
+    }
+
+    JS::RootedValue defaultPrevented(m_Cx);
+    if (JS_GetProperty(m_Cx, evObj, "defaultPrevented", &defaultPrevented)) {
+        if (defaultPrevented.isBoolean() && defaultPrevented.toBoolean()) {
+            nonconstmsg->m_Priv |= Events::kEventStateFlag_prevented;
+        }
+    }
+
+    return true;
 }
 
 JSCanvas::~JSCanvas()

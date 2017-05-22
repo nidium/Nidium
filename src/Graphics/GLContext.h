@@ -76,6 +76,19 @@ namespace Graphics {
 
 #define NIDIUM_GL_CALL_RET_MAIN(X, RET) \
     NIDIUM_GL_CALL_RET(NIDIUM_GL_MAIN_IFACE, X, RET)
+
+#ifdef NIDIUM_OPENGLES2
+#define NIDIUM_GL_SHADER_PREAMBLE         \
+    "#ifdef GL_ES\n"                      \
+    "#ifdef GL_FRAGMENT_PRECISION_HIGH\n" \
+    "precision highp float;\n"            \
+    "#else\n"                             \
+    "precision mediump float;\n"          \
+    "#endif\n"                            \
+    "#endif\n"
+#else
+#define NIDIUM_GL_SHADER_PREAMBLE ""
+#endif
 // }}}
 
 // {{{ GLContext

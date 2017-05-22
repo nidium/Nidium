@@ -1,3 +1,4 @@
+# Enable /MD and 32bit building
 --- http-parser.org/http_parser.gyp	2017-04-08 11:03:52 -0700
 +++ http-parser/http_parser.gyp	2017-04-08 10:53:33 -0700
 @@ -7,6 +7,7 @@

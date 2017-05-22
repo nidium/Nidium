@@ -174,17 +174,6 @@ public:
         return nullptr;
     }
 
-
-    void setCurrentClickedHandler(Graphics::CanvasHandler *handler)
-    {
-        m_CurrentClickedHandler = handler;
-    }
-
-    Graphics::CanvasHandler *getCurrentClickedHandler() const
-    {
-        return m_CurrentClickedHandler;
-    }
-
     InputHandler *getInputHandler()
     {
         return &m_InputHandler;

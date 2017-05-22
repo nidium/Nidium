@@ -185,13 +185,17 @@ void HTTPStream::onStart(size_t packets, size_t seek)
         PR_Close(m_Mapped.fdesc);
     }
 
-    char *filename;
+// FIXME : Temporary workaround, we need to make this more generic
 #ifdef _MSC_VER
     char tmpfname[] = "C:\\Temp\\nidiumtmp.XXXXXXXX";
     filename = _mktemp(tmpfname);
     if (filename == NULL) {
 #else
+#ifdef __ANDROID__
+    char tmpfname[] = "/data/data/com.nidium.android/tmp.XXXXXX";
+#else
     char tmpfname[] = "/tmp/nidiumtmp.XXXXXXXX";
+#endif
     int fd = mkstemp(tmpfname);
     filename = tmpfname;
     if (fd == -1) {
@@ -199,9 +203,12 @@ void HTTPStream::onStart(size_t packets, size_t seek)
         ndm_log(NDM_LOG_ERROR, "HTTPStream", "Failed to create temporary file");
         return;
     }
+
     m_Mapped.fdesc = PR_Open(filename, PR_RDWR | O_CREAT, 0600);
-    //TODO: discuss, unlink an opened file? 
+
+    //TODO: discuss, unlink an opened file?
     // unlink(filename);
+
     m_StartPosition = seek;
     m_BytesBuffered = 0;
 

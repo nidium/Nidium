@@ -7,6 +7,7 @@
 #define binding_jswindow_h__
 
 #include "Frontend/NML.h"
+#include "Frontend/InputHandler.h"
 #include "Binding/ClassMapper.h"
 #include "Binding/JSGlobal.h"
 
@@ -54,6 +55,7 @@ public:
     void mouseMove(int x, int y, int xrel, int yrel);
     void mouseClick(int x, int y, int state, int button, int clicks);
     void systemMenuClicked(const char *id);
+    bool onHardwareKey(Frontend::InputEvent::Type evType);
 
     bool dragBegin(int x, int y, const char *const *files, size_t nfiles);
     bool dragUpdate(int x, int y);
@@ -62,6 +64,7 @@ public:
     void dragEnd();
 
     void textInput(const char *data);
+    void textEdit(const char *data);
     void keyupdown(int keycode, int mod, int state, int repeat, int location);
     void addFrameCallback(JS::MutableHandleValue cb);
     void callFrameCallbacks(double ts, bool garbage = false);
@@ -95,6 +98,7 @@ protected:
     NIDIUM_DECL_JSCALL(setSystemTray);
     NIDIUM_DECL_JSCALL(openURL);
     NIDIUM_DECL_JSCALL(exec);
+    NIDIUM_DECL_JSCALL(alert);
 
     NIDIUM_DECL_JSGETTER(devicePixelRatio);
 

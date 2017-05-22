@@ -40,3 +40,40 @@
  CFLAGS += -fPIC
  endif
  
+--- libcoroutine/source/context.c.org	2017-04-13 09:30:58.295216730 +0200
++++ libcoroutine/source/context.c	2017-04-13 09:30:52.455302780 +0200
+@@ -38,7 +38,7 @@
+ 	va_list arg;
+ 
+ 	tos = (ulong*)ucp->uc_stack.ss_sp+ucp->uc_stack.ss_size/sizeof(ulong);
+-	sp = tos - 16;	
++	sp = tos - 16;
+ 	ucp->mc.pc = (long)func;
+ 	ucp->mc.sp = (long)sp;
+ 	va_start(arg, argc);
+@@ -93,14 +93,24 @@
+ {
+ 	int i, *sp;
+ 	va_list arg;
+-	
++
+ 	sp = (int*)uc->uc_stack.ss_sp+uc->uc_stack.ss_size/4;
+ 	va_start(arg, argc);
++#ifdef __arm__
++	if(argc-- > 0) uc->uc_mcontext.arm_r0 = va_arg(arg, uint);
++	if(argc-- > 0) uc->uc_mcontext.arm_r1 = va_arg(arg, uint);
++	if(argc-- > 0) uc->uc_mcontext.arm_r2 = va_arg(arg, uint);
++	if(argc-- > 0) uc->uc_mcontext.arm_r3 = va_arg(arg, uint);
++	va_end(arg);
++	uc->uc_mcontext.arm_sp = (uint)sp;
++	uc->uc_mcontext.arm_lr = (uint)fn;
++#else
+ 	for(i=0; i<4 && i<argc; i++)
+ 		uc->uc_mcontext.gregs[i] = va_arg(arg, uint);
+ 	va_end(arg);
+ 	uc->uc_mcontext.gregs[13] = (uint)sp;
+ 	uc->uc_mcontext.gregs[14] = (uint)fn;
++#endif
+ }
+ #endif
+ 

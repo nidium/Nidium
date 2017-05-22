@@ -476,7 +476,7 @@ double AVSource::getDuration()
 
 int AVSource::readError(int err)
 {
-    SPAM(("readError Got error %d/%d\n", err, AVERROR_EOF));
+    SPAM(("readError Got error %d/isEOF=%d\n", err, (err == AVERROR_EOF)));
     if (err == AVERROR_EOF
         || (m_Container->pb && m_Container->pb->eof_reached)) {
         m_Error = AVERROR_EOF;

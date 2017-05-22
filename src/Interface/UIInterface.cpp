@@ -25,12 +25,13 @@
 #include "Net/HTTPStream.h"
 #include "SystemInterface.h"
 #include "Frontend/Context.h"
+#include "Frontend/InputHandler.h"
 #include "Graphics/GLHeader.h"
 #include "Binding/JSWindow.h"
 #include "SDL_keycode_translate.h"
 
 #define NIDIUM_TITLEBAR_HEIGHT 0
-#define NIDIUM_VSYNC 0
+#define NIDIUM_VSYNC 1
 
 uint32_t ttfps = 0;
 
@@ -40,6 +41,9 @@ using Nidium::Net::HTTPStream;
 using Nidium::Binding::JSWindow;
 using Nidium::Frontend::Context;
 using Nidium::Frontend::NML;
+using Nidium::Frontend::InputEvent;
+using Nidium::Frontend::InputHandler;
+using Nidium::Frontend::InputTouch;
 
 namespace Nidium {
 namespace Interface {
@@ -75,6 +79,8 @@ void UIInterface::setGLContextAttribute()
 bool UIInterface::createWindow(int width, int height)
 {
     if (!m_Initialized) {
+        this->setGLContextAttribute();
+
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1) {
             ndm_logf(NDM_LOG_ERROR, "UIInterface", "Can't init SDL:  %s", SDL_GetError());
             return false;
@@ -89,10 +95,10 @@ bool UIInterface::createWindow(int width, int height)
             return false;
         }
 
+        this->setupWindow();
+
         m_Width  = width;
         m_Height = height;
-
-        this->setGLContextAttribute();
 
         if ((m_MainGLCtx = SDL_GL_CreateContext(m_Win)) == NULL) {
             ndm_logf(NDM_LOG_ERROR, "UIInterface", "Failed to create OpenGL context : %s", SDL_GetError());
@@ -100,7 +106,6 @@ bool UIInterface::createWindow(int width, int height)
         }
 
         this->initControls();
-        SDL_StartTextInput();
 
         /*
             Enable vertical sync
@@ -128,126 +133,219 @@ bool UIInterface::createWindow(int width, int height)
     return true;
 }
 
+void UIInterface::handleEvent(const SDL_Event *event)
+{
+    float pixelRatio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
+    JSWindow *window = NULL;
+
+    if (this->isContextReady()) {
+        this->makeMainGLCurrent();
+        window = JSWindow::GetObject(this->m_NidiumCtx->getNJS());
+    }
+
+    switch (event->type) {
+        case SDL_WINDOWEVENT:
+            if (window) {
+                switch (event->window.event) {
+                    case SDL_WINDOWEVENT_FOCUS_GAINED:
+                        window->windowFocus();
+                        break;
+                    case SDL_WINDOWEVENT_FOCUS_LOST:
+                        window->windowBlur();
+                        break;
+                    default:
+                        break;
+                }
+            }
+            break;
+        case SDL_FINGERMOTION:
+        case SDL_FINGERDOWN:
+        case SDL_FINGERUP: {
+#ifdef TARGET_OS_MAC
+            // Don't handle touch events on OSX for now
+            return;
+#endif
+            int width, height;
+            InputHandler *inputHandler        = m_NidiumCtx->getInputHandler();
+            InputTouch::TouchID touchID       = event->tfinger.fingerId;
+            std::shared_ptr<InputTouch> touch = inputHandler->getKnownTouch(touchID);
+
+            this->getScreenSize(&width, &height);
+
+            /*
+                The positions returned by SDL are relative to the view. It's
+                possible for a touch start or end event to be received with
+                a position slightly outside the bounds of the view.
+            */
+            float normalizedX = nidium_clamp(event->tfinger.x, 0.0, 1.0);
+            float normalizedY = nidium_clamp(event->tfinger.y, 0.0, 1.0);
+
+            int x = (normalizedX * width) / pixelRatio;
+            int y = (normalizedY * height) / pixelRatio;
+
+            InputEvent::Type eventType = InputEvent::kTouchMove_Type;
+            if (event->type != SDL_FINGERMOTION) {
+                eventType = event->type == SDL_FINGERUP
+                                ? InputEvent::kTouchEnd_Type
+                                : InputEvent::kTouchStart_Type;
+            }
+
+            if (eventType == InputEvent::kTouchStart_Type) {
+                assert(!touch);
+                touch.reset(new InputTouch(x, y, touchID));
+                inputHandler->addKnownTouch(touch);
+            } else if (eventType == InputEvent::kTouchEnd_Type) {
+                inputHandler->rmKnownTouch(touchID);
+            }
+
+            InputEvent ev(eventType, x, y);
+            ev.setTouch(touch);
+
+            inputHandler->pushEvent(ev);
+        } break;
+        case SDL_TEXTEDITING:
+            if (window && &event->text.text[0]
+                && strlen(event->text.text) > 0) {
+                window->textEdit(event->text.text);
+            }
+           break;
+        case SDL_TEXTINPUT:
+            if (window && &event->text.text[0]
+                && strlen(event->text.text) > 0) {
+                window->textInput(event->text.text);
+            }
+            break;
+        case SDL_USEREVENT:
+            break;
+        case SDL_QUIT:
+            if (window && !window->onClose()) {
+                break;
+            }
+            this->stopApplication();
+            SDL_Quit();
+            this->quitApplication();
+
+            break;
+        case SDL_MOUSEMOTION:
+            if (window) {
+                int x = event->motion.x;
+                int y = event->motion.y;
+                int xrel = event->motion.xrel;
+                int yrel = event->motion.yrel;
+
+#ifdef __ANDROID__
+                // On android SDL sends the mouse position in physical
+                // pixel instead of logicial pixels like other OS
+                x /= pixelRatio;
+                y /= pixelRatio;
+                xrel /= pixelRatio;
+                yrel /= pixelRatio;
+#endif
+                window->mouseMove(x, y - NIDIUM_TITLEBAR_HEIGHT, xrel, yrel);
+            }
+            break;
+        case SDL_MOUSEWHEEL: {
+            int cx, cy;
+            InputHandler *inputHandler = m_NidiumCtx->getInputHandler();
+            int wx = event->wheel.x * this->getScrollWheelMultiplier();
+            int wy = event->wheel.y * this->getScrollWheelMultiplier();
+
+            SDL_GetMouseState(&cx, &cy);
+
+            InputEvent ev(InputEvent::kScroll_type, cx, cy);
+
+            ev.m_data[0] = wx;
+            ev.m_data[1] = wy;
+            ev.m_data[2] = 0; // velocityX
+            ev.m_data[3] = 0; // velocityY
+            ev.m_data[4] = InputEvent::kScrollState_move; // state
+            ev.m_data[5] = 0; // consumed
+
+            inputHandler->pushEvent(ev);
+            break;
+        }
+        case SDL_MOUSEBUTTONUP:
+        case SDL_MOUSEBUTTONDOWN:
+            if (window) {
+                int x = event->motion.x;
+                int y = event->motion.y;
+
+#ifdef __ANDROID__
+                // On android SDL sends the mouse position in physical
+                // pixel instead of logicial pixels like other OS
+                x /= pixelRatio;
+                y /= pixelRatio;
+#endif
+                window->mouseClick(x, y - NIDIUM_TITLEBAR_HEIGHT,
+                                   event->button.state, event->button.button,
+                                   event->button.clicks);
+            }
+            break;
+        case SDL_KEYDOWN:
+        case SDL_KEYUP: {
+            int keyCode = 0;
+            int mod     = 0;
+
+            if ((&event->key)->keysym.sym == SDLK_r
+                && (event->key.keysym.mod & KMOD_CTRL)
+                && event->type == SDL_KEYDOWN) {
+
+                if (m_PendingRefresh) {
+                    break;
+                }
+
+                m_PendingRefresh = true;
+
+                this->hitRefresh();
+
+                break;
+            }
+            if (event->key.keysym.sym >= 97 && event->key.keysym.sym <= 122) {
+                keyCode = event->key.keysym.sym - 32;
+            } else {
+                keyCode = SDL_KEYCODE_TO_DOMCODE(event->key.keysym.sym);
+            }
+
+            if (event->key.keysym.mod & KMOD_SHIFT
+                || SDL_KEYCODE_GET_CODE(keyCode) == 16) {
+                mod |= kKeyModifier_Shift;
+            }
+            if (event->key.keysym.mod & KMOD_ALT
+                || SDL_KEYCODE_GET_CODE(keyCode) == 18) {
+                mod |= kKeyModifier_Alt;
+            }
+            if (event->key.keysym.mod & KMOD_CTRL
+                || SDL_KEYCODE_GET_CODE(keyCode) == 17) {
+                mod |= kKeyModifier_Control;
+            }
+            if (event->key.keysym.mod & KMOD_GUI
+                || SDL_KEYCODE_GET_CODE(keyCode) == 91) {
+                mod |= kKeyModifier_Meta;
+            }
+            if (window) {
+                window->keyupdown(SDL_KEYCODE_GET_CODE(keyCode), mod,
+                                  event->key.state, event->key.repeat,
+                                  SDL_KEYCODE_GET_LOCATION(keyCode));
+            }
+
+            break;
+        }
+    }
+}
+
 int UIInterface::HandleEvents(void *arg)
 {
     UIInterface *uii = static_cast<UIInterface *>(arg);
 
     SDL_Event event;
-    int nrefresh = 0;
-    int nevents  = 0;
 
     while (SDL_PollEvent(&event)) {
-        JSWindow *window = NULL;
-        if (uii->isContextReady()) {
-            uii->makeMainGLCurrent();
-            window = JSWindow::GetObject(uii->m_NidiumCtx->getNJS());
-        }
-        nevents++;
-        switch (event.type) {
-            case SDL_WINDOWEVENT:
-                if (window) {
-                    switch (event.window.event) {
-                        case SDL_WINDOWEVENT_FOCUS_GAINED:
-                            window->windowFocus();
-                            break;
-                        case SDL_WINDOWEVENT_FOCUS_LOST:
-                            window->windowBlur();
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                break;
-            case SDL_TEXTINPUT:
-                if (window && &event.text.text[0]
-                    && strlen(event.text.text) > 0) {
-                    window->textInput(event.text.text);
-                }
-                break;
-            case SDL_USEREVENT:
-                break;
-            case SDL_QUIT:
-                if (window && !window->onClose()) {
-                    break;
-                }
-                uii->stopApplication();
-                SDL_Quit();
-                uii->quitApplication();
+        uii->handleEvent(&event);
+    }
 
-                break;
-            case SDL_MOUSEMOTION:
-                if (window) {
-                    window->mouseMove(event.motion.x,
-                                      event.motion.y - NIDIUM_TITLEBAR_HEIGHT,
-                                      event.motion.xrel, event.motion.yrel);
-                }
-                break;
-            case SDL_MOUSEWHEEL: {
-                int cx, cy;
-                SDL_GetMouseState(&cx, &cy);
-                if (window) {
-                    window->mouseWheel(event.wheel.x, event.wheel.y, cx,
-                                       cy - NIDIUM_TITLEBAR_HEIGHT);
-                }
-                break;
-            }
-            case SDL_MOUSEBUTTONUP:
-            case SDL_MOUSEBUTTONDOWN:
-                if (window) {
-                    window->mouseClick(event.button.x,
-                                       event.button.y - NIDIUM_TITLEBAR_HEIGHT,
-                                       event.button.state, event.button.button,
-                                       event.button.clicks);
-                }
-                break;
-            case SDL_KEYDOWN:
-            case SDL_KEYUP: {
-                int keyCode = 0;
-                int mod     = 0;
-
-                if ((&event.key)->keysym.sym == SDLK_r
-                    && (event.key.keysym.mod & KMOD_CTRL)
-                    && event.type == SDL_KEYDOWN) {
-
-                    if (++nrefresh > 1) {
-                        break;
-                    }
-
-                    uii->hitRefresh();
-
-                    break;
-                }
-                if (event.key.keysym.sym >= 97 && event.key.keysym.sym <= 122) {
-                    keyCode = event.key.keysym.sym - 32;
-                } else {
-                    keyCode = SDL_KEYCODE_TO_DOMCODE(event.key.keysym.sym);
-                }
-
-                if (event.key.keysym.mod & KMOD_SHIFT
-                    || SDL_KEYCODE_GET_CODE(keyCode) == 16) {
-                    mod |= kKeyModifier_Shift;
-                }
-                if (event.key.keysym.mod & KMOD_ALT
-                    || SDL_KEYCODE_GET_CODE(keyCode) == 18) {
-                    mod |= kKeyModifier_Alt;
-                }
-                if (event.key.keysym.mod & KMOD_CTRL
-                    || SDL_KEYCODE_GET_CODE(keyCode) == 17) {
-                    mod |= kKeyModifier_Control;
-                }
-                if (event.key.keysym.mod & KMOD_GUI
-                    || SDL_KEYCODE_GET_CODE(keyCode) == 91) {
-                    mod |= kKeyModifier_Meta;
-                }
-                if (window) {
-                    window->keyupdown(SDL_KEYCODE_GET_CODE(keyCode), mod,
-                                      event.key.state, event.key.repeat,
-                                      SDL_KEYCODE_GET_LOCATION(keyCode));
-                }
-
-                break;
-            }
-        }
+    if (uii->m_DoRefresh) {
+        uii->hitRefresh();
+        uii->m_DoRefresh = false;
     }
 
     if (uii->m_DoRefresh) {
@@ -274,7 +372,7 @@ int UIInterface::HandleEvents(void *arg)
     }
 
     if (uii->getFBO() != 0 && uii->m_NidiumCtx) {
-
+#ifndef NIDIUM_OPENGLES2
         glReadBuffer(GL_COLOR_ATTACHMENT0);
 
         glReadPixels(0, 0, uii->getWidth(), uii->getHeight(), GL_RGBA,
@@ -282,6 +380,7 @@ int UIInterface::HandleEvents(void *arg)
         uint8_t *pdata = uii->getFrameBufferData();
 
         uii->m_NidiumCtx->rendered(pdata, uii->getWidth(), uii->getHeight());
+#endif
     } else {
         uii->makeMainGLCurrent();
         SDL_GL_SwapWindow(uii->m_Win);
@@ -294,6 +393,11 @@ int UIInterface::HandleEvents(void *arg)
 bool UIInterface::isContextReady()
 {
     return (this->m_NidiumCtx && m_NidiumCtx->getUI());
+}
+
+void UIInterface::initControls()
+{
+    SDL_StartTextInput();
 }
 
 void UIInterface::OnNMLLoaded(void *arg)
@@ -472,6 +576,7 @@ void UIInterface::setWindowFrame(int x, int y, int w, int h)
 
 void UIInterface::toggleOfflineBuffer(bool val)
 {
+#ifndef NIDIUM_OPENGLES
     if (val && !m_ReadPixelInBuffer) {
         this->initPBOs();
     } else if (!val && m_ReadPixelInBuffer) {
@@ -480,10 +585,12 @@ void UIInterface::toggleOfflineBuffer(bool val)
         free(m_FrameBuffer);
     }
     m_ReadPixelInBuffer = val;
+#endif
 }
 
 void UIInterface::initPBOs()
 {
+#ifndef NIDIUM_OPENGLES2
     if (m_ReadPixelInBuffer) {
         return;
     }
@@ -503,10 +610,12 @@ void UIInterface::initPBOs()
     m_PBOs.gpu2vram = NUM_PBOS - 1;
 
     m_FrameBuffer = static_cast<uint8_t *>(malloc(screenPixelSize));
+#endif
 }
 
 uint8_t *UIInterface::readScreenPixel()
 {
+#ifndef NIDIUM_OPENGLES2
     if (!m_ReadPixelInBuffer) {
         this->toggleOfflineBuffer(true);
     }
@@ -548,10 +657,14 @@ uint8_t *UIInterface::readScreenPixel()
     m_PBOs.pbo[NUM_PBOS - 1] = temp;
 
     return m_FrameBuffer;
+#else
+    return nullptr;
+#endif
 }
 
 int UIInterface::useOffScreenRendering(bool val)
 {
+#ifndef NIDIUM_OPENGLES2
     if (!val && m_IsOffscreen) {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         m_IsOffscreen = false;
@@ -584,6 +697,9 @@ int UIInterface::useOffScreenRendering(bool val)
     }
 
     return 0;
+#else
+    return 1;
+#endif
 }
 
 void UIInterface::refreshApplication(bool clearConsole)
@@ -637,6 +753,8 @@ void UIInterface::stopApplication()
         delete this->m_NidiumCtx;
         this->m_NidiumCtx = NULL;
     }
+
+    m_PendingRefresh = false;
 
     glClearColor(1, 1, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);

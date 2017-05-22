@@ -14,6 +14,7 @@
 #include <jsapi.h>
 
 #include "Core/Events.h"
+#include "Frontend/InputHandler.h"
 #include "Graphics/Geometry.h"
 
 #include <Yoga.h>
@@ -37,10 +38,6 @@ class UIInterface;
 }
 namespace Binding {
 class JSCanvas;
-}
-namespace Frontend {
-class Context;
-class InputEvent;
 }
 namespace Graphics {
 
@@ -88,6 +85,41 @@ struct LayerizeContext
         return this->p_##name.get(); \
     }
 
+#define CANVAS_DEF_CLASS_CARDINAL_PROPERTY(name, type, default_value, state) \
+    CANVAS_DEF_CLASS_PROPERTY(name##Top, type, default_value, state) \
+    CANVAS_DEF_CLASS_PROPERTY(name##Right, type, default_value, state) \
+    CANVAS_DEF_CLASS_PROPERTY(name##Bottom, type, default_value, state) \
+    CANVAS_DEF_CLASS_PROPERTY(name##Left, type, default_value, state)
+
+#define CANVAS_DEF_PROP_YOGA_SETTER(name, position) \
+    void setProp##name##position(float val) override \
+    { \
+        p_##name##position.set(val); \
+        if (p_##name##position.isPercentageValue()) { \
+            YGNodeStyleSet##name##Percent(m_YogaRef, YGEdge##position, isnan(val) ? YGUndefined : val); \
+        } else { \
+            YGNodeStyleSet##name(m_YogaRef, YGEdge##position, isnan(val) ? YGUndefined : val); \
+        } \
+    }
+
+#define CANVAS_DEF_PROP_YOGA_SETTER_POSITION(position) \
+    void setProp##position(float val) override \
+    { \
+        p_##position.set(val); \
+        if (p_##position.isPercentageValue()) { \
+            YGNodeStyleSetPositionPercent(m_YogaRef, YGEdge##position, isnan(val) ? YGUndefined : val); \
+        } else { \
+            YGNodeStyleSetPosition(m_YogaRef, YGEdge##position, isnan(val) ? YGUndefined : val); \
+        } \
+    }
+
+#define CANVAS_DEF_PROP_CARDINAL_YOGA_SETTER(name) \
+    CANVAS_DEF_PROP_YOGA_SETTER(name, Top) \
+    CANVAS_DEF_PROP_YOGA_SETTER(name, Right) \
+    CANVAS_DEF_PROP_YOGA_SETTER(name, Bottom) \
+    CANVAS_DEF_PROP_YOGA_SETTER(name, Left)
+
+
 class CanvasHandlerBase
 {
 private:
@@ -115,10 +147,11 @@ public:
         static constexpr float kUndefined_Value  = NAN;
 
         CanvasProperty(const char *name, T val, State state, CanvasHandlerBase *h) :
-            m_Name(name), m_Canvas(h), m_Value(val), m_AlternativeValue(val) {
-                
+            m_Name(name), m_Canvas(h), m_Value(val), m_CachedValue(val) {
+#if 0
                 position = m_Canvas->m_PropertyList.size();
                 m_Canvas->m_PropertyList.push_back((void *)this);
+#endif
             };
 
         inline T get() const {
@@ -136,8 +169,8 @@ public:
             return m_Value;
         }
 
-        inline T getAlternativeValue() const {
-            return m_AlternativeValue;
+        inline T getCachedValue() const {
+            return m_CachedValue;
         }
 
 
@@ -150,14 +183,8 @@ public:
             m_Value = val;
         }
 
-        inline void setAlternativeValue(T val) {
-            m_AlternativeValue = val;
-        }
-        
-        /* Change the user value */
-        inline void userSet(T val) {
-            m_UserValue = val;
-            m_State = State::kSet;
+        inline void setCachedValue(T val) {
+            m_CachedValue = val;
         }
 
         inline CanvasProperty<T> operator=(const T& val) {
@@ -175,6 +202,14 @@ public:
             m_State = State::kDefault;
         }
 
+        void setIsPercentageValue(bool val) {
+            m_IsPercentage = val;
+        }
+
+        bool isPercentageValue() const {
+            return m_IsPercentage;
+        }
+
     private:
         /* Used for debug purpose
          * TODO: ifdef DEBUG */
@@ -184,11 +219,9 @@ public:
 
         /* Actual value used for computation */
         T m_Value;
-        /* Value set by the user */
-        T m_UserValue;
+        T m_CachedValue;
 
-        T m_AlternativeValue;
-        
+        bool m_IsPercentage = false;
         State m_State = State::kDefault;
 
         /* Position of the property in the Canvas properyList
@@ -207,11 +240,11 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     float, 0,   State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    float, 0,   State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Coating,      float, 0,   State::kDefault);
-
-    CANVAS_DEF_CLASS_PROPERTY(Flex,         bool, false, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(EventReceiver,bool, true, State::kDefault);
-
+    CANVAS_DEF_CLASS_PROPERTY(Display,      bool, true, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Opacity,      float, 1.0, State::kDefault);
+    CANVAS_DEF_CLASS_CARDINAL_PROPERTY(Margin,   float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_CARDINAL_PROPERTY(Padding,  float, NAN, State::kDefault);
 
     virtual CanvasHandlerBase *getParentBase()=0;
 };
@@ -233,14 +266,6 @@ public:
 
     static const uint8_t EventID = 1;
 
-    enum COORD_MODE
-    {
-        kLeft_Coord   = 1 << 0,
-        kRight_Coord  = 1 << 1,
-        kTop_Coord    = 1 << 2,
-        kBottom_Coord = 1 << 3
-    };
-
     enum Flags
     {
         kDrag_Flag = 1 << 0
@@ -259,6 +284,7 @@ public:
         kEvents_Change,
         kEvents_Mouse,
         kEvents_Drag,
+	kEvents_Scroll,
         kEvents_Paint,
         kEvents_Mount,
         kEvents_Unmount
@@ -290,22 +316,6 @@ public:
 
     struct
     {
-        float top;
-        float right;
-        float bottom;
-        float left;
-    } m_Margin;
-
-    struct
-    {
-        float top;
-        float right;
-        float bottom;
-        float left;
-    } m_Padding;
-
-    struct
-    {
         int width;
         int height;
         int scrollTop;
@@ -319,8 +329,6 @@ public:
         bool consumed;
     } m_MousePosition;
 
-    bool m_Overflow;
-
     CanvasContext *getContext() const
     {
         return m_Context;
@@ -333,13 +341,13 @@ public:
 
     inline float getPropLeftAbsolute()
     {
-        return p_Left.getAlternativeValue();
-        }
+        return p_Left.getCachedValue();
+    }
 
     inline float getPropTopAbsolute()
     {
-        return p_Top.getAlternativeValue();
-        }
+        return p_Top.getCachedValue();
+    }
 
     float getTopScrolled() 
     {
@@ -415,11 +423,11 @@ public:
     }
 
     inline float getComputedAbsoluteLeft() const {
-        return p_Left.getAlternativeValue();
+        return p_Left.getCachedValue();
     }
 
     inline float getComputedAbsoluteTop() const {
-        return p_Top.getAlternativeValue();
+        return p_Top.getCachedValue();
     }
 
     Frontend::Context *getNidiumContext() const
@@ -427,58 +435,28 @@ public:
         return m_NidiumContext;
     }
 
-    void setMargin(float top, float right, float bottom, float left)
-    {
-        YGNodeStyleSetMargin(m_YogaRef, YGEdgeTop, top);
-        YGNodeStyleSetMargin(m_YogaRef, YGEdgeRight, right);
-        YGNodeStyleSetMargin(m_YogaRef, YGEdgeBottom, bottom);
-        YGNodeStyleSetMargin(m_YogaRef, YGEdgeLeft, left);
+    CANVAS_DEF_PROP_CARDINAL_YOGA_SETTER(Padding);
+    CANVAS_DEF_PROP_CARDINAL_YOGA_SETTER(Margin);
+    CANVAS_DEF_PROP_YOGA_SETTER_POSITION(Top);
+    CANVAS_DEF_PROP_YOGA_SETTER_POSITION(Right);
+    CANVAS_DEF_PROP_YOGA_SETTER_POSITION(Bottom);
+    CANVAS_DEF_PROP_YOGA_SETTER_POSITION(Left);
 
-        m_Margin.top    = top;
-        m_Margin.right  = right;
-        m_Margin.bottom = bottom;
-        m_Margin.left   = left;
+    void setPropDisplay(bool state) override
+    {
+        p_Display.set(state);
+
+        YGNodeStyleSetDisplay(m_YogaRef, state ? YGDisplayFlex : YGDisplayNone);
     }
 
-    void setPadding(float top, float right, float bottom, float left)
-    {
-        YGNodeStyleSetPadding(m_YogaRef, YGEdgeTop, top);
-        YGNodeStyleSetPadding(m_YogaRef, YGEdgeRight, right);
-        YGNodeStyleSetPadding(m_YogaRef, YGEdgeBottom, bottom);
-        YGNodeStyleSetPadding(m_YogaRef, YGEdgeLeft, left);
-
-        m_Padding.top    = top;
-        m_Padding.right  = right;
-        m_Padding.bottom = bottom;
-        m_Padding.left   = left;
+    void setOverflow(bool state) {
+        m_Overflow = state;
+        /* TODO: We should set YGOverflowScroll only if the view is scrollable */
+        YGNodeStyleSetOverflow(m_YogaRef, state ? YGOverflowScroll : YGOverflowVisible);
     }
 
-    void setPropLeft(float val) override
-    {
-        p_Left.set(val);
-
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, isnan(val) ? YGUndefined : val);
-    }
-
-    void setPropTop(float val) override
-    {
-        p_Top.set(val);
-
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, isnan(val) ? YGUndefined : val);
-    }
-
-    void setPropRight(float val) override
-    {
-        p_Left.set(val);
-
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeRight, isnan(val) ? YGUndefined : val);
-    }
-
-    void setPropBottom(float val) override
-    {
-        p_Top.set(val);
-
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeBottom, isnan(val) ? YGUndefined : val);
+    bool canOverflow() const {
+        return m_Overflow;
     }
 
     void setPropCoating(float value) override;
@@ -532,8 +510,8 @@ public:
 
     void setContext(CanvasContext *context);
 
-    bool setWidth(float width, bool force = false);
-    bool setHeight(float height, bool force = false);
+    void setPropWidth(float width) override;
+    void setPropHeight(float height) override;
 
     void setPropMinWidth(float width) override;
     void setPropMinHeight(float height) override;
@@ -573,6 +551,18 @@ public:
 
     void setCursor(int cursor);
     int getCursor();
+
+    bool isScrollable() {
+        // XXX : Broken with yoga update, needs to be updated once ready
+        /*
+        return (m_ScrollableX && this->getWidth() < this->getContentWidth(true))
+                || (m_ScrollableY && this->getHeight() < this->getContentHeight(true));
+        */
+
+        return (m_ScrollableX || m_ScrollableY);
+    }
+
+    void scroll(int x, int y);
 
     void invalidate()
     {
@@ -630,9 +620,15 @@ protected:
 
 private:
     void deviceSetSize(float width, float height);
-    void onMouseEvent(Frontend::InputEvent *ev);
+    void onTouch(Frontend::InputEvent *ev, Core::Args &args, CanvasHandler *handler);
+    void onInputEvent(Frontend::InputEvent *ev);
     void onDrag(Frontend::InputEvent *ev, CanvasHandler *target, bool end = false);
     void onDrop(Frontend::InputEvent *ev, CanvasHandler *droped);
+
+    void checkDrag(Frontend::InputEvent *ev,
+                   Graphics::CanvasHandler *drag);
+    void checkDrop(Frontend::InputEvent *ev,
+                   Graphics::CanvasHandler *drag);
 
     int32_t m_nChildren;
     void dispatchMouseEvents(LayerizeContext &layerContext);
@@ -654,9 +650,14 @@ private:
 
     void recursiveScale(double x, double y, double oldX, double oldY);
 
+
+    bool m_Overflow;
+    bool m_ScrollableX = false;
+    bool m_ScrollableY = false;
     bool m_Loaded;
     int m_Cursor;
     bool m_NeedPaint = true;
+
 
     /* Reference to the Yoga node */
     YGNodeRef m_YogaRef;

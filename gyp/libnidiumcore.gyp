@@ -95,9 +95,9 @@
                 },
             },
             'conditions': [
-                ['OS=="win"', {
+                ['target=="win"', {
                     'ldflags': [
-                        '-OPT:REF'
+                        '-OPT:REF' # XXX : Should we use NOREF instead ? 
                     ],
                     "link_settings": {
                         'libraries': [
@@ -119,7 +119,6 @@
                             'http_parser.lib',
                             'libleveldb.a',
 
-
                             'libnspr4.lib',
                             'libplds4.lib',
                             'libplc4.lib',
@@ -132,7 +131,7 @@
                        ]
                     }
                 }],
-                ['OS=="mac"', {
+                ['target_os=="mac"', {
                     "link_settings": {
                         'libraries': [
                             'libhttp_parser.a',
@@ -143,7 +142,7 @@
                         ]
                     }
                 }],
-                ['OS=="linux"', {
+                ['target_os=="linux" or target_os=="android"', {
                     'ldflags': [
                         '-Wl,--gc-sections',
                     ],
@@ -170,7 +169,7 @@
             'libnidiumcore.gyp:libnidiumcore-includes',
         ],
         'conditions': [
-            ['OS=="win"', {
+            ['target_os=="win"', {
                 'sources': [
                     '../src/Port/MSWindows.cpp'
                 ],
@@ -178,17 +177,17 @@
                     'DSO_EXTENSION=".lib"'
                 ],
             }],
-            ['OS!="win"', {
+            ['target_os!="win"', {
                 'sources': [
                     '../src/Port/Posix.cpp'
                 ],
             }],
-            ['OS=="mac"', {
+            ['target_os=="mac"', {
                 'defines': [
                     'DSO_EXTENSION=".dylib"'
                 ],
             }],
-            ['OS=="linux"', {
+            ['target_os=="linux" or target_os=="android"', {
                 'defines': [
                     'DSO_EXTENSION=".so"'
                 ]

@@ -160,9 +160,9 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
     JSAutoRequest ar(m_Cx);
 
     Context *nctx  = Context::GetObject<Frontend::Context>(m_Cx);
-    InputEvent *ev = new InputEvent(InputEvent::kMouseWheel_Type, x, y);
-    ev->setData(0, xrel);
-    ev->setData(1, yrel);
+    InputEvent ev(InputEvent::kMouseWheel_Type, x, y);
+    ev.setData(0, xrel);
+    ev.setData(1, yrel);
 
     nctx->getInputHandler()->pushEvent(ev);
 
@@ -245,12 +245,33 @@ void JSWindow::keyupdown(
 #undef EVENT_PROP
 }
 
-void JSWindow::textInput(const char *data)
-{
 #define EVENT_PROP(name, val)                 \
     JS_DefineProperty(m_Cx, event, name, val, \
                       JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+void JSWindow::textEdit(const char *data)
+{
+    JSAutoRequest ar(m_Cx);
 
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &TextEvent_class));
+    JS::RootedString str(
+        m_Cx, JSUtils::NewStringWithEncoding(m_Cx, data, strlen(data), "utf8"));
+    EVENT_PROP("val", str);
+
+    JS::AutoValueArray<1> jevent(m_Cx);
+    jevent[0].setObjectOrNull(event);
+
+    JS::RootedValue ontextedit(m_Cx);
+    JS::RootedObject obj(m_Cx, m_Instance);
+    if (JS_GetProperty(m_Cx, obj, "_ontextedit", &ontextedit)
+        && ontextedit.isObject()
+        && JS::IsCallable(&ontextedit.toObject())) {
+        JS::RootedValue rval(m_Cx);
+        JS_CallFunctionValue(m_Cx, event, ontextedit, jevent, &rval);
+    }
+}
+
+void JSWindow::textInput(const char *data)
+{
     JSAutoRequest ar(m_Cx);
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &TextEvent_class));
@@ -269,8 +290,8 @@ void JSWindow::textInput(const char *data)
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, event, ontextinput, jevent, &rval);
     }
-#undef EVENT_PROP
 }
+#undef EVENT_PROP
 
 void JSWindow::systemMenuClicked(const char *id)
 {
@@ -284,6 +305,27 @@ void JSWindow::systemMenuClicked(const char *id)
     JSOBJ_CALLFUNCNAME(obj, "_onsystemtrayclick", ev);
 }
 
+bool JSWindow::onHardwareKey(InputEvent::Type evType)
+{
+    JS::RootedObject evObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+    JS::RootedValue evValue(m_Cx);
+
+    evValue.setObjectOrNull(evObj);
+
+    const char *evName = InputEvent::GetName(evType);
+
+    this->fireJSEvent(evName, &evValue);
+
+    JS::RootedValue defaultPrevented(m_Cx);
+    if (JS_GetProperty(m_Cx, evObj, "defaultPrevented", &defaultPrevented)) {
+        if (defaultPrevented.isBoolean() && defaultPrevented.toBoolean()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
 {
 #define EVENT_PROP(name, val)                 \
@@ -295,11 +337,11 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class));
 
     Context *nctx  = Context::GetObject<Frontend::Context>(m_Cx);
-    InputEvent *ev = new InputEvent(state ? InputEvent::kMouseClick_Type
-                                          : InputEvent::kMouseClickRelease_Type,
-                                    x, y);
+    InputEvent ev(state ? InputEvent::kMouseClick_Type
+                        : InputEvent::kMouseClickRelease_Type,
+                  x, y);
 
-    ev->setData(0, button);
+    ev.setData(0, button);
 
     nctx->getInputHandler()->pushEvent(ev);
 
@@ -309,10 +351,9 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
         Only trigger for even number on release.
     */
     if (clicks % 2 == 0 && !state) {
-        InputEvent *dcEv
-            = new InputEvent(InputEvent::kMouseDoubleClick_Type, x, y);
+        InputEvent dcEv(InputEvent::kMouseDoubleClick_Type, x, y);
 
-        dcEv->setData(0, button);
+        dcEv.setData(0, button);
         nctx->getInputHandler()->pushEvent(dcEv);
     }
     JS::RootedValue xv(m_Cx, JS::Int32Value(x));
@@ -467,10 +508,10 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
     rootHandler->m_MousePosition.yrel += yrel;
     rootHandler->m_MousePosition.consumed = false;
 
-    InputEvent *ev = new InputEvent(InputEvent::kMouseMove_Type, x, y);
+    InputEvent ev(InputEvent::kMouseMove_Type, x, y);
 
-    ev->setData(0, xrel);
-    ev->setData(1, yrel);
+    ev.setData(0, xrel);
+    ev.setData(1, yrel);
 
     nctx->getInputHandler()->pushEvent(ev);
 
@@ -717,6 +758,20 @@ bool JSWindow::JS_exec(JSContext *cx, JS::CallArgs &args)
 
     JS::RootedString retStr(cx, JS_NewStringCopyZ(cx, ret));
     args.rval().setString(retStr);
+
+    return true;
+}
+
+bool JSWindow::JS_alert(JSContext *cx, JS::CallArgs &args)
+{
+
+    JS::RootedString msg(cx);
+    if (!JS_ConvertArguments(cx, args, "S", msg.address())) {
+        return false;
+    }
+
+    JSAutoByteString cmsg(cx, msg);
+    SystemInterface::GetInstance()->alert(cmsg.ptr());
 
     return true;
 }
@@ -1135,6 +1190,7 @@ JSFunctionSpec *JSWindow::ListMethods()
         CLASSMAPPER_FN(JSWindow, setSystemTray, 1),
         CLASSMAPPER_FN(JSWindow, openURL, 1),
         CLASSMAPPER_FN(JSWindow, exec, 1),
+        CLASSMAPPER_FN(JSWindow, alert, 1),
         JS_FS_END
     };
 

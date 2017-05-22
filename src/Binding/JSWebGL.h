@@ -7,10 +7,6 @@
 #define binding_jswebgl_h__
 
 #include "Binding/ClassMapper.h"
-
-typedef unsigned int GLenum;
-typedef unsigned int GLuint;
-
 #include "Graphics/GLHeader.h"
 #if __APPLE__
 #include <OpenGL/gl3ext.h>

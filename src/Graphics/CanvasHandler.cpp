@@ -12,11 +12,14 @@
 
 #include <js/GCAPI.h>
 
+#include "Interface/SystemInterface.h"
 #include "Binding/JSCanvas2DContext.h"
 
 using Nidium::Core::Args;
 using Nidium::Frontend::Context;
 using Nidium::Frontend::InputEvent;
+using Nidium::Frontend::InputTouch;
+using Nidium::Frontend::InputHandler;
 using Nidium::Graphics::CanvasHandler;
 using Nidium::Binding::Canvas2DContext;
 using Nidium::Interface::UIInterface;
@@ -42,12 +45,12 @@ CanvasHandler::CanvasHandler(float width,
 
     if (!isnan(width)) {
         p_Width = nidium_max(width, 0);
-        p_Width.setAlternativeValue(p_Width);
+        p_Width.setCachedValue(p_Width);
     }
 
     if (!isnan(height)) {
         p_Height = nidium_max(height, 0);
-        p_Height.setAlternativeValue(p_Height);
+        p_Height.setCachedValue(p_Height);
     }
 
     m_YogaRef = YGNodeNewWithConfig(nctx->m_YogaConfig);
@@ -70,13 +73,9 @@ CanvasHandler::CanvasHandler(float width,
     YGNodeStyleSetMinWidth(m_YogaRef, p_MinWidth);
     YGNodeStyleSetMinHeight(m_YogaRef, p_MinHeight);
 
-    memset(&m_Margin, 0, sizeof(m_Margin));
-    memset(&m_Padding, 0, sizeof(m_Padding));
     memset(&m_MousePosition, 0, sizeof(m_MousePosition));
 
     m_MousePosition.consumed = true;
-    //p_Flex = true;
-
     m_Content.width  = p_Width;
     m_Content.height = p_Height;
 
@@ -85,8 +84,6 @@ CanvasHandler::CanvasHandler(float width,
 
     m_Content.scrollLeft = 0;
     m_Content.scrollTop  = 0;
-
-    p_Flex = true;
 }
 
 void CanvasHandler::computeLayoutPositions()
@@ -133,77 +130,100 @@ void CanvasHandler::setId(const char *str)
 
 void CanvasHandler::setPropMinWidth(float width)
 {
-    if (width < 1) width = 1;
+    p_MinWidth.set(width);
 
-    p_MinWidth = p_MaxWidth ? nidium_min(width, p_MaxWidth) : width;
+    if (p_MinWidth.isPercentageValue()) {
+        YGNodeStyleSetMinWidthPercent(m_YogaRef, p_MinWidth);
+
+        return;
+    }
 
     YGNodeStyleSetMinWidth(m_YogaRef, p_MinWidth);
 }
 
 void CanvasHandler::setPropMinHeight(float height)
 {
-    if (height < 1) height = 1;
+    p_MinHeight.set(height);
 
-    p_MinHeight = p_MaxHeight ? nidium_min(height, p_MaxHeight) : height;
+    if (p_MinHeight.isPercentageValue()) {
+        YGNodeStyleSetMinHeightPercent(m_YogaRef, p_MinHeight);
+
+        return;
+    }
 
     YGNodeStyleSetMinHeight(m_YogaRef, p_MinHeight);
 }
 
 void CanvasHandler::setPropMaxWidth(float width)
 {
-    if (width < 1) width = 1;
+    p_MaxWidth.set(width);
 
-    p_MaxWidth = nidium_max(p_MinWidth, width);
+    if (p_MaxWidth.isPercentageValue()) {
+        YGNodeStyleSetMaxWidthPercent(m_YogaRef, p_MaxWidth);
+
+        return;
+    }
 
     YGNodeStyleSetMaxWidth(m_YogaRef, p_MaxWidth);
 }
 
 void CanvasHandler::setPropMaxHeight(float height)
 {
-    if (height < 1) height = 1;
+    p_MaxHeight.set(height);
 
-    p_MaxHeight = nidium_max(p_MinHeight, height);
+    if (p_MaxHeight.isPercentageValue()) {
+        YGNodeStyleSetMaxHeightPercent(m_YogaRef, p_MaxHeight);
+
+        return;
+    }
 
     YGNodeStyleSetMaxHeight(m_YogaRef, p_MaxHeight);
 }
 
-bool CanvasHandler::setWidth(float width, bool force)
+void CanvasHandler::setPropWidth(float width)
 {
-    if (p_Width == width) {
-        return true;
+    if (p_Width.get() == width) {
+        return;
     }
 
-    p_Width = width;
+    p_Width.set(width);
 
-    YGNodeStyleSetWidth(m_YogaRef, width >= 0 && !isnan(width) ? width : YGUndefined);
+    if (isnan(width)) {
+        YGNodeStyleSetWidthAuto(m_YogaRef);
+        return;
+    }
 
-    return true;
+    if (p_Width.isPercentageValue()) {
+        YGNodeStyleSetWidthPercent(m_YogaRef, width >= 0 && !isnan(width) ? width : YGUndefined);
+    } else {
+        YGNodeStyleSetWidth(m_YogaRef, width >= 0 && !isnan(width) ? width : YGUndefined);
+    }
 }
 
-bool CanvasHandler::setHeight(float height, bool force)
+void CanvasHandler::setPropHeight(float height)
 {
-    if (p_Height == height) {
-        return true;
+    if (p_Height.get() == height) {
+        return;
     }
 
-    p_Height = height;
+    p_Height.set(height);
 
-    YGNodeStyleSetHeight(m_YogaRef, height >= 0 && !isnan(height) ? height : YGUndefined);
+    if (isnan(height)) {
+        YGNodeStyleSetHeightAuto(m_YogaRef);
+        return;
+    }
 
-    return true;
+    if (p_Height.isPercentageValue()) {
+        YGNodeStyleSetHeightPercent(m_YogaRef, height >= 0 && !isnan(height) ? height : YGUndefined);
+    } else {
+        YGNodeStyleSetHeight(m_YogaRef, height >= 0 && !isnan(height) ? height : YGUndefined);
+    }
 }
 
 void CanvasHandler::setSize(float width, float height, bool redraw)
 {
-    if (p_Height == height && p_Width == width) {
-        return;
-    }
-
-    p_Width  = width;
-    p_Height = height;
-
-    YGNodeStyleSetWidth(m_YogaRef, width >= 0  && !isnan(width) ? width : YGUndefined);
-    YGNodeStyleSetHeight(m_YogaRef, height >= 0 && !isnan(height) ? height : YGUndefined);
+    setPropWidth(width);
+    setPropHeight(height);
 }
 
 void CanvasHandler::deviceSetSize(float width, float height)
@@ -238,6 +258,8 @@ void CanvasHandler::setPropCoating(float coating)
                            p_Height + (p_Coating * 2));
 
         m_Context->translate(p_Coating, p_Coating);
+
+        this->invalidate();
     }
 }
 
@@ -290,10 +312,10 @@ void CanvasHandler::insertBefore(CanvasHandler *insert, CanvasHandler *ref)
 
     if (ref->m_Prev) {
         ref->m_Prev->m_Next = insert;
-        ref->m_Prev         = insert;
     } else {
         m_Children = insert;
     }
+    ref->m_Prev = insert;
 
     YGNodeInsertChild(m_YogaRef, insert->m_YogaRef, m_nChildren);
 
@@ -363,8 +385,9 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
         return;
     }
 
-    if (!willBeAdopted && m_NidiumContext->getCurrentClickedHandler() == this) {
-        m_NidiumContext->setCurrentClickedHandler(NULL);
+    InputHandler *inputHandler = m_NidiumContext->getInputHandler();
+    if (!willBeAdopted && inputHandler->getCurrentClickedHandler() == this) {
+        inputHandler->setCurrentClickedHandler(nullptr);
     }
 
 #if 0
@@ -411,17 +434,17 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
         return;
     }
 
-    InputEvent *ev = m_NidiumContext->getInputHandler()->getEvents();
+    std::vector<InputEvent> *eventList = m_NidiumContext->getInputHandler()->getEvents();
 
-    if (ev == NULL) {
+    if (eventList->size() == 0) {
         return;
     }
 
     Rect actualRect;
-    actualRect.m_fLeft   = p_Left.getAlternativeValue() - p_Coating;
-    actualRect.m_fTop    = p_Top.getAlternativeValue() - p_Coating;
-    actualRect.m_fRight  = p_Width.getAlternativeValue() + p_Left.getAlternativeValue();
-    actualRect.m_fBottom = p_Height.getAlternativeValue() + p_Top.getAlternativeValue();
+    actualRect.m_fLeft   = p_Left.getCachedValue();
+    actualRect.m_fTop    = p_Top.getCachedValue();
+    actualRect.m_fRight  = p_Width.getCachedValue() + actualRect.m_fLeft;
+    actualRect.m_fBottom = p_Height.getCachedValue() + actualRect.m_fTop;
 
     if (layerContext.m_Clip) {
 
@@ -442,13 +465,13 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
     /*
         Loop through all new events
     */
-    for (; ev != NULL; ev = ev->m_Next) {
+    for (auto &ev : *eventList) {
         /* This event is happening in a zone inside |this| canvas  */
-        if (ev->isInRect(actualRect)) {
+        if (ev.isInRect(actualRect)) {
             /*
                 Increment depth (Nth canvas affected by this event)
             */
-            ev->inc();
+            ev.inc();
 
             if (!evlist) {
                 evlist = ape_new_pool_list(0, 4);
@@ -458,7 +481,7 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
                Dupplicate the event and set |this|
                as the handler of the new event 
             */
-            InputEvent *dup = ev->dupWithHandler(this);
+            InputEvent *dup = ev.dupWithHandler(this);
 
             ape_pool_push(evlist, dup);
         }
@@ -502,18 +525,18 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 
         This will trigger an onResize event on the element
     */
-    if (nwidth != p_Width.getAlternativeValue()
-        || nheight != p_Height.getAlternativeValue()) {
+    if (nwidth != p_Width.getCachedValue()
+        || nheight != p_Height.getCachedValue()) {
 
-        p_Width.setAlternativeValue(nwidth);
-        p_Height.setAlternativeValue(nheight);
+        p_Width.setCachedValue(nwidth);
+        p_Height.setCachedValue(nheight);
 
 
         deviceSetSize(nwidth, nheight);
     }
     
-    int maxChildrenWidth  = p_Width.getAlternativeValue(),
-        maxChildrenHeight = p_Height.getAlternativeValue();
+    int maxChildrenWidth  = p_Width.getCachedValue(),
+        maxChildrenHeight = p_Height.getCachedValue();
             
 
     /*
@@ -532,14 +555,14 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         /*
             Set the absolute position
         */
-        p_Left.setAlternativeValue(cleft + tmpLeft);
-        p_Top.setAlternativeValue(ctop + tmpTop);
+        p_Left.setCachedValue(cleft + tmpLeft);
+        p_Top.setCachedValue(ctop + tmpTop);
 
         /*
             draw current context on top of the root layer
         */
         willDraw = (!layerContext.m_Clip || m_CoordPosition == COORD_ABSOLUTE
-               || (layerContext.m_Clip->checkIntersect(
+               	    || (layerContext.m_Clip->checkIntersect(
                       p_Left.getAlternativeValue() - p_Coating, p_Top.getAlternativeValue() - p_Coating,
                       p_Left.getAlternativeValue() + p_Coating + YGNodeLayoutGetWidth(m_YogaRef),
                       p_Top.getAlternativeValue() + p_Coating + YGNodeLayoutGetHeight(m_YogaRef))));
@@ -553,8 +576,8 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 
             ComposeContext compctx = {
                 /* .handler  = */ this,
-                /* .left     = */ p_Left.getAlternativeValue() - p_Coating,
-                /* .top      = */ p_Top.getAlternativeValue() - p_Coating,
+                /* .left     = */ p_Left.getCachedValue() - p_Coating,
+                /* .top      = */ p_Top.getCachedValue() - p_Coating,
                 /* .opacity  = */ popacity,
                 /* .zoom     = */ m_Zoom,
                 /* .needClip = */ (m_CoordPosition != COORD_ABSOLUTE && layerContext.m_Clip),
@@ -586,19 +609,19 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
     if (!m_Overflow) {
         if (layerContext.m_Clip == NULL) {
             layerContext.m_Clip            = &nclip;
-            layerContext.m_Clip->m_fLeft   = p_Left.getAlternativeValue();
-            layerContext.m_Clip->m_fTop    = p_Top.getAlternativeValue();
-            layerContext.m_Clip->m_fRight  = getComputedWidth() + p_Left.getAlternativeValue();
-            layerContext.m_Clip->m_fBottom = getComputedHeight() + p_Top.getAlternativeValue();
+            layerContext.m_Clip->m_fLeft   = p_Left.getCachedValue();
+            layerContext.m_Clip->m_fTop    = p_Top.getCachedValue();
+            layerContext.m_Clip->m_fRight  = getComputedWidth() + p_Left.getCachedValue();
+            layerContext.m_Clip->m_fBottom = getComputedHeight() + p_Top.getCachedValue();
             /*
                 if clip is not null, reduce it to intersect the current rect.
                 /!\ clip->intersect changes "clip"
             */
         } else if (!layerContext.m_Clip->intersect(
-                       p_Left.getAlternativeValue(),
-                       p_Top.getAlternativeValue(),
-                       p_Width.getAlternativeValue() + p_Left.getAlternativeValue(),
-                       p_Height.getAlternativeValue() + p_Top.getAlternativeValue())) {
+                       p_Left.getCachedValue(),
+                       p_Top.getCachedValue(),
+                       p_Width.getCachedValue() + p_Left.getCachedValue(),
+                       p_Height.getCachedValue() + p_Top.getCachedValue())) {
 
             /* don't need to draw children (out of bounds) */
             return;
@@ -720,8 +743,8 @@ bool CanvasHandler::isDisplayed() const
 void CanvasHandler::computeAbsolutePosition()
 {
     if (m_CoordPosition == COORD_ABSOLUTE) {
-        p_Top.setAlternativeValue(this->getPropTop());
-        p_Left.setAlternativeValue(this->getPropLeft());
+        p_Top.setCachedValue(this->getPropTop());
+        p_Left.setCachedValue(this->getPropLeft());
         return;
     }
 
@@ -741,8 +764,8 @@ void CanvasHandler::computeAbsolutePosition()
         cparent = cparent->getParent();
     }
 
-    p_Top.setAlternativeValue(ctop);
-    p_Left.setAlternativeValue(cleft);
+    p_Top.setCachedValue(ctop);
+    p_Left.setCachedValue(cleft);
 }
 
 bool CanvasHandler::isOutOfBound()
@@ -837,6 +860,29 @@ int CanvasHandler::getCursor()
 
     /* Inherit from parent when default */
     return m_Parent ? m_Parent->getCursor() : UIInterface::ARROW;
+}
+
+void CanvasHandler::scroll(int relX, int relY)
+{
+    if (m_ScrollableY) {
+        int max  = this->getContentHeight() - this->getComputedHeight();
+        int pos = m_Content.scrollTop + relY;
+        if (!m_AllowNegativeScroll) {
+            pos = nidium_clamp(pos, 0, max);
+        }
+
+        this->setScrollTop(pos);
+    }
+
+    if (m_ScrollableX) {
+        int max  = this->getContentWidth() - this->getComputedWidth();
+        int pos = m_Content.scrollLeft + relX;
+        if (!m_AllowNegativeScroll) {
+            pos = nidium_clamp(pos, 0, max);
+        }
+
+        this->setScrollLeft(pos);
+    }
 }
 // }}}
 
@@ -983,8 +1029,8 @@ void CanvasHandler::onDrag(InputEvent *ev, CanvasHandler *target, bool end)
     arg[2].set(ev->m_y);
     arg[3].set(ev->m_data[0]);
     arg[4].set(ev->m_data[1]);
-    arg[5].set(ev->m_x - p_Left.getAlternativeValue()); // layerX
-    arg[6].set(ev->m_y - p_Top.getAlternativeValue());  // layerY
+    arg[5].set(ev->m_x - p_Left.getCachedValue()); // layerX
+    arg[6].set(ev->m_y - p_Top.getCachedValue());  // layerY
     arg[7].set(target);            // target
 
     if (!end && (m_Flags & kDrag_Flag) == 0) {
@@ -1009,49 +1055,122 @@ void CanvasHandler::onDrop(InputEvent *ev, CanvasHandler *drop)
     arg[2].set(ev->m_y);
     arg[3].set((int64_t)0);
     arg[4].set((int64_t)0);
-    arg[5].set(ev->m_x - p_Left.getAlternativeValue()); // layerX
-    arg[6].set(ev->m_y - p_Top.getAlternativeValue());  // layerY
+    arg[5].set(ev->m_x - p_Left.getCachedValue()); // layerX
+    arg[6].set(ev->m_y - p_Top.getCachedValue());  // layerY
     arg[7].set(drop);
 
     this->fireEvent<CanvasHandler>(CanvasHandler::kEvents_Mouse, arg);
 }
 
-void CanvasHandler::onMouseEvent(InputEvent *ev)
+void CanvasHandler::checkDrop(InputEvent *ev,
+                              Graphics::CanvasHandler *drag)
 {
+    if (!drag || !(drag->m_Flags & kDrag_Flag)) return;
+
     CanvasHandler *underneath = this;
     if (CanvasHandler *tmp = ev->getUnderneathCanvas()) {
         underneath = tmp;
     }
 
+    CanvasHandler *target = (drag == this) ? underneath : this;
+
+    drag->onDrag(ev, target, true);
+    target->onDrop(ev, drag);
+
+    drag->m_Flags &= ~kDrag_Flag;
+}
+
+void CanvasHandler::checkDrag(InputEvent *ev,
+                              Graphics::CanvasHandler *drag)
+{
+    if (!drag) return;
+
+    CanvasHandler *underneath = this;
+    if (CanvasHandler *tmp = ev->getUnderneathCanvas()) {
+        underneath = tmp;
+    }
+
+    drag->onDrag(ev, (this == drag) ? underneath : this);
+}
+
+void CanvasHandler::onInputEvent(InputEvent *ev)
+{
+    InputHandler *inputHandler = m_NidiumContext->getInputHandler();
+
     switch (ev->getType()) {
+        case InputEvent::kTouchScroll_type: {
+            int consumed = ev->m_Origin->m_data[5];
+
+            if (consumed) {
+                InputEvent::ScrollState state
+                    = static_cast<InputEvent::ScrollState>(ev->m_data[4]);
+
+                if (state == InputEvent::kScrollState_end) {
+                    inputHandler->setCurrentScrollHandler(nullptr);
+                }
+                return;
+            }
+
+            Graphics::CanvasHandler *scrollHandler
+                = inputHandler->getCurrentScrollHandler();
+
+            if (!scrollHandler) {
+                return;
+            }
+
+            Args args;
+            args[0].set(ev->getType());
+            args[1].set(ev->m_x);
+            args[2].set(ev->m_y);
+            args[3].set(ev->m_data[0]); // scrollX
+            args[4].set(ev->m_data[1]); // scrollY
+            args[5].set(ev->m_data[2]); // velocityX
+            args[6].set(ev->m_data[3]); // velocityY
+            args[7].set(ev->m_data[4]); // state
+
+            // Mark the event as consumed
+            ev->m_Origin->m_data[5] = 1;
+
+            scrollHandler->fireEvent<CanvasHandler>(CanvasHandler::SCROLL_EVENT, args);
+            scrollHandler->scroll(ev->m_data[0], ev->m_data[1]);
+        } break;
+        case InputEvent::kTouchStart_Type:
+            inputHandler->setCurrentTouchedHandler(ev->getTouch()->getIdentifier(), this);
+            break;
+        case InputEvent::kTouchMove_Type:
+            /*
+                If the touchmove event is received on an handler outside of the
+                origin handlers fire the touchmove event of the original handler.
+            */
+            if (!ev->getTouch()->hasOrigin(this)) {
+                Args arg;
+                this->onTouch(ev, arg, nullptr);
+                ev->getTouch()->getTarget()->fireEvent<CanvasHandler>(CanvasHandler::TOUCH_EVENT, arg);
+            }
+
+            this->checkDrag(ev, inputHandler->getCurrentTouchHandler(ev->getTouch()->getIdentifier()));
+            break;
+        case InputEvent::kTouchEnd_Type: {
+            unsigned int id = ev->getTouch()->getIdentifier();
+
+            this->checkDrop(ev, inputHandler->getCurrentTouchHandler(id));
+            inputHandler->setCurrentTouchedHandler(id, nullptr);
+        } break;
+
         case InputEvent::kMouseClick_Type:
-            if (ev->m_data[0] == 1) // left click
-                m_NidiumContext->setCurrentClickedHandler(this);
+            if (ev->m_data[0] == 1) { // left click
+                inputHandler->setCurrentClickedHandler(this);
+            }
             break;
         case InputEvent::kMouseClickRelease_Type:
             if (ev->m_data[0] == 1) {
-                CanvasHandler *drag;
-                if ((drag = m_NidiumContext->getCurrentClickedHandler())
-                    && (drag->m_Flags & kDrag_Flag)) {
-
-                    CanvasHandler *target = (drag == this) ? underneath : this;
-
-                    drag->onDrag(ev, target, true);
-                    target->onDrop(ev, drag);
-
-                    drag->m_Flags &= ~kDrag_Flag;
-                }
-                m_NidiumContext->setCurrentClickedHandler(NULL);
+                this->checkDrop(ev, inputHandler->getCurrentClickedHandler());
+                inputHandler->setCurrentClickedHandler(nullptr);
             }
             break;
-        case InputEvent::kMouseMove_Type: {
-            CanvasHandler *drag;
-            if ((drag = m_NidiumContext->getCurrentClickedHandler())) {
-
-                drag->onDrag(ev, (this == drag) ? underneath : this);
-            }
+        case InputEvent::kMouseMove_Type:
+            this->checkDrag(ev, inputHandler->getCurrentClickedHandler());
             break;
-        }
         default:
             break;
     }
@@ -1060,34 +1179,140 @@ void CanvasHandler::onMouseEvent(InputEvent *ev)
         (UIInterface::CURSOR_TYPE) this->getCursor());
 }
 
+void CanvasHandler::onTouch(InputEvent *ev, Args &args, CanvasHandler *handler)
+{
+    InputHandler *inputHandler = m_NidiumContext->getInputHandler();
+    std::shared_ptr<InputTouch> touch = ev->getTouch();
+
+    if (ev->getType() == InputEvent::kTouchStart_Type) {
+        if (inputHandler->getCurrentScrollHandler() == handler) {
+            Interface::SystemInterface::GetInstance()->stopScrolling();
+            inputHandler->setCurrentScrollHandler(nullptr);
+        }
+
+        if (!inputHandler->getTouch(ev->getTouch()->getTouchID())) {
+            inputHandler->addTouch(ev->getTouch());
+        }
+
+        touch->addOrigin(handler);
+    } else if (ev->getType() == InputEvent::kTouchEnd_Type) {
+        inputHandler->rmTouch(touch->getIdentifier());
+    }
+
+    inputHandler->addChangedTouch(touch);
+
+    args[0].set(ev->getType());
+    args[1].set(touch.get());
+
+    /*
+        Update touch coordinates when they are processed
+    */
+    touch->x    = ev->m_x;
+    touch->y    = ev->m_y;
+}
+
 /*
     Called by Context whenever there are pending events on this canvas
-    Currently only handle mouse events.
+    Currently only handle mouse, touch & scroll events.
 */
 bool CanvasHandler::_handleEvent(InputEvent *ev)
 {
+    Events canvasEvent = MOUSE_EVENT;
+
+    InputHandler *inputHandler = m_NidiumContext->getInputHandler();
+
     for (CanvasHandler *handler = this; handler != NULL;
          handler = handler->getParent()) {
 
         Args arg;
 
-        arg[0].set(ev->getType());
-        arg[1].set(ev->m_x);
-        arg[2].set(ev->m_y);
-        arg[3].set(ev->m_data[0]);     // xrel
-        arg[4].set(ev->m_data[1]);     // yrel
-        arg[5].set(ev->m_x - p_Left.getAlternativeValue()); // layerX
-        arg[6].set(ev->m_y - p_Top.getAlternativeValue());  // layerY
-        arg[7].set(this);              // target
+        switch (ev->getType()) {
+            case InputEvent::kMouseMove_Type:
+            case InputEvent::kMouseClick_Type:
+            case InputEvent::kMouseClickRelease_Type:
+            case InputEvent::kMouseDoubleClick_Type:
+            case InputEvent::kMouseDragStart_Type:
+            case InputEvent::kMouseDragEnd_Type:
+            case InputEvent::kMouseDragOver_Type:
+            case InputEvent::kMouseDrop_Type:
+            case InputEvent::kMouseDrag_Type:
+                arg[0].set(ev->getType());
+                arg[1].set(ev->m_x);
+                arg[2].set(ev->m_y);
+                arg[3].set(ev->m_data[0]);     // xrel
+                arg[4].set(ev->m_data[1]);     // yrel
+                arg[5].set(ev->m_x - p_Left.getCachedValue()); // layerX
+                arg[6].set(ev->m_y - p_Top.getCachedValue());  // layerY
+                arg[7].set(this);              // target
 
-        /* fireEvent returns false if a stopPropagation is detected */
-        if (!handler->fireEvent<CanvasHandler>(CanvasHandler::kEvents_Mouse,
-                                               arg)) {
+                if (ev->getType() == InputEvent::kMouseClick_Type
+                        && ev->m_data[0] == 1
+                        && inputHandler->getCurrentScrollHandler() == handler) {
+                    Interface::SystemInterface::GetInstance()->stopScrolling();
+                    inputHandler->setCurrentScrollHandler(nullptr);
+                }
+                break;
+            case InputEvent::kScroll_type: {
+            case InputEvent::kTouchScroll_type:
+                if (!handler->isScrollable() || ev->m_Origin->m_data[5] /* consumed */) {
+                    continue;
+                }
+
+                canvasEvent = SCROLL_EVENT;
+
+                arg[0].set(ev->getType());
+                arg[1].set(ev->m_x);
+                arg[2].set(ev->m_y);
+
+                /*
+                    Set a flag on the original event to mark it as consumed
+                */
+                ev->m_Origin->m_data[5] = 1;
+
+                arg[3].set(ev->m_data[0]); // scrollX
+                arg[4].set(ev->m_data[1]); // scrollY
+                arg[5].set(ev->m_data[2]); // velocityX
+                arg[6].set(ev->m_data[3]); // velocityY
+                arg[7].set(ev->m_data[4]); // state
+
+                inputHandler->setCurrentScrollHandler(handler);
+            } break;
+            case InputEvent::kTouchStart_Type:
+            case InputEvent::kTouchEnd_Type:
+            case InputEvent::kTouchMove_Type: {
+                /*
+                    If the handler isn't one of the handlers that
+                    received the touchstart event ignore it.
+                 */
+                if (ev->getType() != InputEvent::kTouchStart_Type &&
+                        !ev->getTouch()->hasOrigin(handler)) {
+                    continue;
+                }
+
+                canvasEvent = TOUCH_EVENT;
+
+                this->onTouch(ev, arg, handler);
+            } break;
+        }
+
+        EventState evState;
+        handler->fireEventSync<CanvasHandler>(canvasEvent, arg, &evState);
+
+        if (canvasEvent == SCROLL_EVENT) {
+            if (!evState.defaultPrevented) {
+                handler->scroll(ev->m_data[0], ev->m_data[1]);
+            }
+            // Scroll event does not bubble
+            break;
+        }
+
+        if (evState.stopped) {
+            // stopPropagation() has been called on the event
             break;
         }
     }
 
-    this->onMouseEvent(ev);
+    this->onInputEvent(ev);
 
     return true;
 }

@@ -8,8 +8,10 @@
         'nidium_version': '0.2',
         'nidium_webgl%': 1,
         'nidium_audio%': 1,
+        'nidium_opengles2%': 0,
         'nidium_ui_console%': 1,
         'nidium_package_embed%': 0,
+        'nidium_android_bundle%': 0,
         'nidium_gl_debug%': 0,
         'nidium_embed_dir': '../src/Embed/',
         'nidium_embed_bin_header': '../src/nidium_embed_bin.h',
@@ -28,7 +30,7 @@
 
         'nidium_output': '../build/',
 
-        # Hack to workaround two gyp issues : 
+        # Hack to workaround two gyp issues :
         # - Variables defined in command line are not relativized (at all)
         #   https://code.google.com/p/gyp/issues/detail?id=72
         # - Variables defined in the top scope, cannot be referenced by another one

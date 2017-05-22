@@ -556,14 +556,16 @@ void UICocoaInterface::setGLContextAttribute()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY); 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+}
 
+void UICocoaInterface::setupWindow()
+{
+#if NIDIUM_ENABLE_HIDPI
     NSWindow *window = NidiumCocoaWindow(m_Win);
 
-#if NIDIUM_ENABLE_HIDPI
     NSView *openglview = [window contentView];
     [openglview setWantsBestResolutionOpenGLSurface:YES];
 #endif
-
 }
 
 void UICocoaInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
