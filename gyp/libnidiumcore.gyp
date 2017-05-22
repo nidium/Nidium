@@ -9,9 +9,7 @@
         'direct_dependent_settings': {
             'include_dirs': [
                 '<(third_party_path)/mozilla-central/js/src/obj/dist/include/',
-                '<(third_party_path)/mozilla-central/js/src/',
-                '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
-                '<(third_party_path)/mozilla-central/nsprpub/pr/include/',
+                '<(third_party_path)/mozilla-central/js/src/obj/dist/nspr-include/',
                 '<(third_party_path)/http-parser/',
                 '<(third_party_path)/leveldb/include/',
                 '<(third_party_path)/jsoncpp/dist',
@@ -80,7 +78,7 @@
                         'WIN32',
                         # This flag or EXPORT_JS_API seems to be needed for getting the correct signature of JS_Init() functions
                         'STATIC_JS_API',
-                    ],
+                    ]
                 }],
             ],
             }
@@ -95,7 +93,7 @@
                 },
             },
             'conditions': [
-                ['target=="win"', {
+                ['target_os=="win"', {
                     'ldflags': [
                         '-OPT:REF' # XXX : Should we use NOREF instead ? 
                     ],
