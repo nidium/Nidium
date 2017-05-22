@@ -18,10 +18,6 @@
     'sources': [
         '<(nidium_interface_path)/UIInterface.cpp',
     ],
-    'msvs_settings': {
-        'VCCLCompilerTool': {
-        }
-    },
     'conditions': [
         ['target_os=="win"', {
             'sources': [
@@ -32,14 +28,11 @@
                 '<(third_party_path)/SDL2/include/',
                 '<(nidium_interface_path)/windows/',
                 '<(third_party_path)/skia/include/gpu',
-                '<(third_party_path)/opengl/api',
+                # On windows, use ANGLE version from Skia
+                '<(third_party_path)/skia/third_party/externals/angle2/include/',
             ],
-            'link_settings': {
-                    'libraries': [
-                ]
-            },
             'defines': [
-                    'NOMINMAX', 
+                'NOMINMAX',
             ],
         }],
         ['target_os=="mac"', {
