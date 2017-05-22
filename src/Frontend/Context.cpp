@@ -698,9 +698,9 @@ bool Context::initShaderLang()
     }
 #endif
 
-    ShInitialize();
+    sh::Initialize();
 
-    ShInitBuiltInResources(&m_ShResources);
+    sh::InitBuiltInResources(&m_ShResources);
 
     m_ShResources.MaxVertexAttribs             = maxVertexAttribs;
     m_ShResources.MaxVertexUniformVectors      = maxVertexUniformVectors;
@@ -852,7 +852,7 @@ Context::~Context()
     ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
     m_InputHandler.clear();
 
-    ShFinalize();
+    sh::Finalize();
 }
 
 } // namespace Frontend
