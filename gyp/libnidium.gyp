@@ -57,6 +57,8 @@
             ['target_os=="win"', {
                 'include_dirs': [
                     '<(third_party_path)/opengl/api/',
+                    # On windows, use ANGLE version from Skia
+                    '<(third_party_path)/skia/third_party/externals/angle2/include/',
                  ],
                 'link_settings': {
                     'libraries': [
