@@ -333,9 +333,9 @@ def SDL2():
         }
 
     if Platform.system == "Windows":
-        build = [Platform.MsBuild("../VisualC/SDL_VS2013.sln")]
+        build = [Platform.MsBuild("../VisualC/SDL.sln")]
         patchs = [os.path.join(ROOT, "patch", "SDL2_windows.patch")]
-        outPath = "../VisualC/SDL/%s/Release/" % ("Win32" if Platform.wordSize == 32 else "x64")
+        outPath = "../VisualC/%s/Release/" % ("Win32" if Platform.wordSize == 32 else "x64")
         outputs = [
             outPath + "SDL2.lib",
             {
@@ -348,7 +348,7 @@ def SDL2():
         "location": location,
         "chdir": "build",
         "build": build,
-        "outputs": [outputs],
+        "outputs": outputs,
         "patchs": patchs
     }
 
