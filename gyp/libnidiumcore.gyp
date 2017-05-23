@@ -115,11 +115,11 @@
                             '-ldelayimp',
 
                             'http_parser.lib',
-                            'libleveldb.a',
+                            'libleveldb.lib',
 
-                            'libnspr4.lib',
-                            'libplds4.lib',
-                            'libplc4.lib',
+                            'nspr4.lib',
+                            'plds4.lib',
+                            'plc4.lib',
 
                             # Temporary workaround some link issues. There must be a better way.
                             'Compression.obj',

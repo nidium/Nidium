@@ -111,6 +111,9 @@ def mozilla():
             configure += " --target=x86_64-pc-mingw32 --host=x86_64-pc-mingw32"
 
         outputs = [
+            "dist/lib/nspr4.lib",
+            "dist/lib/plds4.lib",
+            "dist/lib/plc4.lib",
             "mozglue/build/mozglue.lib", 
             "js/src/js_static.lib",
             "mfbt/Compression.obj",
