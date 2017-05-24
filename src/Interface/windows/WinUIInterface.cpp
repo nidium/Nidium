@@ -28,6 +28,18 @@ UIWinInterface::UIWinInterface()
 {
 }
 
+void UIWinInterface::setGLContextAttribute()
+{
+    UIInterface::setGLContextAttribute();
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_EGL, 1);
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+}
+
 void UIWinInterface::quitApplication()
 {
     this->processWinPendingEvents();
@@ -262,23 +274,7 @@ void UIWinInterface::renderSystemTray()
 void UIWinConsole::log(const char *str)
 {
     if (m_IsOpen) {
-#if 0
-        GtkScrolledWindow *scroll = GTK_SCROLLED_WINDOW(m_Scroll);
-        GtkTextMark *mark         = gtk_text_buffer_get_insert(m_Buffer);
-        GtkTextIter iter;
-
-        // Add the text
-        gtk_text_buffer_get_iter_at_mark(m_Buffer, &iter, mark);
-        gtk_text_buffer_insert(m_Buffer, &iter, str, -1);
-
-        // Scroll the window
-        GtkAdjustment *adjustment = gtk_scrolled_window_get_vadjustment(scroll);
-
-        gtk_adjustment_set_value(adjustment,
-                                 gtk_adjustment_get_upper(adjustment));
-#endif
         m_Interface->processWinPendingEvents();
-
     } else {
         fprintf(stdout, "%s", str);
         fflush(stdout);

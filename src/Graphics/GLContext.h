@@ -9,6 +9,10 @@
 #include <gl/GrGLInterface.h>
 #include <gl/GrGLDefines.h>
 
+#ifdef WIN32
+#include "GrGLAngleInterface.h"
+#endif
+
 #include "Interface/UIInterface.h"
 
 #include "Frontend/Context.h"
@@ -180,7 +184,11 @@ private:
     {
         this->makeCurrent();
 
+#ifdef WIN32
+        m_Interface = GrGLCreateANGLEInterface();
+#else
         m_Interface = GrGLCreateNativeInterface();
+#endif
 
         if (!m_Interface) {
             ndm_log(NDM_LOG_ERROR, "GLContext",
