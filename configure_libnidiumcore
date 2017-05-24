@@ -120,8 +120,15 @@ def mozilla():
             "mfbt/Decimal.obj",
             "intl/icu/target/lib/icuin.lib",
             "intl/icu/target/lib/icuuc.lib",
-            "intl/icu/target/lib/icudt.lib"
+            "intl/icu/target/lib/icudt.lib",
         ]
+
+        # Copy needed DLLs to bin/ directory
+        for dll in ["dist/bin/icudt56.dll", "dist/bin/icuin56.dll", "dist/bin/icuuc56.dll", "dist/bin/nspr4.dll"]:
+            outputs.append({
+                "src": dll,
+                 "dst": os.path.join(ROOT, "bin", os.path.basename(dll))
+            })
     elif Konstruct.config("android"):
         configure += " " + " ".join([
             "--with-android-cxx-stl=libc++",

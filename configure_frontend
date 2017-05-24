@@ -298,7 +298,15 @@ def angle():
             os.path.join(outPath, "angle_common.lib"),
             os.path.join(outPath, "libANGLE.lib"),
             os.path.join(outPath, "libEGL.lib"),
-            os.path.join(outPath, "libGLESv2.lib")
+            os.path.join(outPath, "libGLESv2.lib"),
+            {
+                "src": os.path.join(outPath, "..", "libGLESv2.dll"),
+                "dst": os.path.join(ROOT, "bin", "libGLESv2.dll")
+            },
+            {
+                "src": os.path.join(outPath, "..", "libEGL.dll"),
+                "dst": os.path.join(ROOT, "bin", "libEGL.dll")
+            }
         ]
     else:
         buildSteps.append(fixAngleThinArchive)
