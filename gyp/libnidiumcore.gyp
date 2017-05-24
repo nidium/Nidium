@@ -86,12 +86,6 @@
         'target_name': 'libnidiumcore-link',
         'type': 'none',
         'direct_dependent_settings': {
-            'msvs_settings': {
-                'VCLinkerTool': {
-                    "AdditionalOptions": [
-                    ],
-                },
-            },
             'conditions': [
                 ['target_os=="win"', {
                     'ldflags': [
