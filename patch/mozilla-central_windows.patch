@@ -1,4 +1,5 @@
 # mozbuild/mozbuild/virtualenv.py on windows looks for python.exe but the python script that setup the virtualenv does not add ".exe" to python script
+# Spidermonkey configure script does not correctly detect that log2 is already defined. This fix should no longer be needed after JSAPI45
 --- mozilla-central/python/virtualenv/virtualenv.py 2017-05-22 10:10:25.999381469 +0200
 +++ mozilla-central/python/virtualenv/virtualenv.py	2017-05-22 10:10:39.112715085 +0200
 @@ -1339,6 +1339,8 @@
@@ -10,3 +11,19 @@
          if os.path.exists(secondary_exe):
              logger.warn('Not overwriting existing %s script %s (you must use %s)'
                          % (expected_exe, secondary_exe, py_executable))
+
+--- mozilla-central/js/src/jsmath.cpp	2017-04-05 22:56:41 +0200
++++ mozilla-central/js/src/jsmath.cpp	2017-04-05 22:57:30 +0200
+@@ -1060,12 +1060,14 @@
+     return math_function<math_log10_impl>(cx, argc, vp);
+ }
+ 
+-#if !HAVE_LOG2
++#if !HAVE_LOG2 
++#ifndef _MSC_VER
+ double log2(double x)
+ {
+     return log(x) / M_LN2;
+ }
+ #endif
++#endif

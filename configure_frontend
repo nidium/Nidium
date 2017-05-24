@@ -271,44 +271,65 @@ def fixAngleThinArchive():
 @Deps.register("angle")
 def angle():
     env = Utils.Env()
+    outputs = []
     buildSteps = [
         "python scripts/bootstrap.py",
         "gclient sync",
-        fixAngleThinArchive,
-        "ninja -C out/Release/ preprocessor translator translator_lib angle_common"
     ]
 
-    # Disable some errors for clang 3.5 & 3.7
-    env.append("CXXFLAGS", " -Wno-c++11-narrowing -Wno-sign-compare -Wno-error")
+    env.set("PATH", env.get("PATH") + Utils.Env.SEPARATOR +  os.path.join(Deps.getDir(), "depot_tools"))
 
-    # Angle only build with ninja
-    env.set("GYP_GENERATORS", "ninja")
+    if Platform.system == "Windows":
+        env.set("GYP_GENERATORS", "msvs")
+        env.set("GYP_MSVS_VERSION", "2015")
+        buildSteps.append(Platform.MsBuild("build/ANGLE.sln"))
+        outPath = "build/Release_x64/lib/"
+        outputs = [
+            os.path.join(outPath, "preprocessor.lib"),
+            os.path.join(outPath, "translator.lib"),
+            os.path.join(outPath, "translator_lib.lib"),
+            os.path.join(outPath, "angle_common.lib"),
+            os.path.join(outPath, "libANGLE.lib"),
+            os.path.join(outPath, "libEGL.lib"),
+            os.path.join(outPath, "libGLESv2.lib")
+        ]
+    else:
+        buildSteps.append(fixAngleThinArchive)
+        buildSteps.append("ninja -C out/Release/ preprocessor translator translator_lib angle_common")
 
-    # Angle build script needs python 2.7
-    env.set("PATH", os.path.join(ROOT, "tools") + ":" + env.get("PATH"))
+        # Disable some errors for clang 3.5 & 3.7
+        env.append("CXXFLAGS", " -Wno-c++11-narrowing -Wno-sign-compare -Wno-error")
 
-    if Platform.wordSize == 32:
-        env.append("CXXFLAGS", " -msse -msse2 -msse3")
+        # Angle only build with ninja
+        env.set("GYP_GENERATORS", "ninja")
 
-    if Platform.system == "Darwin":
-        outPath = "out/Release/"
-    elif Platform.system == "Linux":
-        outPath = "out/Release/obj/src/"
+        # Angle build script needs python 2.7
+        env.set("PATH", os.path.join(ROOT, "tools") + ":" + env.get("PATH"))
 
-    if Konstruct.config("android"):
-        env.update(Variables.get("androidEnvClang"))
-        # Regenerate gyp files for android
-        buildSteps.insert(2, "python build/gyp_angle -Dis_android=1")
+        if Platform.wordSize == 32:
+            env.append("CXXFLAGS", " -msse -msse2 -msse3")
 
-    return {
-        "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785"),
-        "build": buildSteps,
-        "outputs": [
+        if Platform.system == "Darwin":
+            outPath = "out/Release/"
+        elif Platform.system == "Linux":
+            outPath = "out/Release/obj/src/"
+
+        if Konstruct.config("android"):
+            env.update(Variables.get("androidEnvClang"))
+            # Regenerate gyp files for android
+            buildSteps.insert(2, "python build/gyp_angle -Dis_android=1")
+
+        outputs = [
             os.path.join(outPath, "libpreprocessor.a"),
             os.path.join(outPath, "libtranslator.a"),
             os.path.join(outPath, "libtranslator_lib.a"),
             os.path.join(outPath, "libangle_common.a")
-        ],
+        ]
+
+    return {
+        "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785"),
+        "build": buildSteps,
+        "outputs": outputs,
         "env": env
     }
 
@@ -621,12 +642,13 @@ def setDependencies():
         "libzip",
         "SDL2",
         "rapidxml",
+        "angle"
         #"breakpad",
     )
 
     if Platform.system != "Windows":
         # linux, OSX, android
-        Deps.append("lss", "angle")
+        Deps.append("lss")
 
     if Gyp.get("nidium_audio") == 1:
         Deps.append(
