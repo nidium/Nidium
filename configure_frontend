@@ -272,6 +272,7 @@ def fixAngleThinArchive():
 def angle():
     env = Utils.Env()
     outputs = []
+    patchs = []
     buildSteps = [
         "python scripts/bootstrap.py",
         "gclient sync",
@@ -282,7 +283,13 @@ def angle():
     if Platform.system == "Windows":
         env.set("GYP_GENERATORS", "msvs")
         env.set("GYP_MSVS_VERSION", "2015")
+
         buildSteps.append(Platform.MsBuild("build/ANGLE.sln"))
+
+        patchs = [
+            os.path.join(CONFIGURE_PATH, "patch", "angle_windows.patch")
+        ]
+
         outPath = "build/Release_x64/lib/"
         outputs = [
             os.path.join(outPath, "preprocessor.lib"),
@@ -330,7 +337,8 @@ def angle():
         "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785"),
         "build": buildSteps,
         "outputs": outputs,
-        "env": env
+        "env": env,
+        "patchs": patchs
     }
 
 @Deps.register("breakpad")
