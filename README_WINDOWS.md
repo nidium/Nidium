@@ -60,9 +60,13 @@ When the installation is done, you can take another coffeebreak to start Visual 
 
 ## Directx
 
-To get cool graphics on our nidium frontend we need directx
+Nidium use DirectX (trough ANGLE) to display hardware accelerated graphics. Make sure your computer has DirectX installed ( https://support.microsoft.com/en-us/help/179113/how-to-install-the-latest-version-of-directx )
 
-* Download from https://support.microsoft.com/en-us/help/179113/how-to-install-the-latest-version-of-directx
+## Windows 10 SDK
+
+This is needed by ANGLE to get d3d11 DLLs.
+
+* Download from https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk
 
 ## Mozilla build
 
