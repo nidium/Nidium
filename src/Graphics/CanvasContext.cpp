@@ -34,7 +34,7 @@ char *CanvasContext::ProcessMultipleShader(const char *content[],
     Frontend::Context *frontendContext
         = Context::GetObject<Frontend::Context>(NidiumJS::GetObject());
 
-    compiler = sh::ConstructCompiler((sh::GLenum)type, SH_WEBGL_SPEC,
+    compiler = ShConstructCompiler((sh::GLenum)type, SH_WEBGL_SPEC,
                                    (!glslversion)
                                    ? frontendContext->getShaderOutputVersion()
                                    : (ShShaderOutput)glslversion,
@@ -45,7 +45,7 @@ char *CanvasContext::ProcessMultipleShader(const char *content[],
         return NULL;
     }
 
-    if (!sh::Compile(compiler, content, numcontent,
+    if (!ShCompile(compiler, content, numcontent,
                    SH_VARIABLES | SH_ENFORCE_PACKING_RESTRICTIONS 
                    | SH_OBJECT_CODE
 #ifdef SH_INIT_VARYINGS_WITHOUT_STATIC_USE
@@ -53,15 +53,15 @@ char *CanvasContext::ProcessMultipleShader(const char *content[],
 #endif
                    | SH_LIMIT_CALL_STACK_DEPTH | SH_INIT_GL_POSITION)) {
 
-        std::string log = sh::GetInfoLog(compiler);
+        std::string log = ShGetInfoLog(compiler);
         ndm_logf(NDM_LOG_ERROR, "CanvasContext", "Shader error : %s", log.c_str());
 
         return NULL;
     }
 
-    std::string buffer = sh::GetObjectCode(compiler);
+    std::string buffer = ShGetObjectCode(compiler);
 
-    sh::Destruct(compiler);
+    ShDestruct(compiler);
 
     return strdup(buffer.c_str());
 }
