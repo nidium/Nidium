@@ -28,6 +28,10 @@
             return this.nodeValue;
         }
 
+        get nodeName() {
+            return "#text";
+        }
+
         computeSelfSize() {
             if (!this.nodeValue) return;
 

@@ -40,7 +40,14 @@ Elements.Create = function(tag, attributes, shadowRoot=g_MainShadow) {
             return;
         }
 
-        if (!Elements[tag].__NodeName__) Elements[tag].__NodeName__ = tag;
+        if (!Elements[tag].tagName) {
+            Object.defineProperty(Elements[tag], '_tagName', {
+                enumerable: false,
+                configurable: false,
+                writable: false,
+                value: tag
+            });
+        }
 
         ret = new Elements[tag](attributes);
     } finally {

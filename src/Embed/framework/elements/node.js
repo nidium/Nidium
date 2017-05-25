@@ -27,7 +27,7 @@
             this.computedAttributes = {};
 
             this[s_ShadowRoot] = shadowRoot;
-            this[s_ShadowRoot].addTag(this.name(), this);
+            this[s_ShadowRoot].addTag(this.tagName, this);
 
             if (attributes.id) {
                 this.id = attributes.id;
@@ -91,7 +91,7 @@
                 return childContent;
             }
 
-            let tag = this.name();
+            let tag = this.tagName;
             var attributestr = '';
 
             for (let prop of Object.getOwnPropertyNames(this.attributes)) {
@@ -126,7 +126,7 @@
 
         add(child) {
             if (!this.allowsChild()) {
-                throw Error(`<${this.name()}> can't have children.`);
+                throw Error(`<${this.tagName}> can't have children.`);
             }
 
             if (this.shadowRoot) this.shadowRoot.add(child);
@@ -175,7 +175,7 @@
         }
 
         cloneNode(deep = true, shadowRoot=this[s_ShadowRoot]) {
-            var clone = Elements.Create(this.name(), this.attributes, shadowRoot);
+            var clone = Elements.Create(this.tagName, this.attributes, shadowRoot);
 
             if (!deep) {
                 return clone;
@@ -198,8 +198,8 @@
             this.computedAttributes[attr] = value;
         }
 
-        name() {
-            return this.constructor.__NodeName__;
+        get nodeName() {
+            return this.tagName;
         }
 
         attachShadow(options) {
@@ -287,7 +287,7 @@
         }
 
         get tagName() {
-            return this.name();
+            return this.constructor._tagName;
         }
 
         get nodeType() {
