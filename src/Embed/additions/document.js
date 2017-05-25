@@ -4,7 +4,13 @@
    that can be found in the LICENSE file.
 */
 {
+    const Elements = require("Elements");
+
     document.getElementById = function(id){
         return document.canvas.shadowRoot.getElementById(id);
     };
+
+    document.createElement = function(name) {
+        return Elements.Create(name);
+    }
 }
