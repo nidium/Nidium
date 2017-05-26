@@ -551,11 +551,7 @@ _remotedebug.handle('DOM.getDocument', function(reply, params) {
 
     function getTree(root, genesis = false) {
         let children = root.getChildren();
-
-        let nodeName = "canvas";
-        if ("name" in root) {
-            nodeName = root.tagName || "unknown";
-        }
+        let nodeName = root.tagName || "unknown";
 
         let tree = {
             nodeId: parseInt(root.idx),
