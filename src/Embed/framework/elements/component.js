@@ -107,7 +107,7 @@
             // XXX : Components can still access variables/methods from
             // the global object, maybe using a sandbox is more suited ?
 
-            this.attachShadow({"scope": scope, "name": "Component-" + this.name()});
+            this.attachShadow({"scope": scope, "name": "Component-" + this.tagName});
         }
 
         name() {
@@ -150,7 +150,7 @@
                 if (Object.keys(componentClass).length > 0) {
                     throw new Error("You cannot export more than one Component");
                 } else {
-                    console.info(`Missing JavaScript implementation for component "${this.name()}". Using default component.`);
+                    console.info(`Missing JavaScript implementation for component "${this.tagName}". Using default component.`);
                 }
 
                 componentClass = eval("(function() { return class extends Component {} })()");
@@ -169,7 +169,7 @@
             // it needs to build the component.
             componentClass[s_ComponentShadow] = this.shadowRoot;
 
-            Elements[this.name()] = componentClass;
+            Elements[this.tagName] = componentClass;
         }
     }
 }

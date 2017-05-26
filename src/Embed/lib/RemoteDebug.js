@@ -554,7 +554,7 @@ _remotedebug.handle('DOM.getDocument', function(reply, params) {
 
         let nodeName = "canvas";
         if ("name" in root) {
-            nodeName = root.name() || "unknown";
+            nodeName = root.tagName || "unknown";
         }
 
         let tree = {

@@ -31,7 +31,7 @@ class Component extends Elements.Element {
         super(attributes);
 
         this.attachShadow({
-            "name": "ComponentInstance-" + this.name(),
+            "name": "ComponentInstance-" + this.tagName,
             "scope": this.constructor[s_ComponentShadow].getJSScope()
         });
 
@@ -107,7 +107,7 @@ class Component extends Elements.Element {
         */
         if (!this.allowsChild()) {
             if (children.length) {
-                console.warn(`Component <${this.name()}> does not allow children. Ignoring children.`);
+                console.warn(`Component <${this.tagName}> does not allow children. Ignoring children.`);
             }
             return;
         }
@@ -122,7 +122,7 @@ class Component extends Elements.Element {
         let userSlots       = findUserSlots(children);
 
         if (shadowSlots.length == 0 && children.length > 0) {
-            console.warn(`Component <${this.name()}> does not expose any slot. Ignoring children.`);
+            console.warn(`Component <${this.tagName}> does not expose any slot. Ignoring children.`);
             return;
         }
 

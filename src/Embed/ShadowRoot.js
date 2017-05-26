@@ -78,7 +78,7 @@ class ShadowRoot {
             this.rmID(el.id);
         }
 
-        this.rmTag(el.name());
+        this.rmTag(this.tagName);
 
         if (el instanceof Elements.nss) {
             this.rmNSS(el.nss);
@@ -114,7 +114,7 @@ class ShadowRoot {
 
         let name = "canvas";
         if (el instanceof Elements.Node) {
-            name = el.name();
+            name = this.tagName;
         }
 
         this.addTag(name, el);
