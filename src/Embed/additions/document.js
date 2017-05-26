@@ -13,4 +13,34 @@
     document.createElement = function(name) {
         return Elements.Create(name);
     }
+
+    document.createComment = function(data) {
+        return Elements.Create("comment", data);
+    }
+
+    document.createTextNode = function(data) {
+        return Elements.Create("textnode", data);
+    }
+
+    Elements.documentfragment = class extends Elements.layout {}
+    document.createDocumentFragment = function() {
+        return Elements.Create("DocumentFragment");
+    }
+
+    const body = document.createElement("layout");
+    document.canvas.add(body);
+
+    Object.defineProperty(document, "body", {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: body
+    });
+
+    Object.defineProperty(document, "documentElement", {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: body
+    });
 }

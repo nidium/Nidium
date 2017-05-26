@@ -36,7 +36,6 @@ function __nidiumPreload(options, lst) {
     load("embed://additions/Context.js");
     load("embed://additions/NML.js");
     load("embed://additions/HTTP.js");
-    load("embed://additions/document.js");
     load("embed://additions/console.js");
     load("embed://additions/window.js");
 
@@ -44,4 +43,10 @@ function __nidiumPreload(options, lst) {
      * Native UI Controls and NML tags
      */
     load("embed://framework/index.js");
+
+    /*
+        Load document.js last because it needs access to
+        various Elements/Components from the framework
+    */
+    load("embed://additions/document.js");
 }
