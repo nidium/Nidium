@@ -1781,7 +1781,7 @@ double SkiaContext::breakText(const char *str,
     for (i = 0; i < len; i++) {
         lines[curState.curLine].m_Len++;
 
-        bool breakable = isBreakable((unsigned char)str[i]);
+        bool breakable = isBreakable((unsigned char)str[i]) && i + 1 < len;
         if (breakable) {
             curState.ptr          = &str[i + 1];
             curState.curWordWidth = SkIntToScalar(0);
