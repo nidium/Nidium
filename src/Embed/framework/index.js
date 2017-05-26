@@ -22,6 +22,7 @@ load("embed://framework/elements/slot.js");
  */
 load("embed://framework/elements/canvas.js");
 load("embed://framework/elements/textnode.js");
+load("embed://framework/elements/comment.js");
 load("embed://framework/elements/nodeoverlay.js");
 load("embed://framework/elements/li.js");
 load("embed://framework/elements/label.js");
