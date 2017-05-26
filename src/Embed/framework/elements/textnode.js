@@ -21,7 +21,7 @@
         }
 
         cloneNode(deep = true, shadowRoot=this[s_ShadowRoot]) {
-            return Elements.Create(this.name(), this.nodeValue, shadowRoot);
+            return Elements.Create("textnode", this.nodeValue, shadowRoot);
         }
 
         getNMLContent() {
