@@ -290,6 +290,11 @@
             return this.constructor._tagName;
         }
 
+        get ownerDocument() {
+            // XXX : Is this the expected result if the node is in a shadowRoot ?
+            return document;
+        }
+
         get nodeType() {
             return Elements.NodeType.ELEMENT_NODE;
         }
