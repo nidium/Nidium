@@ -26,7 +26,7 @@
                 let tmp = NML.CreateTree(lst);
                 let c = tmp[0];
 
-                ret[c.name()] = c.getComponentClass();
+                ret[this[s_ComponentName]] = c.getComponentClass();
                 counter++;
             }
 
@@ -110,7 +110,7 @@
             this.attachShadow({"scope": scope, "name": "Component-" + this.tagName});
         }
 
-        name() {
+        get tagName() {
             return this[s_ComponentName];
         }
 
