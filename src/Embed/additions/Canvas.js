@@ -78,4 +78,6 @@ const { setAnimation, Easing } = require("AnimationBlock");
 
     Canvas.prototype.highlight = function() {}
 
+    Canvas.prototype.tagName = "canvas"
+
 }
