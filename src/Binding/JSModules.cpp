@@ -19,11 +19,14 @@
 #include <jsfriendapi.h>
 #include <ape_timers_next.h>
 
-#include "Frontend/NML.h"
 #include "Binding/NidiumJS.h"
 #include "Binding/JSUtils.h"
 #include "Binding/ThreadLocalContext.h"
 #include "IO/Stream.h"
+
+#ifdef NIDIUM_PRODUCT_FRONTEND
+#include "Frontend/NML.h"
+#endif
 
 #define NIDIUM_MODULES_PATHS_COUNT 2
 #define NIDIUM_MODULES_EXTENSION_COUNT 5
@@ -339,6 +342,7 @@ JS::Value JSModule::require(char *name)
             }
 
             if (cmodule->m_ModuleType == JSModule::kModuleType_NidiumComponent) {
+#ifdef NIDIUM_PRODUCT_FRONTEND
                 JS::RootedValue loader(m_Cx);
                 JS::RootedValue requireVal(m_Cx);
                 JS::RootedObject require(m_Cx);
@@ -384,9 +388,13 @@ JS::Value JSModule::require(char *name)
 
                     return ret;
                 } else {
-                    JS_ReportError(m_Cx, "No ComponentLoader defined");
+                    JS_ReportError(m_Cx, "No ComponentLoader defined.");
                     return ret;
                 }
+#else
+                JS_ReportError(m_Cx, "Unsupported operation.");
+                return JS::UndefinedValue();
+#endif
             } else if (cmodule->m_ModuleType == JSModule::kModuleType_JS) {
                 JS::RootedObject expObj(m_Cx, cmodule->m_Exports);
                 JS::CompileOptions options(m_Cx);
