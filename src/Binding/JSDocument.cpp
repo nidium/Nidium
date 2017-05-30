@@ -20,6 +20,7 @@
 #include "Graphics/CanvasHandler.h"
 #include "Graphics/Image.h"
 #include "Graphics/SkiaContext.h"
+#include "Binding/JSCanvas.h"
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSImageData.h"
 
@@ -99,6 +100,34 @@ bool JSDocument::JS_parseNML(JSContext *cx, JS::CallArgs &args)
     JS::RootedObject retObj(cx, NML::BuildLST(cx, cstr.ptr()));
 
     args.rval().setObjectOrNull(retObj);
+
+    return true;
+}
+
+bool JSDocument::JS_addToRootCanvas(JSContext *cx, JS::CallArgs &args)
+{
+    JS::RootedObject jsCanvas(cx);
+
+    CanvasHandler *handler = nullptr;
+    JSCanvas *canvas       = nullptr;
+    CanvasHandler *rootHandler
+        = Context::GetObject<Frontend::Context>(cx)->getRootHandler();
+
+    if (!JS_ConvertArguments(cx, args, "o", jsCanvas.address())) {
+        return false;
+    }
+
+    if ((canvas = JSCanvas::GetInstance(jsCanvas)) == NULL) {
+        JS_ReportError(cx, "addToRootCanvas() First parameter is not a Canvas Object");
+        return false;
+    }
+
+    if ((handler = canvas->getHandler()) == nullptr) {
+        JS_ReportError(cx, "Invalid operation");
+        return false;
+    }
+
+    rootHandler->addChild(handler);
 
     return true;
 }
@@ -457,6 +486,7 @@ JSFunctionSpec *JSDocument::ListMethods()
         CLASSMAPPER_FN(JSDocument, getScreenData, 0),
         CLASSMAPPER_FN(JSDocument, toDataArray, 0),
         CLASSMAPPER_FN(JSDocument, parseNML, 1),
+        CLASSMAPPER_FN(JSDocument, addToRootCanvas, 1),
         JS_FS_END
     };
 

@@ -233,9 +233,7 @@ void Context::sizeChanged(int w, int h)
 
     /* Skia GL */
     this->getRootHandler()->setSize(static_cast<int>(w), static_cast<int>(h));
-    /* Nidium Canvas */
-    m_JSWindow->getCanvasHandler()->setSize(static_cast<int>(w),
-                                            static_cast<int>(h));
+
     /* Redraw */
     m_UI->refresh();
 }

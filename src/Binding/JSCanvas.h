@@ -56,10 +56,6 @@ public:
     virtual void onMessage(const Core::SharedMessages::Message &msg) override;
     virtual void onMessageLost(const Core::SharedMessages::Message &msg) override;
     static void RegisterObject(JSContext *cx);
-    static JSObject *GenerateJSObject(JSContext *cx,
-                                      int width,
-                                      int height,
-                                      Graphics::CanvasHandler **out);
 
     JSCanvas(Graphics::CanvasHandler *handler);
     virtual ~JSCanvas();

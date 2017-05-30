@@ -24,7 +24,7 @@ public:
 
     JSWindow(NidiumJS *njs)
         : m_RequestedFrame(NULL),
-          m_Handler(NULL), m_Dragging(false){};
+          m_Dragging(false){};
 
     virtual ~JSWindow();
 
@@ -78,11 +78,6 @@ public:
 
     void initDataBase();
 
-    Graphics::CanvasHandler *getCanvasHandler() const
-    {
-        return m_Handler;
-    }
-
     static JSWindow *
     RegisterObject(JSContext *cx, int width, int height, JS::HandleObject doc);
 
@@ -118,8 +113,6 @@ protected:
 private:
     bool dragEvent(const char *name, int x, int y);
 
-    void createMainCanvas(int width, int height, JS::HandleObject docObj);
-
     struct _requestedFrame
     {
         JS::PersistentRootedValue m_Cb;
@@ -129,8 +122,6 @@ private:
             m_Next = NULL;
         }
     } * m_RequestedFrame;
-
-    Graphics::CanvasHandler *m_Handler;
 
     bool m_Dragging;
     JS::Heap<JSObject *> m_DraggedFiles;

@@ -1193,20 +1193,6 @@ void JSWindow::callFrameCallbacks(double ts, bool garbage)
     }
 }
 
-void JSWindow::createMainCanvas(int width, int height, JS::HandleObject docObj)
-{
-    JS::RootedObject canvas(
-        m_Cx, JSCanvas::GenerateJSObject(m_Cx, width, height, &m_Handler));
-    Context::GetObject<Frontend::Context>(m_Cx)->getRootHandler()->addChild(
-        m_Handler);
-
-    m_Handler->setPositioning(CanvasHandler::COORD_RELATIVE);
-
-    JS::RootedValue canval(m_Cx, JS::ObjectValue(*canvas));
-    JS_DefineProperty(m_Cx, docObj, "canvas", canval,
-                      JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
-}
-
 JSWindow *JSWindow::GetObject(JSContext *cx)
 {
     return Context::GetObject<Frontend::Context>(cx)->getJSWindow();
@@ -1290,8 +1276,6 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx,
 
     JSWindow::AssociateObject(cx, jwin, globalObj, true);
     jwin->setUniqueInstance();
-
-    jwin->createMainCanvas(width, height, docObj);
 
     // Set the __nidium__ properties
     JS::RootedObject nidiumObj(cx, JS_NewPlainObject(cx));

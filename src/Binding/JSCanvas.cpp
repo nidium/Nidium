@@ -1436,41 +1436,6 @@ void JSCanvas::jsTrace(class JSTracer *trc)
     }
 }
 
-JSObject *JSCanvas::GenerateJSObject(JSContext *cx,
-                                     int width,
-                                     int height,
-                                     CanvasHandler **out)
-{
-    CanvasHandler *handler;
-    Context *nctx   = Context::GetObject<Frontend::Context>(cx);
-    UIInterface *ui = nctx->getUI();
-    handler = new CanvasHandler(width, height, nctx);
-
-    Canvas2DContext *ctx2d = new Canvas2DContext(handler, cx, width, height, ui);
-
-    JS::RootedObject ctxjsobj(cx, Canvas2DContext::CreateObject(cx, ctx2d));
-
-
-    handler->setContext(ctx2d);
-    handler->getContext()->setGLState(nctx->getGLState());
-
-    /* document.canvas.overflow default to false */
-    handler->setOverflow(false);
-
-    JSCanvas *jscanvas = new JSCanvas(handler);
-
-    JS::RootedObject ret(cx, JSCanvas::CreateObject(cx, jscanvas));
-
-    handler->m_JsCx  = cx;
-    handler->m_JsObj = ret;
-
-    JS_SetReservedSlot(ret, 0, JS::ObjectValue(*ctxjsobj));
-
-    *out = handler;
-
-    return ret;
-}
-
 static JS::Value TouchToJSVal(JSContext *cx, Frontend::InputTouch *touch)
 {
     JSObjectBuilder obj(cx);

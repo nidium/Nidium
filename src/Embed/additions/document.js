@@ -4,7 +4,44 @@
    that can be found in the LICENSE file.
 */
 {
-    const Elements = require("Elements");
+    const Elements      = require("Elements");
+    const ShadowRoot    = require("../ShadowRoot.js");
+
+    /*
+        Create document ShadowRoot & document.canvas
+    */
+    load("embed://framework/elements/node.js");
+    load("embed://framework/elements/element.js");
+    load("embed://framework/elements/layout.js");
+
+    const mainShadowRoot = new ShadowRoot(null, {"name": "main"});
+
+    Elements.currentShadow = mainShadowRoot;
+    const mainCanvas = Elements.Create("layout", {}, mainShadowRoot);
+    Elements.currentShadow = null;
+
+    mainShadowRoot._setHost(document.canvas);
+
+    document.canvas.style.position = "relative";
+    document.canvas.style.width = "100%";
+    document.canvas.style.height = "100%";
+    document.body = document.canvas;
+
+    Object.defineProperty(document, 'body', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: mainCanvas
+    });
+
+    Object.defineProperty(document, 'canvas', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: mainCanvas
+    });
+
+    document.addToRootCanvas(document.canvas);
 
     document.getElementById = function(id){
         return document.canvas.shadowRoot.getElementById(id);
@@ -27,20 +64,10 @@
         return Elements.Create("DocumentFragment");
     }
 
-    const body = document.createElement("layout");
-    document.canvas.add(body);
-
-    Object.defineProperty(document, "body", {
-        enumerable: false,
-        configurable: false,
-        writable: false,
-        value: body
-    });
-
     Object.defineProperty(document, "documentElement", {
         enumerable: false,
         configurable: false,
         writable: false,
-        value: body
+        value: document.body
     });
 }

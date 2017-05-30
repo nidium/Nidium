@@ -71,6 +71,7 @@ protected:
     NIDIUM_DECL_JSCALL(getScreenData);
     NIDIUM_DECL_JSCALL(toDataArray);
     NIDIUM_DECL_JSCALL(parseNML);
+    NIDIUM_DECL_JSCALL(addToRootCanvas);
 };
 // }}}
 

@@ -10,7 +10,6 @@ const Elements      = require("Elements");
 
 class ShadowRoot {
     constructor(host, options={}) {
-        this.host = host;
         // FIXME : Storing association with node instance will
         // prevent any node instance to be garbage collected
         this.idAssociation = {};
@@ -22,11 +21,23 @@ class ShadowRoot {
         this.nssList = [];
         this.nss = null;
 
-        host[s_ShadowHost] = this;
+        this._setHost(host);
 
         if (this.jsScope) {
             // TODO : Override document with a proxy ?
         }
+    }
+
+    _setHost(host) {
+        if (!host) {
+            // Special case for document.canvas ShadowRoot thats needs to be
+            // created before any elements. The host of the ShadowRoot is then
+            // attached right after element creation
+            return;
+        }
+
+        this.host = host;
+        this.host[s_ShadowHost] = this;
     }
 
     addTag(name, instance) {

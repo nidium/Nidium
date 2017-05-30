@@ -7,13 +7,6 @@
 const Elements = module.exports = {};
 
 const ShadowRoot    = require("../ShadowRoot.js");
-const g_MainShadow  = new ShadowRoot(document.canvas, {"name": "main"});
-
-Object.defineProperty(document.canvas, "shadowRoot", {
-    "writable": false,
-    "configurable": false,
-    "value": g_MainShadow
-});
 
 Elements.currentShadow = null;
 
@@ -27,7 +20,7 @@ Elements.NodeType = {
     DOCUMENT_FRAGMENT_NODE : 11
 };
 
-Elements.Create = function(tag, attributes, shadowRoot=g_MainShadow) {
+Elements.Create = function(tag, attributes, shadowRoot=document.canvas.shadowRoot) {
     tag = tag.toLowerCase();
     let ret;
 
@@ -85,8 +78,6 @@ Elements.Loader = function(attributes) {
 
     return data;
 }
-
-window._onready = function(lst){};
 
 module.exports = Elements;
 

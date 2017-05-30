@@ -19,6 +19,11 @@ Object.defineProperty(window, "_onready", {
 });
 
 /*
+    Load document.js first because it create document.canvas object
+*/
+load("embed://additions/document.js");
+
+/*
  * Preload and class extends
  */
 function __nidiumPreload(options, lst) {
@@ -43,10 +48,4 @@ function __nidiumPreload(options, lst) {
      * Native UI Controls and NML tags
      */
     load("embed://framework/index.js");
-
-    /*
-        Load document.js last because it needs access to
-        various Elements/Components from the framework
-    */
-    load("embed://additions/document.js");
 }
