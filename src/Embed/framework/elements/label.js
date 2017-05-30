@@ -20,7 +20,7 @@
 
             if (!prev) return;
 
-            let name = prev.name();
+            let name = prev.tagName;
 
             if (name == 'radio' || name == 'checkbox') {
 
