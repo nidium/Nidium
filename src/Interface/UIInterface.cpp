@@ -69,12 +69,12 @@ void UIInterface::setGLContextAttribute()
 bool UIInterface::createWindow(int width, int height)
 {
     if (!m_Initialized) {
+        this->setGLContextAttribute();
+
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1) {
             ndm_logf(NDM_LOG_ERROR, "UIInterface", "Can't init SDL:  %s", SDL_GetError());
             return false;
         }
-
-        this->setGLContextAttribute();
 
         m_Win = SDL_CreateWindow(
             "nidium", 100, 100, width, height,
