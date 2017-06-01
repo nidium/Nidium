@@ -20,21 +20,20 @@
     const mainCanvas = Elements.Create("layout", {}, mainShadowRoot);
     Elements.currentShadow = null;
 
-    mainShadowRoot._setHost(document.canvas);
-
-    document.canvas.style.position = "relative";
-    document.canvas.style.width = "100%";
-    document.canvas.style.height = "100%";
-    document.body = document.canvas;
-
-    Object.defineProperty(document, 'body', {
+    Object.defineProperty(document, 'canvas', {
         enumerable: false,
         configurable: false,
         writable: false,
         value: mainCanvas
     });
 
-    Object.defineProperty(document, 'canvas', {
+    mainShadowRoot._setHost(document.canvas);
+
+    document.canvas.style.position = "relative";
+    document.canvas.style.width = "100%";
+    document.canvas.style.height = "100%";
+
+    Object.defineProperty(document, 'body', {
         enumerable: false,
         configurable: false,
         writable: false,
