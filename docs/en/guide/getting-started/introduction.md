@@ -27,7 +27,7 @@ We strive to target a large spectrum of devices, and our short term goal is to s
 ## Developer experience and ease of use
 
 nidium was designed with **developer experience** (DX) in mind.  
-Unlike existing solutions, nidium doesn't require extensive use of the command line or third-party like Babel or Webpack.
+Unlike existing solutions, nidium doesn't require extensive use of the command line or third-party transpiler like Babel or Webpack.
 
 ### Debugging
 
@@ -36,3 +36,10 @@ nidium supports **Chrome DevTools** out of the box.
 ### Emulator
 
 It comes with its own mobile emulator which usually boot in less than **1 second**.
+
+
+## Hello World
+
+```js
+var x = 42;
+```
