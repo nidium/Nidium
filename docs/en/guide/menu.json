@@ -1,0 +1,22 @@
+[{
+    "title": "Getting started",
+    "folder": "getting-started",
+    "pages": [
+        {"file": "introduction", "title": "Introduction"},
+        {"file": "installing", "title": "Installing"}
+    ]
+},
+{
+    "title": "Graphics",
+    "folder": "graphics",
+    "pages": [
+        {"file": "general-concepts", "title": "General concept"}
+    ]
+},
+{
+    "title": "Misc",
+    "folder": "misc",
+    "pages": [
+        {"file": "reinventing-the-wheel", "title": "Reinventing the wheel"}
+    ]
+}]

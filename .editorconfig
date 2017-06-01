@@ -15,7 +15,7 @@ indent_size = 4
 indent_style = space
 indent_size = 4
 
-[{tools,third-party,gyp,resources,patch}/**]
+[{tools,third-party,gyp,resources,patch,docs}/**]
 indent_style = ignore
 indent_size = ignore
 end_of_line = ignore
