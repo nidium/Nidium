@@ -347,7 +347,7 @@ Nidium is currently supporting the following context types:
 context.fillStyle = "red";
 context.fillRect(0, 0, 200, 100);""")],
     IS_Dynamic, IS_Public, IS_Slow,
-    [ ParamDoc( "mode", "Context mode: '2d'|'webgl'", "string", NO_Default, IS_Obligated) ],
+    [ ParamDoc( "mode", "Context mode: `2d` or `webgl`", "string", NO_Default, IS_Obligated) ],
     ReturnDoc( "The context or null", "CanvasRenderingContext2D|WebGLRenderingContext", nullable=True )
 )
 

@@ -72,8 +72,8 @@ clearTimeout( t );""" ) ],
     IS_Static, IS_Public, IS_Fast,
     [
         CallbackDoc( 'fn', 'The function to be called', NO_Default ),
-        ParamDoc( 'timeout','timeout in milliseconds', 'integer', 8, IS_Obligated ),
-        ParamDoc( 'args', "argument for the callback", 'any', '[]', IS_Obligated )
+        ParamDoc( 'timeout','timeout in milliseconds', 'integer', NO_Default, IS_Obligated ),
+        ParamDoc( 'args', "argument for the callback", 'any', NO_Default, IS_Obligated )
     ],
     ReturnDoc( "An identifier representing the timer that can be used to stop the timer with 'global.clearTimeout'", 'integer' )
 )
@@ -124,7 +124,7 @@ Every 'setImmediate` callback is executed after the I/O completion but before al
 }); """) ],
     IS_Static, IS_Public, IS_Fast,
     [   CallbackDoc( 'fn', 'The function to be called', NO_Default ),
-        ParamDoc( 'args', 'mixed', '[any]', IS_Optional ) ],
+        ParamDoc( 'args', 'mixed', '[any]', default=NO_Default, IS_Optional ) ],
     ReturnDoc( "This always returns 'null'; thus it means that it cannot be canceled with a 'global.clearTimeout'.", 'void' )
 )
 
