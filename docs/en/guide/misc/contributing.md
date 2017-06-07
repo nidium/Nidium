@@ -17,11 +17,10 @@ If you are interested in contributing to nidium, drop us a message on [Slack](ht
 ## Overview of nidium projects
 
 - **nidium** : Our main product, also known as **nidium Frontend** enable you to build graphical software with JavaScript. It expose various API including Canvas, WebGL, Audio, Timers, Sockets, Threading, Files, ...
-- **nidium server**: A version of nidium tailored for servers (no graphical interface/API)
+- **nidium server**: A version of nidium tailored for servers (headless nidium)
 - **libnidiumcore**: A library for spidermonkey embedders with all the core features of nidium (Timers, Sockets, Threading, Files)
 - **libapenetwork**: A fast cross-platform async network library. This library is used as the main event loop of nidium.
-- **Konstructor**: A python script that handle the building of third-party librairies and other usefull stuff.
-- **Dokumentor**: A python script that generate our documentation.
+- **Konstructor**: A python script that handles the building of third-party libraries and other usefull stuff.
 
 ## Building nidium
 

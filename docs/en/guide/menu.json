@@ -18,7 +18,13 @@
     "folder": "misc",
     "pages": [
         {"file": "reinventing-the-wheel", "title": "Reinventing the wheel"},
-        {"file": "contributing", "title": "Contributing"},
+        {"file": "contributing", "title": "Contributing"}
+    ]
+},
+{
+    "title": "Internals",
+    "folder": "internals",
+    "pages": [
         {"file": "classmapper", "title": "C++ to JavaScript Binding"},
         {"file": "logging", "title": "Internal logging"},
         {"file": "rooting", "title": "JSAPI Rooting Howto"}
