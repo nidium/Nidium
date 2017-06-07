@@ -216,26 +216,25 @@ void System::sendNotification(const char *title,
 
 const char *System::execute(const char *cmd)
 {
-    char buffer[128];
-    FILE *fp;
-    std::string *result = new std::string();
+    std::string* result = new std::string();
+    output.reserve(OUT_BUF_SIZE);
 
-    fp = popen(cmd, "r");
-    if (fp == nullptr) {
-        return nullptr;
-    }
+    struct pipeDeleter {
+        void operator()(FILE* ptr) const noexcept{
+            pclose(ptr);
+        }
+    };
 
-    while (!feof(fp)) {
-        if (fgets(buffer, 128, fp) != nullptr) {
-            result->append(buffer);
+    std::unique_ptr<FILE, pipeDeleter> pipe(popen(cmd, "r"));
+
+    if(pipe) {
+        while (!feof(pipe.get())) {
+            if(fgets(const_cast<char*>(output.data()), output.capacity(), pipe.get()) != nullptr)
+                output += output.data();
         }
     }
 
-    pclose(fp);
-
-    // FIXME : Memory leak, caller should have to free the
-    // memory but osx implementation is different from linux
-    return result->c_str();
+    return output.c_str();
 }
 // }}}
 

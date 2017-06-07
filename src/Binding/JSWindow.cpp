@@ -828,16 +828,15 @@ bool JSWindow::JS_openURL(JSContext *cx, JS::CallArgs &args)
 
 bool JSWindow::JS_exec(JSContext *cx, JS::CallArgs &args)
 {
-
     JS::RootedString url(cx);
     if (!JS_ConvertArguments(cx, args, "S", url.address())) {
         return false;
     }
 
     JSAutoByteString curl(cx, url);
-    const char *ret = SystemInterface::GetInstance()->execute(curl.ptr());
+    std::unique_ptr<char> ret(SystemInterface::GetInstance()->execute(curl.ptr());
 
-    JS::RootedString retStr(cx, JS_NewStringCopyZ(cx, ret));
+    JS::RootedString retStr(cx, JS_NewStringCopyZ(cx, ret.get()));
     args.rval().setString(retStr);
 
     return true;
