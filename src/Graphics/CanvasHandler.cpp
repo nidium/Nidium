@@ -42,7 +42,7 @@ CanvasHandler::CanvasHandler(float width,
     m_Identifier.idx = ++nctx->m_CanvasCreatedIdx;
     m_NidiumContext->m_CanvasListIdx.insert({m_Identifier.idx, this});
     m_Identifier.str = nullptr;
-    
+
     if (!isnan(width)) {
         p_Width = nidium_max(width, 0);
         p_Width.setCachedValue(p_Width);
@@ -70,6 +70,7 @@ CanvasHandler::CanvasHandler(float width,
         YGNodeStyleSetHeight(m_YogaRef, p_Height);
     }
 
+    YGNodeStyleSetOverflow(m_YogaRef, YGOverflowScroll);
     YGNodeStyleSetMinWidth(m_YogaRef, p_MinWidth);
     YGNodeStyleSetMinHeight(m_YogaRef, p_MinHeight);
 
@@ -231,6 +232,8 @@ void CanvasHandler::deviceSetSize(float width, float height)
     if (m_Context) {
         m_Context->setSize(width + (p_Coating * 2),
                            height + (p_Coating * 2));
+
+        m_NidiumContext->statsIncResize();
     }
 
     Args arg;
@@ -238,7 +241,7 @@ void CanvasHandler::deviceSetSize(float width, float height)
     arg[0].set(width);
     arg[1].set(height);
 
-    this->fireEvent<CanvasHandler>(RESIZE_EVENT, arg);
+    this->fireEventSync<CanvasHandler>(RESIZE_EVENT, arg);
 }
 
 
@@ -375,8 +378,8 @@ void CanvasHandler::addChild(CanvasHandler *insert,
     insert->m_Parent = this;
     m_nChildren++;
 
-    //Args arg;
-    //insert->fireEventSync<CanvasHandler>(MOUNT_EVENT, arg);
+    Args arg;
+    insert->fireEventSync<CanvasHandler>(MOUNT_EVENT, arg);
 
 }
 
@@ -419,10 +422,11 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
     m_Parent = NULL;
     m_Next   = NULL;
     m_Prev   = NULL;
-#if 0
+
+    /*
     Args arg;
     this->fireEventSync<CanvasHandler>(UNMOUNT_EVENT, arg);
-#endif
+    */
 }
 
 /*
@@ -498,7 +502,7 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
 }
 
 void CanvasHandler::layerize(LayerizeContext &layerContext,
-    std::vector<ComposeContext> &compList, bool draw)
+    std::vector<ComposeContext> &compList, bool draw, uint64_t frame)
 {
     CanvasHandler *cur;
     Rect nclip;
@@ -534,11 +538,12 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 
 
         deviceSetSize(nwidth, nheight);
+        m_NeedPaint = true;
     }
-    
+
     int maxChildrenWidth  = p_Width.getCachedValue(),
         maxChildrenHeight = p_Height.getCachedValue();
-            
+
 
     /*
         This is the base surface on top of the window frame buffer
@@ -585,6 +590,8 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                 .clip     = layerContext.m_Clip ? *layerContext.m_Clip : Rect()
             };
 
+            m_Context->markFrame(frame);
+
             this->dispatchMouseEvents(layerContext);
 
             /* XXX: This could mutate the current state
@@ -604,6 +611,8 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
             }
 
             compList.push_back(std::move(compctx));
+
+            assert(m_Context != nullptr);
         }
     }
 
@@ -663,7 +672,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                    .m_aZoom      = m_Zoom,
                    .m_Clip       = layerContext.m_Clip};
 
-            cur->layerize(ctx, compList, draw);
+            cur->layerize(ctx, compList, draw, frame);
 
             /*
                 Incrementaly check the bottom/right most children
@@ -992,7 +1001,21 @@ bool CanvasHandler::checkLoaded(bool async)
 void CanvasHandler::paint()
 {
     Args arg;
+    m_NidiumContext->statsIncRepaint();
+
     this->fireEventSync<CanvasHandler>(PAINT_EVENT, arg);
+}
+
+void CanvasHandler::contextLost()
+{
+    Args arg;
+
+    /* The canvas will need to receive the loaded even again to get a new context */
+    m_Loaded = false;
+    m_NeedPaint = true;
+    m_Context = nullptr;
+
+    this->fireEventSync<CanvasHandler>(CONTEXTLOST_EVENT, arg);
 }
 
 void CanvasHandler::propertyChanged(EventsChangedProperty property)

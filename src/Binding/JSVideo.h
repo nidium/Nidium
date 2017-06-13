@@ -7,7 +7,7 @@
 #define binding_jsvideo_h__
 
 #include "AV/Video.h"
-#include "Binding/ClassMapper.h"
+#include "Binding/ClassMapperWithEvents.h"
 #include "Binding/JSAudioNode.h"
 
 #include <SkBitmap.h>

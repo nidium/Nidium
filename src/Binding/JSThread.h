@@ -10,7 +10,7 @@
 
 #include "Core/SharedMessages.h"
 #include "Core/Messages.h"
-#include "Binding/ClassMapper.h"
+#include "Binding/ClassMapperWithEvents.h"
 
 
 namespace Nidium {

@@ -1,25 +1,51 @@
 /*
-   Copyright 2016 Nidium Inc. All rights reserved.
-   Use of this source code is governed by a MIT license
-   that can be found in the LICENSE file.
-*/
+ * Copyright 2017 Nidium Inc. All rights reserved.
+ * Use of this source code is governed by a MIT license
+ * that can be found in the LICENSE file.
+ */
 
-function __nidiumPreload(options, lst) {
-
-    if (options.html5) {
-        load("embed://html5.js");
+/**
+ * Defer creation of the layout once all assets are ready
+ */
+document.readyState = "loading";
+Object.defineProperty(window, "_onready", {
+    configurable: false,
+    writable: false,
+    value: function(lst) {
+        document.canvas.inject(lst);
+        document.readyState = "complete";
+        window.emit("ready", {});
     }
-    load("embed://CanvasAdditions.js");
-    load("embed://ContextAdditions.js");
-    load("embed://NMLAdditions.js");
-    load("embed://AnimationBlock.js");
-    load("embed://HTTPAdditions.js");
-    
-/*    let rdebug = require("RemoteDebug.js");
+});
 
-    rdebug.run(9223, (options.remotedebug == "true")
-        ? "0.0.0.0"
-        : "127.0.0.1");*/
+/*
+    Load document.js first because it create document.canvas object
+*/
+load("embed://additions/document.js");
 
-    document.canvas.inject(lst);
+/*
+ * Preload and class extends
+ */
+function __nidiumPreload(options, lst) {
+    if (options.html5) load("embed://html5.js");
+    if (options.debug) {
+        console.log("[Remote Debug] loading");
+        const rdebug = require("RemoteDebug");
+        rdebug.run();
+    }
+
+    /**
+     * Additions
+     */
+    load("embed://additions/Canvas.js");
+    load("embed://additions/Context.js");
+    load("embed://additions/NML.js");
+    load("embed://additions/HTTP.js");
+    load("embed://additions/console.js");
+    load("embed://additions/window.js");
+
+    /*
+     * Native UI Controls and NML tags
+     */
+    load("embed://framework/index.js");
 }

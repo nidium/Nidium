@@ -48,9 +48,6 @@ using Nidium::Frontend::Context;
 namespace Nidium {
 namespace Graphics {
 
-SkSurface *SkiaContext::m_GlSurface = nullptr;
-
-
 static struct _nidium_blend_mode
 {
     const char *str;
@@ -198,12 +195,27 @@ static inline bool isBreakable(const unsigned char c)
     return (c == ' ' || c == '.' || c == ',' || c == '-' /*|| c == 0xAD*/);
 }
 
-SkiaContext::SkiaContext()
+SkiaContext::SkiaContext(std::shared_ptr<CanvasSurface> surface)
     : m_CanvasBindMode(SkiaContext::BIND_NO), m_State(NULL),
       m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0),
       m_AsComposite(0), m_Screen(NULL), m_CurrentShadow({ 0, 0, 0, 0 }),
-      m_Debug(false), m_FontSkew(-0.25)
+      m_Debug(false), m_FontSkew(-0.25), m_CSurface(surface)
 {
+    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
+
+    scale(ratio, ratio);
+
+    m_GlobalAlpha = 255;
+    m_CurrentPath = NULL;
+
+    m_State       = new struct _State;
+    m_State->next = NULL;
+
+    initPaints();
+
+    this->setSmooth(true);
+
+    surface.get()->attachToSkiaContext(this);
 }
 
 SkColor
@@ -343,16 +355,13 @@ SkiaContext *SkiaContext::CreateWithTextureBackend(Frontend::Context *fctx,
         return nullptr;
     }
 
-    sk_sp<SkSurface> surface = SkSurface::MakeRenderTarget(gr, SkBudgeted::kNo,
-        SkImageInfo::MakeN32Premul(ceilf(width * ratio), ceilf(height * ratio)));
+    std::shared_ptr<CanvasSurface> cs = CanvasSurface::Create(ceilf(width * ratio), ceilf(height * ratio), gr);
 
-    if (!surface) {
+    if (!cs) {
         return nullptr;
     }
 
-    SkiaContext *skcontext = new SkiaContext();
-
-    skcontext->initWithSurface(surface);
+    SkiaContext *skcontext = new SkiaContext(cs);
 
     /* New canvas are transparent */
     skcontext->getCanvas()->clear(0x00000000);
@@ -362,10 +371,9 @@ SkiaContext *SkiaContext::CreateWithTextureBackend(Frontend::Context *fctx,
     return skcontext;
 }
 
-sk_sp<SkSurface> SkiaContext::CreateGLSurface(float width, float height,
+sk_sp<SkSurface> SkiaContext::CreateGLSurface(int width, int height,
     Frontend::Context *fctx, int fbo)
 {
-    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
     GrContext *gr = GetGrContext(fctx);
 
     if (!gr) {
@@ -375,8 +383,8 @@ sk_sp<SkSurface> SkiaContext::CreateGLSurface(float width, float height,
 
     GrBackendRenderTargetDesc desc;
 
-    desc.fWidth       = ceilf(width * ratio);
-    desc.fHeight      = ceilf(height * ratio);
+    desc.fWidth       = width;
+    desc.fHeight      = height;
     desc.fConfig      = kSkia8888_GrPixelConfig;
     desc.fOrigin      = kBottomLeft_GrSurfaceOrigin;
     desc.fStencilBits = 0;
@@ -390,42 +398,24 @@ sk_sp<SkSurface> SkiaContext::CreateGLSurface(float width, float height,
 SkiaContext *SkiaContext::CreateWithFBOBackend(Frontend::Context *fctx,
                                                int width, int height, uint32_t fbo)
 {
-    sk_sp<SkSurface> surface = CreateGLSurface(width, height, fctx, fbo);
+    float ratio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
+
+    sk_sp<SkSurface> surface = CreateGLSurface(ceilf(width * ratio), ceilf(height * ratio), fctx, fbo);
 
     if (!surface) {
         ndm_log(NDM_LOG_ERROR, "SkiaContext", "Can't create surface");
         return nullptr;
     }
 
-    SkiaContext *skcontext = new SkiaContext();
+    std::shared_ptr<CanvasSurface> cs = CanvasSurface::Wrap(width, height, surface);
 
-    skcontext->initWithSurface(surface);
+    SkiaContext *skcontext = new SkiaContext(cs);
+
     /* Base FBO is white */
     skcontext->getCanvas()->clear(0xffffffff);
     skcontext->m_CanvasBindMode = SkiaContext::BIND_GL;
 
     return skcontext;
-}
-
-bool SkiaContext::initWithSurface(sk_sp<SkSurface> surface)
-{
-    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
-
-    m_Surface = surface;
-
-    scale(ratio, ratio);
-
-    m_GlobalAlpha = 255;
-    m_CurrentPath = NULL;
-
-    m_State       = new struct _State;
-    m_State->next = NULL;
-
-    initPaints();
-
-    this->setSmooth(true);
-
-    return true;
 }
 
 GrContext *SkiaContext::CreateGrContext(GLContext *glcontext)
@@ -452,7 +442,7 @@ GrContext *SkiaContext::CreateGrContext(GLContext *glcontext)
 
 uint32_t SkiaContext::getOpenGLTextureId()
 {
-    GrGLTextureInfo *glinfo = (GrGLTextureInfo *)m_Surface->getTextureHandle(SkSurface::kFlushRead_BackendHandleAccess);
+    GrGLTextureInfo *glinfo = (GrGLTextureInfo *)getSurface()->getTextureHandle(SkSurface::kFlushRead_BackendHandleAccess);
 
     if (!glinfo) {
         return 0;
@@ -509,31 +499,18 @@ bool SkiaContext::setSize(float width, float height, bool redraw)
     width = nidium_max(width, 1);
     height = nidium_max(height, 1);
 
+    int rwidth = ceilf(width * ratio);
+    int rheight = ceilf(height * ratio);
+
     sk_sp<SkSurface> newSurface;
 
     if (this->m_CanvasBindMode == BIND_GL) {
-        newSurface = CreateGLSurface(width, height, nullptr);
-        if (!newSurface) {
-            ndm_logf(NDM_LOG_ERROR, "Canvas", "(BIND_GL) Can't create new surface of size %fx%f", width, height);
-            return false;
-        }
+        newSurface = CreateGLSurface(rwidth, rheight, nullptr);
+        m_CSurface.get()->replaceSurface(newSurface, width, height);
+
     } else {
-        newSurface = m_Surface->makeSurface(SkImageInfo::MakeN32Premul(ceilf(width * ratio),
-                                        ceilf(height * ratio)));
-        if (!newSurface) {
-            ndm_logf(NDM_LOG_ERROR, "Canvas", "Can't create new surface of size %fx%f", width, height);
-            return false;
-        }
-
-        newSurface->getCanvas()->clear(0x00000000);
+        m_CSurface.get()->resize(rwidth,  rheight);
     }
-
-    m_Surface->draw(newSurface->getCanvas(), 0, 0, nullptr);
-
-    // Keep the old matrix in place
-    newSurface->getCanvas()->setMatrix(m_Surface->getCanvas()->getTotalMatrix());
-
-    m_Surface = newSurface;
 
     return true;
 }
@@ -1802,10 +1779,10 @@ double SkiaContext::breakText(const char *str,
     lines[0].m_Len  = 0;
 
     for (i = 0; i < len; i++) {
-
         lines[curState.curLine].m_Len++;
 
-        if (isBreakable((unsigned char)str[i])) {
+        bool breakable = isBreakable((unsigned char)str[i]) && i + 1 < len;
+        if (breakable) {
             curState.ptr          = &str[i + 1];
             curState.curWordWidth = SkIntToScalar(0);
             curState.curWordLen = 0;
@@ -1819,7 +1796,7 @@ double SkiaContext::breakText(const char *str,
 
         curState.curLineWidth += widths[i];
 
-        if (curState.curLineWidth > maxWidth) {
+        if (curState.curLineWidth > maxWidth && breakable) {
             lines[curState.curLine].m_Len
                 = curState.ptr - lines[curState.curLine].m_Line;
             curState.curLine++;
@@ -1841,14 +1818,22 @@ double SkiaContext::measureText(const char *str, size_t length)
 {
     return SkScalarToDouble(PAINT->measureText(str, length));
 }
-// }}}
+
+void SkiaContext::surfaceIsGone()
+{
+    if (m_Attached2DContext) {
+        m_Attached2DContext->contextIsGone();
+    }
+}
+
 
 SkiaContext::~SkiaContext()
 {
     struct _State *nstate = m_State;
 
-    if (m_Surface != nullptr) {
+    if (m_CSurface != nullptr) {
         getCanvas()->flush();
+        m_CSurface.get()->dettachSkiaContext(this);
     }
     while (nstate) {
         struct _State *tmp = nstate->next;

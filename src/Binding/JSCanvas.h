@@ -6,7 +6,7 @@
 #ifndef binding_jscanvas_h__
 #define binding_jscanvas_h__
 
-#include "Binding/ClassMapper.h"
+#include "Binding/ClassMapperWithEvents.h"
 #include "Core/Messages.h"
 
 namespace Nidium {
@@ -56,10 +56,6 @@ public:
     virtual void onMessage(const Core::SharedMessages::Message &msg) override;
     virtual void onMessageLost(const Core::SharedMessages::Message &msg) override;
     static void RegisterObject(JSContext *cx);
-    static JSObject *GenerateJSObject(JSContext *cx,
-                                      int width,
-                                      int height,
-                                      Graphics::CanvasHandler **out);
 
     JSCanvas(Graphics::CanvasHandler *handler);
     virtual ~JSCanvas();

@@ -5,7 +5,7 @@
 */
 
 {
-    const Elements = require("./lib/Elements.js");
+    const Elements = require("Elements");
     const OS = require("OS");
     const IS_MOBILE = OS.platform == "ios" || OS.platform == "android";
 
@@ -78,75 +78,6 @@
         }
     };
 
-    Object.defineProperty(Canvas.prototype, "parentNode", {
-        get: function() {
-            return this.getParent();
-        }
-    });
-
-    (function(){
-        const styles = new WeakMap();
-        const DEFAULTS = {
-            "userSelect": "auto",
-            "touchSelect": "auto",
-            "webkitTouchCallout": "auto",
-            "msContentZooming": "default",
-            "webkitUserDrag": "none",
-            "webkitTapHighlightColor": "black",
-        }
-
-        function getter(target, name) {
-            switch (name) {
-                case "width":
-                case "height":
-                    return target[name];
-                default:
-                    console.log("get", name);
-                    if (name in DEFAULTS) {
-                        return DEFAULTS[name];
-                    }
-
-                    reportUnsupported("Unsupported " + name + " css property");
-                    break;
-            }
-        }
-        const styleHandler = {
-            has: function (target, name) {
-                return getter(target, name) ? true : false;
-            },
-
-            get: getter,
-
-            set: function(target, name, value) {
-                switch (name) {
-                    case "width":
-                    case "height":
-                        target[name] = parseInt(value);
-                        break;
-                    default:
-                        reportUnsupported("Assignation of " + name + " css property is a no-op");
-                    break;
-                }
-
-                return true;
-            }
-        }
-
-        for (klass of [Canvas, Image]) {
-            Object.defineProperty(klass.prototype, "style", {
-                configurable: false,
-                get: function(target, name) {
-                    let style = styles.get(this);
-                    if (!style) {
-                        style = new Proxy(this, styleHandler);
-                        styles.set(this, style);
-                    }
-
-                    return style;
-                }
-            });
-        }
-    })();
     //}}}
 
     // {{{ Document

@@ -107,10 +107,19 @@ bool JSCanvas::JS_setScale(JSContext *cx, JS::CallArgs &args)
 
 bool JSCanvas::JS_getDimensions(JSContext *cx, JS::CallArgs &args)
 {
-    float width, height, left, top;
+    float width = NAN, height = NAN, left = NAN, top = NAN, aleft = NAN, atop = NAN;
+    bool nocheck = false;
 
-    if (!m_CanvasHandler->getDimensions(&width, &height, &left, &top)) {
-        width = height = left = top = NAN;
+    if (args.length() >= 1 && args[0].isBoolean()) {
+        nocheck = args[0].toBoolean();
+    }
+
+    if (!m_CanvasHandler->getDimensions(&width, &height, &left,
+        &top, &aleft, &atop)) {
+
+        if (!nocheck) {
+            width = height = left = top = aleft = atop = top = NAN;
+        }
     }
 
     JS::RootedObject out(cx, JS_NewPlainObject(cx));
@@ -120,8 +129,11 @@ bool JSCanvas::JS_getDimensions(JSContext *cx, JS::CallArgs &args)
     NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "left", left);
     NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "top", top);
 
+    NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "aleft", aleft);
+    NIDIUM_JSOBJ_SET_PROP_FLOAT(out, "atop", atop);
+
     args.rval().setObject(*out);
-    
+
     return true;
 }
 
@@ -412,14 +424,23 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
 
     /* The context is lazy-created */
     if (canvasctx == NULL) {
+        if (isnan(m_CanvasHandler->p_Width.getCachedValue())) {
+            m_CanvasHandler->p_Width.setCachedValue(1.f);
+        }
+        if (isnan(m_CanvasHandler->p_Height.getCachedValue())) {
+            m_CanvasHandler->p_Height.setCachedValue(1.f);
+        }
+
+        int width = m_CanvasHandler->p_Width.getCachedValue()
+                        + (m_CanvasHandler->p_Coating * 2);
+        int height = m_CanvasHandler->p_Height.getCachedValue()
+                        + (m_CanvasHandler->p_Coating * 2);
         switch (ctxmode) {
             case CanvasContext::CONTEXT_2D: {
                 Canvas2DContext *ctx2d = new Canvas2DContext(
                     m_CanvasHandler, cx,
-                    m_CanvasHandler->p_Width.getCachedValue()
-                        + (m_CanvasHandler->p_Coating * 2),
-                    m_CanvasHandler->p_Height.getCachedValue()
-                        + (m_CanvasHandler->p_Coating * 2),
+                    width,
+                    height,
                     ui);
 
                 if (ctx2d->getSkiaContext() == NULL) {
@@ -440,10 +461,8 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
             case CanvasContext::CONTEXT_WEBGL:
                 JSWebGLRenderingContext *ctxWebGL = new JSWebGLRenderingContext(
                     m_CanvasHandler, cx,
-                    m_CanvasHandler->p_Width.getCachedValue()
-                        + (m_CanvasHandler->p_Coating * 2),
-                    m_CanvasHandler->p_Height.getCachedValue()
-                        + (m_CanvasHandler->p_Coating * 2),
+                    width,
+                    height,
                     ui);
 
                 m_CanvasHandler->setContext(static_cast<Canvas3DContext *>(ctxWebGL));
@@ -1039,9 +1058,9 @@ bool JSCanvas::JSGetter_flexBasis(JSContext *cx, JS::MutableHandleValue vp)
     if (isnan(val.value)) {
         vp.setUndefined();
 
-        return true;        
+        return true;
     }
-    
+
     vp.setNumber(val.value);
 
     return true;
@@ -1286,7 +1305,7 @@ JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
     if (args.length() >= 2 && !args[1].isNullOrUndefined() && !JS::ToNumber(cx, args[1], &height)) {
         height = NAN;
     }
-    
+
     handler = new CanvasHandler(width, height,
         Context::GetObject<Frontend::Context>(cx), true);
 
@@ -1417,41 +1436,6 @@ void JSCanvas::jsTrace(class JSTracer *trc)
     }
 }
 
-JSObject *JSCanvas::GenerateJSObject(JSContext *cx,
-                                     int width,
-                                     int height,
-                                     CanvasHandler **out)
-{
-    CanvasHandler *handler;
-    Context *nctx   = Context::GetObject<Frontend::Context>(cx);
-    UIInterface *ui = nctx->getUI();
-    handler = new CanvasHandler(width, height, nctx);
-
-    Canvas2DContext *ctx2d = new Canvas2DContext(handler, cx, width, height, ui);
-
-    JS::RootedObject ctxjsobj(cx, Canvas2DContext::CreateObject(cx, ctx2d));
-
-
-    handler->setContext(ctx2d);
-    handler->getContext()->setGLState(nctx->getGLState());
-
-    /* document.canvas.overflow default to false */
-    handler->setOverflow(false);
-
-    JSCanvas *jscanvas = new JSCanvas(handler);
-
-    JS::RootedObject ret(cx, JSCanvas::CreateObject(cx, jscanvas));
-
-    handler->m_JsCx  = cx;
-    handler->m_JsObj = ret;
-
-    JS_SetReservedSlot(ret, 0, JS::ObjectValue(*ctxjsobj));
-
-    *out = handler;
-
-    return ret;
-}
-
 static JS::Value TouchToJSVal(JSContext *cx, Frontend::InputTouch *touch)
 {
     JSObjectBuilder obj(cx);
@@ -1498,6 +1482,17 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
 
             eventValue.setObjectOrNull(eventObj);
             this->fireJSEvent("paint", &eventValue);
+            break;
+        }
+        case NIDIUM_EVENT(CanvasHandler, CONTEXTLOST_EVENT): {
+            /* No longer retain a reference to the context */
+            JS_SetReservedSlot(m_Instance, 0, JS::UndefinedValue());
+
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            JS::RootedValue eventValue(m_Cx);
+
+            eventValue.setObjectOrNull(eventObj);
+            this->fireJSEvent("contextlost", &eventValue);
             break;
         }
         case NIDIUM_EVENT(CanvasHandler, LOADED_EVENT): {

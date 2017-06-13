@@ -33,7 +33,7 @@ namespace AV {
 #define NIDIUM_AVIO_BUFFER_SIZE 32768
 #define CORO_STACK_SIZE 4096
 /* Audio processing buffer multiplier (must be power of 2) */
-#define NIDIUM_AUDIO_BUFFER_MULTIPLIER 4
+#define NIDIUM_AUDIO_BUFFER_MULTIPLIER 1
 /* Max size for the resampling buffer */
 #define NIDIUM_RESAMPLER_BUFFER_SAMPLES 16384
 

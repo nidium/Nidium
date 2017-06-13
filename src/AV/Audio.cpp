@@ -385,9 +385,11 @@ int Audio::InitPortAudioOutput(AudioParameters *params,
     paOutputParameters.hostApiSpecificStreamInfo = 0; /* no api specific data */
     paOutputParameters.sampleFormat              = paFloat32;
 
+    int outputBufferSize = (params->m_FramesPerBuffer * params->m_Channels)/4;
+
     // Try to open the output
     error = Pa_OpenStream(
-        outputStream, 0, &paOutputParameters, params->m_SampleRate, 0,
+        outputStream, 0, &paOutputParameters, params->m_SampleRate, outputBufferSize,
         paPrimeOutputBuffersUsingStreamCallback, callback, userData);
 
     if (error) {

@@ -1,29 +1,65 @@
 <application>
     <meta>
         <title>nidium</title>
-        <viewport>600x500</viewport>
+        <viewport>375x667</viewport>
         <identifier>com.nidium.app</identifier>
     </meta>
-    <assets>
-        <script>
-            document.canvas.ctx.fillStyle = "#292929";
-            document.canvas.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-            setImmediate(function() {
-                var logo = document.getCanvasById("logo");
-                logo.left = 280;
-                logo.opacity = 0;
+    <component src="embed://framework/components/navbar.nc" />
 
-                AnimationBlock(1500, Easing.Back.Out, function(logo) {
-                    logo.top = 200;
-                    logo.opacity = 1;
-                }, logo);
-            });
+    <nss>
+        bg: {
+            backgroundColor: "rgb(15, 24, 29);",
+            flexDirection: "row",
+            justifyContent: "center",
+        },
 
-        </script>
-    </assets>
+        bgimg: {
+            top: -128,
+            width: 100,
+            height: 100,
+            position: "relative"
+        },
+
+        mainbar: {
+            left: "-100%",
+            backgroundColor: "steelblue"
+        }
+    </nss>
+
     <layout>
-        <img id="logo" left="280" src="embed://resources/logo-white.png" />
+        <view class="bg">
+            <img id="logo" class="bgimg" src="embed://resources/logo-128x128.png" />
+            <navbar id="nav" title="nidium" class="mainbar" />
+        </view>
     </layout>
+
+    <script>
+        var logo = document.getElementById("logo");
+        var nav = document.getElementById("nav");
+
+        setAnimation(
+            (style) => {
+                style.top = 230
+            },
+            3000,
+            Easing.Elastic.Out,
+            logo.style
+        );
+
+        setTimeout(() => {
+            var { left } = nav.getDimensions();
+            nav.left = left;
+
+            setAnimation(
+                (bar) => {
+                    bar.left = 0;
+                },
+                500,
+                Easing.Exponential.Out,
+                nav.style
+            );
+        }, 1000);
+    </script>
 </application>
 

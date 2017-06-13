@@ -23,6 +23,12 @@ bool JSNML::JSStatic_parse(JSContext *cx, JS::CallArgs &args)
 
     JS::RootedObject tree(cx, Frontend::NML::BuildLST(cx, str.ptr()));
 
+    // NML::BuildLST() may throw an exception is case of multiple
+    // properties defined with the same name.
+    if (JS_IsExceptionPending(cx)) {
+        return false;
+    }
+
     args.rval().setObjectOrNull(tree);
 
     return true;

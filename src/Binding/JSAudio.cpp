@@ -66,6 +66,8 @@ bool JSAudio::JS_getContext(JSContext *cx, JS::CallArgs &args)
 
     switch (bufferSize) {
         case 0:
+        case 32:
+        case 64:
         case 128:
         case 256:
         case 512:

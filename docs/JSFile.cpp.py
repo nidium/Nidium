@@ -50,7 +50,7 @@ f.open("w", function(err) {
         ParamDoc( "options", "Options object (encoding)", ObjectDoc([("encoding", "encoding string (e.g. 'utf8')", "string")]), NO_Default, IS_Optional ),
         CallbackDoc( "callback", "Read callback function", [
             ParamDoc( "err", "Error description or `null`", "string", 'null', IS_Obligated),
-            ParamDoc( "buffer", "The filecontent", "string|ArrayBuffer", NO_Default, IS_Obligated)
+            ParamDoc( "buffer", "The file content", "string|ArrayBuffer", NO_Default, IS_Obligated)
         ])
     ],
     ReturnDoc( "FileHandler", "File" )
@@ -179,7 +179,7 @@ f.open("r", function(err) {
         ParamDoc( "bytes", "Number of bytes to read", 'integer', 0, IS_Obligated ),
         CallbackDoc( "callback", "Read callback function", [
             ParamDoc( "err", "Error description", "string", NO_Default, IS_Obligated ),
-            ParamDoc( "buffer", "The filecontent", "string", NO_Default, IS_Obligated)
+            ParamDoc( "buffer", "The file content", "string", NO_Default, IS_Obligated)
         ])
     ],
     NO_Returns
@@ -331,7 +331,7 @@ This method also accept `http` file or any protocol supported by Nidium""",
         ParamDoc( "options", "Options object (encoding)", ObjectDoc([("encoding", "encoding string (e.g. 'utf8')", "string")]), NO_Default, IS_Optional ),
         CallbackDoc( "callback", "Read callback function", [
             ParamDoc( "err", "Error description", "string", NO_Default, IS_Obligated ),
-            ParamDoc( "buffer", "The filecontent", "string", NO_Default, IS_Obligated)
+            ParamDoc( "buffer", "The file content", "string", NO_Default, IS_Obligated)
         ])
     ],
     ReturnDoc( "The file's content", 'string')

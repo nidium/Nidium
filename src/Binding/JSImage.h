@@ -8,7 +8,7 @@
 
 #include "Core/Messages.h"
 #include "IO/Stream.h"
-#include "Binding/ClassMapper.h"
+#include "Binding/ClassMapperWithEvents.h"
 
 using Nidium::Core::Path;
 

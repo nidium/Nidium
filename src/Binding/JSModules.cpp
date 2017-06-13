@@ -24,8 +24,12 @@
 #include "Binding/ThreadLocalContext.h"
 #include "IO/Stream.h"
 
+#ifdef NIDIUM_PRODUCT_FRONTEND
+#include "Frontend/NML.h"
+#endif
+
 #define NIDIUM_MODULES_PATHS_COUNT 2
-#define NIDIUM_MODULES_EXTENSION_COUNT 4
+#define NIDIUM_MODULES_EXTENSION_COUNT 5
 
 using Nidium::IO::Stream;
 using Nidium::Core::Path;
@@ -35,7 +39,7 @@ namespace Nidium {
 namespace Binding {
 
 typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
-static const char *extensions[] = { NULL, ".js", DSO_EXTENSION, ".json" };
+static const char *extensions[] = { NULL, ".js", DSO_EXTENSION, ".json", ".nc" };
 // {{{ Preamble
 #if 0
 #define DPRINT(...) ndm_logf(NDM_LOG_DEBUG, "JSModule", __VA_ARGS__)
@@ -314,7 +318,8 @@ JS::Value JSModule::require(char *name)
         }
 
         if (cmodule->m_ModuleType == JSModule::kModuleType_JSON
-            || cmodule->m_ModuleType == JSModule::kModuleType_JS) {
+            || cmodule->m_ModuleType == JSModule::kModuleType_JS
+            || cmodule->m_ModuleType == JSModule::kModuleType_NidiumComponent) {
             size_t filesize;
             char *data;
 
@@ -336,7 +341,61 @@ JS::Value JSModule::require(char *name)
                 return ret;
             }
 
-            if (cmodule->m_ModuleType == JSModule::kModuleType_JS) {
+            if (cmodule->m_ModuleType == JSModule::kModuleType_NidiumComponent) {
+#ifdef NIDIUM_PRODUCT_FRONTEND
+                JS::RootedValue loader(m_Cx);
+                JS::RootedValue requireVal(m_Cx);
+                JS::RootedObject require(m_Cx);
+
+                JS::RootedObject gbl(m_Cx, JS::CurrentGlobalOrNull(m_Cx));
+                JS::RootedObject expObj(m_Cx, cmodule->m_Exports);
+
+                JS_GetProperty(m_Cx, gbl, "require", &requireVal);
+
+                if (!requireVal.isObject()) {
+                    JS_ReportError(m_Cx, "Invalid environement, require() not available");
+                    return ret;
+                }
+
+                require.set(requireVal.toObjectOrNull());
+
+                if (JS_GetProperty(m_Cx, require, "ComponentLoader", &loader)
+                    && loader.isObject()
+                    && JS::IsCallable(&loader.toObject())) {
+
+                    JS::RootedObject lst(m_Cx);
+                    JS::RootedValue filename(m_Cx);
+                    JS::RootedValue rval(m_Cx);
+                    JS::AutoValueArray<2> args(m_Cx);
+
+                    JSUtils::StrToJsval(m_Cx, m_FilePath->path(), strlen(cmodule->m_FilePath->path()), &filename, "utf-8");
+
+                    lst.set(Frontend::NML::BuildLST(m_Cx, data));
+                    if (!lst || JS_IsExceptionPending(m_Cx)) {
+                        JS_ReportPendingException(m_Cx);
+                        JS_ReportError(m_Cx, "Failed to load component %s", cmodule->m_FilePath->path());
+                        return ret;
+                    }
+
+                    args[0].set(filename);
+                    args[1].setObjectOrNull(lst);
+
+                    if (!JS_CallFunctionValue(m_Cx, expObj, loader, args, &rval)) {
+                        return ret;
+                    }
+
+                    ret.set(rval);
+
+                    return ret;
+                } else {
+                    JS_ReportError(m_Cx, "No ComponentLoader defined.");
+                    return ret;
+                }
+#else
+                JS_ReportError(m_Cx, "Unsupported operation.");
+                return JS::UndefinedValue();
+#endif
+            } else if (cmodule->m_ModuleType == JSModule::kModuleType_JS) {
                 JS::RootedObject expObj(m_Cx, cmodule->m_Exports);
                 JS::CompileOptions options(m_Cx);
                 options.setFileAndLine(cmodule->m_FilePath->path(), 1).setUTF8(true);
@@ -670,6 +729,7 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
             continue;
         }
 
+
         switch (i) {
             case 0: // directory or exact filename
                 module->m_ModuleType = JSModule::kModuleType_JS;
@@ -688,7 +748,7 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
                         return tmp;
                     }
 
-                    for (int j = 1; j < 4; j++) {
+                    for (int j = 1; j < NIDIUM_MODULES_EXTENSION_COUNT; j++) {
                         size_t tmpPos
                             = tmp.find(extensions[j], pos, len - 1 - pos);
                         if (tmpPos != std::string::npos) {
@@ -705,6 +765,10 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
                                     module->m_ModuleType
                                         = JSModule::kModuleType_JSON;
                                     break;
+                                case 4:
+                                    module->m_ModuleType
+                                        = JSModule::kModuleType_NidiumComponent;
+                                    break;
                             }
                             return tmp;
                         }
@@ -719,6 +783,9 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
                 break;
             case 3: // json file
                 module->m_ModuleType = JSModule::kModuleType_JSON;
+                break;
+            case 4: // Nidium component file
+                module->m_ModuleType = JSModule::kModuleType_NidiumComponent;
                 break;
         }
         DPRINT("    [JSModule] FOUND IT");
@@ -737,9 +804,10 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
         dir.erase(len);
         dir += files[i];
 
-        PtrAutoDelete<Stream *> stream(Stream::Create(dir.c_str()));
+        Path p(dir.c_str());
+        PtrAutoDelete<Stream *> stream(Stream::Create(p.path()));
 
-        if (!stream.ptr()->exists()) continue;
+        if (!stream.ptr() || !stream.ptr()->exists()) continue;
 
         switch (i) {
             case 0: // index.js

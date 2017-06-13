@@ -37,6 +37,8 @@
 #include "Binding/JSDB.h"
 #include "Binding/JSOS.h"
 #include "Binding/JSVM.h"
+#include "Binding/JSEvents.h"
+
 #ifdef __ANDROID__
 #include "Binding/JSKeyboard.h"
 #endif
@@ -780,6 +782,7 @@ void NidiumJS::loadGlobalObjects()
     JSDB::RegisterObject(m_Cx);
     JSOS::RegisterObject(m_Cx);
     JSVM::RegisterObject(m_Cx);
+    JSEvent::RegisterObject(m_Cx);
 #ifdef __ANDROID__
     JSKeyboard::RegisterObject(m_Cx);
 #endif

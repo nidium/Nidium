@@ -7,8 +7,8 @@
 #define binding_jswindow_h__
 
 #include "Frontend/NML.h"
+#include "Binding/ClassMapperWithEvents.h"
 #include "Frontend/InputHandler.h"
-#include "Binding/ClassMapper.h"
 #include "Binding/JSGlobal.h"
 
 namespace Nidium {
@@ -24,7 +24,7 @@ public:
 
     JSWindow(NidiumJS *njs)
         : m_RequestedFrame(NULL),
-          m_Handler(NULL), m_Dragging(false){};
+          m_Dragging(false){};
 
     virtual ~JSWindow();
 
@@ -66,15 +66,17 @@ public:
     void textInput(const char *data);
     void textEdit(const char *data);
     void keyupdown(int keycode, int mod, int state, int repeat, int location);
+
+    void onKeyUpDown(int keyCode, int location, int mod, bool repeat, bool isUpKey);
+    void onKeyPress(const char *c);
+    void onCompositionStart();
+    void onCompositionUpdate(const char *data);
+    void onCompositionEnd();
+
     void addFrameCallback(JS::MutableHandleValue cb);
     void callFrameCallbacks(double ts, bool garbage = false);
 
     void initDataBase();
-
-    Graphics::CanvasHandler *getCanvasHandler() const
-    {
-        return m_Handler;
-    }
 
     static JSWindow *
     RegisterObject(JSContext *cx, int width, int height, JS::HandleObject doc);
@@ -111,8 +113,6 @@ protected:
 private:
     bool dragEvent(const char *name, int x, int y);
 
-    void createMainCanvas(int width, int height, JS::HandleObject docObj);
-
     struct _requestedFrame
     {
         JS::PersistentRootedValue m_Cb;
@@ -122,8 +122,6 @@ private:
             m_Next = NULL;
         }
     } * m_RequestedFrame;
-
-    Graphics::CanvasHandler *m_Handler;
 
     bool m_Dragging;
     JS::Heap<JSObject *> m_DraggedFiles;

@@ -11,6 +11,7 @@
 
 #include <SkDevice.h>
 #include <GrContext.h>
+#include <memory>
 
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSImageData.h"
@@ -21,6 +22,7 @@
 #include "Graphics/Gradient.h"
 #include "Graphics/GLHeader.h"
 #include "Graphics/SkiaContext.h"
+#include "Graphics/GLHeader.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSDocument.h"
 #include "Binding/JSImage.h"
@@ -157,7 +159,7 @@ bool JSCanvasGLProgram::JS_uniform1i(JSContext *cx, JS::CallArgs &args)
     }
 
     AutoGLProgram autoProg(m_Program);
-    
+
     NIDIUM_GL_CALL_MAIN(Uniform1i(location, val));
 
     return true;
@@ -1867,6 +1869,9 @@ Canvas2DContext::Canvas2DContext(CanvasHandler *handler,
     height = nidium_max(height, 1);
 
     m_Skia = SkiaContext::CreateWithTextureBackend(ui->getNidiumContext(), width, height);
+    m_Skia->set2dContext(this);
+
+    assert(m_Skia != nullptr);
 
     /* Vertex buffers were unbound by parent constructor */
     m_Skia->resetGrBackendContext(kVertex_GrGLBackendState);
@@ -1890,6 +1895,12 @@ Canvas2DContext::Canvas2DContext(
         m_Skia = SkiaContext::CreateWithTextureBackend(ui->getNidiumContext(), width, height);
     }
 
+    m_Skia->set2dContext(this);
+
+    assert(m_Skia != nullptr);
+    if (m_Skia == nullptr) {
+        nlogf("ERROR");
+    }
     /* Vertex buffers were unbound by parent constructor */
     m_Skia->resetGrBackendContext(kVertex_GrGLBackendState);
 }
@@ -1916,12 +1927,50 @@ uint8_t *Canvas2DContext::getPixels()
 #endif
 }
 
+void Canvas2DContext::markFrame(uint64_t frame)
+{
+    if (m_Skia) {
+        m_Skia->mark(frame);
+    }
+}
+
+void Canvas2DContext::contextIsGone()
+{
+    if (m_Handler) {
+        m_Handler->contextLost();
+    }
+}
+
 Canvas2DContext::~Canvas2DContext()
 {
     if (m_Skia) {
         delete m_Skia;
     }
 }
+
+#if 0
+Canvas2DContext *Canvas2DContext::UnWrap(void *ptr)
+{
+    if (!ptr) {
+        return nullptr;
+    }
+
+    auto sptr = (std::shared_ptr<Canvas2DContext> *)ptr;
+
+    return sptr->get();
+}
+
+void *Canvas2DContext::Wrap(Canvas2DContext *obj)
+{
+    return new std::shared_ptr<Canvas2DContext>(obj);
+}
+
+void Canvas2DContext::Delete(void *ptr)
+{
+    delete (std::shared_ptr<Canvas2DContext> *)ptr;
+}
+#endif
+
 // }}}
 
 // {{{ JSGradient
