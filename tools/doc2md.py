@@ -77,6 +77,8 @@ def parseMethod(method, isEvent=False):
                                     "new " if method["is_constructor"] else "",
                                     method["name"],
                                     fnArgs)
+        if method["is_slow"]:
+            out += "<!-- YAML\n- Slow method\n-->"
 
     out += method["description"] + "\n"
 
@@ -102,7 +104,7 @@ def parseProperty(prop):
     out += "\n## %s%s%s%s (%s)\n" % ("`static` " if prop["is_static"] else "",
                               "`readonly` " if prop["is_readonly"] else "",
                               prop["name"],
-                  "=" + prop["default"] if prop["default"] != "None" else "",
+                              "=" + prop["default"] if prop["default"] != "None" else "",
                               parseParamsType(prop["typed"]))
 
     out += prop["description"] + "\n"
