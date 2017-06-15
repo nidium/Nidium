@@ -4,6 +4,10 @@ description: What is nidium
 
 ## What is nidium?
 
+_tl;dr;_  
+_nidium helps you build mobile applications using JavaScript. You write your application once, it then works on Android and iOS._
+
+
 nidium is a complete ecosystem for building modern mobile applications using web technologies.  
 In practice, this means that you write your mobile application using **modern JavaScript** and **markup language**.
 
@@ -14,7 +18,7 @@ Related topic : [Reinventing the weel]
 
 ## What problems is nidium trying to solve?
 
-nidium aims to expose an easily hackable environment for app developers. We designed the whole thing to be as close as possible to app development using web technologies.
+nidium aims to expose an easily hackable environment for app developers.
 
 With nidium, you can experiment without being dependent to blink or webkit, like Electron is for example. Moreover, nidium’s footprint is small (about 20 MB statically linked with all dependencies and it typically consumes just a few megabytes of virtual memory).
 

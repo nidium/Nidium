@@ -3,6 +3,7 @@
     "folder": "getting-started",
     "pages": [
         {"file": "introduction", "title": "Introduction"},
+        {"file": "hello-world", "title": "Hello World"},
         {"file": "installing", "title": "Installing"}
     ]
 },
@@ -18,7 +19,8 @@
     "folder": "misc",
     "pages": [
         {"file": "reinventing-the-wheel", "title": "Reinventing the wheel"},
-        {"file": "contributing", "title": "Contributing"}
+        {"file": "contributing", "title": "Contributing"},
+        {"file": "building", "title": "Building from the sources"}
     ]
 },
 {
