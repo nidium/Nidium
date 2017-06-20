@@ -189,6 +189,9 @@ def libzip():
     if Konstruct.config("android"):
         configureArgs = " --host=%s" % (Variables.get("targetTriplet"))
         env.update(Variables.get("androidEnvClang"))
+    if Konstruct.config("ios", "tvos"):
+        configureArgs = " --host=%s" % (Variables.get("targetTriplet"))
+        env.update(Variables.get("appleSDKEnv"))
 
     return {
         "location": "http://www.nih.at/libzip/libzip-1.1.2.tar.gz",
