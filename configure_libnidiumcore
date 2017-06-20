@@ -19,19 +19,12 @@ from konstructor import Log
 from konstructor import ROOT, OUTPUT
 
 Deps.set(
-    "mozilla-central",
+    #"mozilla-central",
     "leveldb",
     "http-parser",
     "jsoncpp",
     Deps.Konstruct("network", "src/libapenetwork/configure")
 )
-
-if Platform.system == "Darwin":
-    Platform.setEnviron("CXXFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
-    Platform.setEnviron("CPPFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
-    # Some third-party librairires (skia, angle, mozilla-central)
-    # produce binaries. So we need to set LDFLAGS too.
-    Platform.setEnviron("LDFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
 CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -39,6 +32,10 @@ Gyp = Builder.Gyp
 
 @Deps.register("leveldb")
 def leveldb():
+    if Konstruct.config("ios", "tvos"):
+        # Skip leveldb for now on iOS/tvOS
+        return {}
+
     cxxFlags = os.environ.get("CXXFLAGS", "")
     env = Utils.Env()
 
@@ -50,6 +47,9 @@ def leveldb():
     if Konstruct.config("android"):
         env.update(Variables.get("androidEnvClang"))
         env.set("TARGET_OS", "OS_ANDROID_CROSSCOMPILE")
+    elif Konstruct.config("ios", "tvos"):
+        env.update(Variables.get("appleSDKEnv"))
+        env.set("TARGET_OS", "IOS")
 
     return {
         "location": Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.18"),
@@ -67,6 +67,7 @@ def mozilla():
     configure = "../configure\
             --disable-shared-js\
             --disable-jemalloc\
+            --disable-tests\
             --enable-nspr-build \
             --enable-ctypes"
 
@@ -83,6 +84,26 @@ def mozilla():
         ])
         env.update(Variables.get("androidEnvGcc"))
         env.set("ANDROID_CPU_ARCH", "armeabi-v7a")
+    elif Konstruct.config("ios", "tvos"):
+        print(env.toDict())
+        #env.update(Variables.get("appleSDKEnv"))
+        #env.set("CFLAGS", Variables.get("appleSDKEnv").get("CFLAGS"))
+        #env.set("CXXFLAGS", Variables.get("appleSDKEnv").get("CXXFLAGS"))
+        #env.set("CPPFLAGS", Variables.get("appleSDKEnv").get("CPPFLAGS"))
+        #env.append("CFLAGS", "-mappletvos-version-min=10.2")
+        #env.append("CXXFLAGS", "-mappletvos-version-min=10.2")
+        configure += " " + " ".join([
+            "--with-ios-sdk=%s" % (Variables.get("appleSDK")),
+            "--with-ios-target=%s" % (Variables.get("appleSDKMinVersion")),
+            "--without-intl-api", # Not supported on iOS
+            "--with-macos-sdk=/Applications/Xcode.app/Contents/Developer/Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS10.2.sdk", # Used by NSPR
+            "--disable-macos-target",
+            "--disable-ion --disable-jm --disable-tm --disable-methodjit", # Disable all JIT stuff
+            "--host=%s" % ("x86_64-apple-darwin"),
+            "--build=%s" % ("x86_64-apple-darwin"),
+            "--target=%s" % ("aarch64-apple-darwin"),
+            "--with-thumb=yes"
+        ])
 
     if Konstruct.config("debug", "valgring"):
         configure += " --enable-debug --disable-optimize"
@@ -102,8 +123,11 @@ def mozilla():
 @Deps.register("http-parser")
 def httpParser():
     env = Utils.Env()
+
     if Konstruct.config("android"):
         env.update(Variables.get("androidEnvClang"))
+    elif Konstruct.config("ios", "tvos"):
+        env.update(Variables.get("appleSDKEnv"))
 
     return {
         "location": Deps.GitRepo("https://github.com/nodejs/http-parser.git", tag="v2.6.2"),
@@ -185,6 +209,13 @@ def autoTestStudio(autoTests):
     @Konstruct.hook("postBuild")
     def runNidiumAutoTests(success):
         Tests.runTest(success)
+
+@CommandLine.option("--ios")
+def ios(ios):
+    if not ios:
+        return
+
+    Gyp.set("nidium_leveldb", 0);
 
 if __name__ == '__main__':
     if not Builder.Gyp._defines.has_key('nidium_version'):
