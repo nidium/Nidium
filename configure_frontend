@@ -75,6 +75,9 @@ def zitaresampler():
 
 @Deps.register("giflib")
 def giflib():
+    if Konstruct.config("ios", "tvos"):
+        return {}
+
     # skdiff is used during unit-tests and it needs libgif.so.4
     Platform.setEnviron("LD_LIBRARY_PATH=%s:%s/giflib/lib/.libs/" % (Platform.getEnviron("LD_LIBRARY_PATH", ""), os.getcwd()))
 
@@ -100,6 +103,7 @@ def giflib():
 def skia():
     env = Utils.Env()
     build = []
+    patchs = []
     outputPath = None
     outputs = []
     args = {
@@ -110,13 +114,12 @@ def skia():
             "-DGR_GL_CUSTOM_SETUP_HEADER=<../../../../../patch/skia_gl_config.h>"
         ],
         "is_official_build": True,
-        "cc": Platform.getEnviron("CC"),
-        "cxx": Platform.getEnviron("CXX")
+        "cc": env.get("CC"),
+        "cxx": env.get("CXX")
     }
 
-    if Platform.system == "Darwin":
-        args["extra_cflags_cc"].append("-stdlib=libc++")
-        args["extra_ldflags"] = ["-stdlib=libc++"]
+    args["extra_cflags_cc"] += env.get("CXXFLAGS").split(" ")
+    args["extra_ldflags"] = env.get("LDFLAGS").split(" ")
 
     # Add depot_tools to path needed for skia
     Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
@@ -133,6 +136,20 @@ def skia():
 
         args["ndk"] = Variables.get("androidNdkPath")
         args["target_cpu"] = Variables.get("targetArch")
+        patchs.append(os.path.join(CONFIGURE_PATH, "patch", "skia_android.patch"))
+    elif Konstruct.config("ios"):
+        args["target_os"] = "ios"
+    elif Konstruct.config("tvos"):
+        args["target_os"] = "tvos"
+
+        def cherryPickTVOS():
+            # Check if the change-id of commit 7a5e0f3 exists
+            # in git log to know if we need to cherry-pick or
+            # not the commits for tvOS support
+            if Utils.run("git log | grep I4b33770f13ab9dec914d090b45d9921b19ee2c9d", failExit=False, returnOutput=True)[0] != 0:
+                Utils.run("git cherry-pick 7a5e0f3 3150ec6")
+
+        build.append(cherryPickTVOS)
 
     skiaArgs = ""
     for k, v in args.items():
@@ -144,16 +161,15 @@ def skia():
 
     return {
         "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", revision="98829b9"),
-        "build": [
+        "build": build + [
             "python tools/git-sync-deps",
             "bin/gn gen out/Static --args='%s'" % (skiaArgs),
             "sed -i.bak '/simpleperf/d' out/Static/build.ninja",
             "ninja -C out/Static",
         ],
-        "patchs": [
+        "patchs": patchs + [
             os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
             os.path.join(CONFIGURE_PATH, "patch", "skia_gr_gl_callback.patch"),
-            os.path.join(CONFIGURE_PATH, "patch", "skia_android.patch")
         ],
         "outputs": [
             "out/Static/libskia.a",
