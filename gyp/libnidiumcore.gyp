@@ -17,6 +17,21 @@
                 '<(third_party_path)/rapidxml',
                 '../src/',
             ],
+            'conditions': [
+                ['nidium_leveldb==1', {
+                    'include_dirs': [
+                        '<(third_party_path)/leveldb/include/',
+                    ],
+                    'sources': [
+                        '<(nidium_src_path)/Binding/JSAV.cpp',
+                        '<(nidium_src_path)/Binding/JSAudio.cpp',
+                        '<(nidium_src_path)/Binding/JSAudioContext.cpp',
+                        '<(nidium_src_path)/Binding/JSAudioNode.cpp',
+                        '<(nidium_src_path)/Binding/JSVideo.cpp',
+                    ],
+                    'defines': [ 'NDM_LEVELDB_ENABLED' ],
+                }],
+            ],
             'defines': [
                 #'_FILE_OFFSET_BITS=64',
                 '__STDC_LIMIT_MACROS',
@@ -155,14 +170,12 @@
             '../src/Binding/JSStream.cpp',
             '../src/Binding/JSWebSocket.cpp',
             '../src/Binding/JSWebSocketClient.cpp',
-            '../src/Binding/JSDB.cpp',
             '../src/Binding/JSOS.cpp',
             '../src/Binding/JSVM.cpp',
 
             '../src/Core/SharedMessages.cpp',
             '../src/Core/Utils.cpp',
             '../src/Core/Messages.cpp',
-            '../src/Core/DB.cpp',
             '../src/Core/TaskManager.cpp',
             '../src/Core/Path.cpp',
             '../src/Core/Context.cpp',
@@ -172,6 +185,14 @@
             '../src/IO/FileStream.cpp',
             '../src/IO/NFSStream.cpp',
             '../src/IO/NFS.cpp',
+        ],
+        'conditions': [
+            ['nidium_leveldb==1', {
+                'sources': [
+                    '<(nidium_src_path)/Binding/JSDB.cpp',
+                    '<(nidium_src_path)/Binding/DB.cpp',
+                ],
+            }],
         ],
     }],
 }

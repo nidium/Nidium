@@ -34,7 +34,9 @@
 #include "Binding/JSFS.h"
 #include "Binding/JSDebugger.h"
 #include "Binding/JSGlobal.h"
+#ifdef NDM_LEVELDB_ENABLED
 #include "Binding/JSDB.h"
+#endif
 #include "Binding/JSOS.h"
 #include "Binding/JSVM.h"
 #include "Binding/JSEvents.h"
@@ -779,7 +781,9 @@ void NidiumJS::loadGlobalObjects()
     JSFS::RegisterObject(m_Cx);
     JSDebug::RegisterObject(m_Cx);
     JSDebuggerCompartment::RegisterObject(m_Cx);
+#ifdef NDM_LEVELDB_ENABLED
     JSDB::RegisterObject(m_Cx);
+#endif
     JSOS::RegisterObject(m_Cx);
     JSVM::RegisterObject(m_Cx);
     JSEvent::RegisterObject(m_Cx);
