@@ -225,6 +225,11 @@ def angle():
         env.update(Variables.get("androidEnvClang"))
         # Regenerate gyp files for android
         buildSteps.insert(2, "python build/gyp_angle -Dis_android=1")
+    elif Konstruct.config("ios", "tvos"):
+        env.update(Variables.get("appleSDKEnv"))
+        # Update gyp file to enable cross-compiling
+        with Utils.Chdir("angle"):
+            Utils.run("sed -i.bak -e \"s/'CLANG_CXX_LANGUAGE_STANDARD': 'c++11',$/'CLANG_CXX_LANGUAGE_STANDARD': 'c++11','ARCHS': ['%s']/\" build/common.gypi" % (Variables.get("targetCpu")))
 
     return {
         "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785"),
