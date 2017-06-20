@@ -279,6 +279,13 @@ def SDL2():
             "location": location,
             "patchs": [os.path.join(CONFIGURE_PATH, "patch", "SDL2_android.patch")],
         }
+    elif Konstruct.config("ios", "tvos"):
+        return {
+            "location": location,
+            "chdir": "",
+            "build": ["xcodebuild ARCHS=%s -project Xcode-iOS/SDL/SDL.xcodeproj -sdk %s" % (Variables.get("targetCpu"), Variables.get("appleSDK"))],
+            "outputs": ["Xcode-iOS/SDL/build/Release-appletvos/libSDL2.a"]
+        }
     else:
         return {
             "location": location,
