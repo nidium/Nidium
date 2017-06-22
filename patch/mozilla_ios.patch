@@ -1,0 +1,106 @@
+# This patchs fix various issues related to building NSPR & SpiderMonkey for iOS/tvOS
+# - Disable JSShell as it use some functions not allowed on iOS/tvOS (fork & co)j
+# - Disable sharkctl as it use some functions not allowed on iOS/tvOS (task_get_special_port)
+# - Force arm64 for nspr build (there is no support for arm64 detection in NSPR configure script)
+# - Remove linked frameworks for NSPR (not needed for iOS/tvOS)
+# - Disable some function from NSPR : 
+#   - ForkAndExec() (fork() is not allowed)
+#   - PR_GetPhysicalMemorySize() (host_info() is not allowed)
+diff -aur mozilla-central/js/src/moz.build mozilla-central/js/src/moz.build
+--- mozilla-central/js/src/moz.build	2016-11-02 14:11:13.000000000 +0100
++++ mozilla-central/js/src/moz.build	2017-06-22 16:21:50.000000000 +0200
+@@ -53,10 +53,6 @@
+ if CONFIG['JS_BUNDLED_EDITLINE']:
+     DIRS += ['editline']
+ 
+-# editline needs to get built before the shell
+-if not CONFIG['JS_DISABLE_SHELL']:
+-    DIRS += ['shell']
+-
+ TEST_DIRS += ['jsapi-tests', 'tests', 'gdb']
+ 
+ CONFIGURE_SUBST_FILES += [
+@@ -163,7 +159,7 @@
+     'builtin/TypedObject.cpp',
+     'builtin/WeakMapObject.cpp',
+     'builtin/WeakSetObject.cpp',
+-    'devtools/sharkctl.cpp',
++    #'devtools/sharkctl.cpp',
+     'ds/LifoAlloc.cpp',
+     'frontend/BytecodeCompiler.cpp',
+     'frontend/BytecodeEmitter.cpp',
+diff -aur mozilla-central/nsprpub/configure mozilla-central/nsprpub/configure
+--- mozilla-central/nsprpub/configure	2016-11-02 14:11:13.000000000 +0100
++++ mozilla-central/nsprpub/configure	2017-06-22 16:21:50.000000000 +0200
+@@ -30,7 +30,6 @@
+ esac
+ fi
+ 
+-
+ as_nl='
+ '
+ export as_nl
+@@ -6538,7 +6537,7 @@
+             fi
+             ;;
+         *)
+-            CPU_ARCH=ppc
++            CPU_ARCH=arm64
+             ;;
+     esac
+     if test "`echo $CC | grep -c '\-arch '`" = "0"; then
+Only in mozilla-central/nsprpub: obj
+diff -aur mozilla-central/nsprpub/pr/src/Makefile.in mozilla-central/nsprpub/pr/src/Makefile.in
+--- mozilla-central/nsprpub/pr/src/Makefile.in	2016-11-02 14:11:13.000000000 +0100
++++ mozilla-central/nsprpub/pr/src/Makefile.in	2017-06-22 16:21:50.000000000 +0200
+@@ -179,9 +179,9 @@
+ OS_LIBS		+= -llog
+ endif
+ 
+-ifeq ($(OS_TARGET),MacOSX)
+-OS_LIBS		= -framework CoreServices -framework CoreFoundation
+-endif
++#ifeq ($(OS_TARGET),MacOSX)
++#OS_LIBS		= -framework CoreServices -framework CoreFoundation
++#endif
+ 
+ EXTRA_LIBS += $(OS_LIBS)
+ 
+diff -aur mozilla-central/nsprpub/pr/src/md/unix/uxproces.c mozilla-central/nsprpub/pr/src/md/unix/uxproces.c
+--- mozilla-central/nsprpub/pr/src/md/unix/uxproces.c	2016-11-02 14:11:13.000000000 +0100
++++ mozilla-central/nsprpub/pr/src/md/unix/uxproces.c	2017-06-22 16:21:50.000000000 +0200
+@@ -137,6 +137,8 @@
+     char *const *envp,
+     const PRProcessAttr *attr)
+ {
++    return NULL;
++#if 0
+     PRProcess *process;
+     int nEnv, idx;
+     char *const *childEnvp;
+@@ -333,6 +335,7 @@
+     PR_Unlock(pr_wp.ml);
+ #endif
+     return process;
++#endif
+ }
+ 
+ #ifdef _PR_SHARE_CLONES
+diff -aur mozilla-central/nsprpub/pr/src/misc/prsystem.c mozilla-central/nsprpub/pr/src/misc/prsystem.c
+--- mozilla-central/nsprpub/pr/src/misc/prsystem.c	2016-11-02 14:11:13.000000000 +0100
++++ mozilla-central/nsprpub/pr/src/misc/prsystem.c	2017-06-22 16:21:50.000000000 +0200
+@@ -266,6 +266,8 @@
+ */
+ PR_IMPLEMENT(PRUint64) PR_GetPhysicalMemorySize(void)
+ {
++    return 0;
++#if 0
+     PRUint64 bytes = 0;
+ 
+ #if defined(LINUX) || defined(SOLARIS)
+@@ -354,4 +356,5 @@
+ #endif
+ 
+     return bytes;
++#endif
+ } /* end PR_GetPhysicalMemorySize() */

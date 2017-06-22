@@ -19,7 +19,8 @@ from konstructor import Log
 from konstructor import ROOT, OUTPUT
 
 Deps.set(
-    #"mozilla-central",
+    "nspr",
+    "mozilla-central",
     "leveldb",
     "http-parser",
     "jsoncpp",
@@ -60,9 +61,60 @@ def leveldb():
         "outputs": ["libleveldb(.a|.lib)"]
     }
 
+@Deps.register("nspr")
+def nspr():
+    if not Konstruct.config("ios", "tvos"):
+        # Other configuration are built straight from
+        # spidermonkey configure script
+        return {}
+
+    appleEnv = Variables.get("appleSDKEnv")
+    env = Utils.Env()
+
+    env.set("HOST_CC", "clang")
+    env.set("HOST_CXX", "clang++")
+    # Set empty HOST_XXXX flags otherwise they inherit from target cflags
+    env.set("HOST_CFLAGS", " ")
+    env.set("HOST_LDFLAGS", " ")
+    env.set("HOST_CXXFLAGS", " ")
+    env.set("HOST_CPPFLAGS", " ")
+    # There are no HOST_CPPFLAGS so set them to an empty string to make sure this doesn't brake host compiler
+    env.set("CPPFLAGS", " ")
+
+    # Since we are cross-compiling we need to provide the name of various utilities
+    env.set("AR", "ar")
+    env.set("RANLIB", "ranlib")
+    env.set("STRIP", "strip")
+
+    # Set iOS/tvOS SDK and version
+    env.set("CFLAGS", appleEnv.get("CFLAGS") + " -mappletvos-version-min=10.2")
+    env.set("CXXFLAGS",appleEnv.get("CXXFLAGS") + " -mappletvos-version-min=10.2")
+    env.set("LDFLAGS", appleEnv.get("CXXFLAGS") + " -mappletvos-version-min=10.2")
+
+    env.set("NSPR_CFLAGS", "-I%s/mozilla-central/nsprpub/obj/dist/include/nspr/" % os.getcwd())
+
+    # Store the environement, so spidermonkey build can re-use it
+    Variables.set("mozillaAppleEnv", env);
+
+    build = [
+        "../configure --disable-nspr-threads --disable-debug --enable-optimize --target=%s --host=x86_64-apple-darwin --enable-64bit" % (Variables.get("targetTriplet")),
+        "make"
+    ]
+
+    return {
+        "chdir": "mozilla-central/nsprpub/obj/",
+        "build": build,
+        "env": env,
+        "outputs": ["dist/lib/lib(plc|plds|nspr)4(.a)"],
+        "patchs":  [os.path.join(CONFIGURE_PATH, "patch", "mozilla_ios.patch")]
+    }
+
 @Deps.register("mozilla-central")
 def mozilla():
     env = Utils.Env()
+    build = []
+    patchs = []
+    outputs = ["mozglue/build/libmozglue.a$", "dist/lib/libnspr4.a$", "js/src/libjs_static.a$", "js/src/js-config.h$"]
 
     configure = "../configure\
             --disable-shared-js\
@@ -70,7 +122,6 @@ def mozilla():
             --disable-tests\
             --enable-nspr-build \
             --enable-ctypes"
-
 
     if Konstruct.config("android"):
         configure += " " + " ".join([
@@ -84,24 +135,25 @@ def mozilla():
         ])
         env.update(Variables.get("androidEnvGcc"))
         env.set("ANDROID_CPU_ARCH", "armeabi-v7a")
+        patchs.append(os.path.join(CONFIGURE_PATH, "patch", "mozilla_android.patch"))
     elif Konstruct.config("ios", "tvos"):
-        print(env.toDict())
-        #env.update(Variables.get("appleSDKEnv"))
-        #env.set("CFLAGS", Variables.get("appleSDKEnv").get("CFLAGS"))
-        #env.set("CXXFLAGS", Variables.get("appleSDKEnv").get("CXXFLAGS"))
-        #env.set("CPPFLAGS", Variables.get("appleSDKEnv").get("CPPFLAGS"))
-        #env.append("CFLAGS", "-mappletvos-version-min=10.2")
-        #env.append("CXXFLAGS", "-mappletvos-version-min=10.2")
+        # XXX : We are not using spidermonkey --with-ios-sdk
+        # and --with-ios-target as the configure script does
+        # not handle appleTV and arm64
+        env = Variables.get("mozillaAppleEnv")
+
+        # We are building for ios
+        env.set("MOZ_IOS", "1")
+
+        # Remove nspr from outputs as it's build in a standalone way
+        outputs.remove("dist/lib/libnspr4.a$")
+
         configure += " " + " ".join([
-            "--with-ios-sdk=%s" % (Variables.get("appleSDK")),
-            "--with-ios-target=%s" % (Variables.get("appleSDKMinVersion")),
             "--without-intl-api", # Not supported on iOS
-            "--with-macos-sdk=/Applications/Xcode.app/Contents/Developer/Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS10.2.sdk", # Used by NSPR
-            "--disable-macos-target",
             "--disable-ion --disable-jm --disable-tm --disable-methodjit", # Disable all JIT stuff
-            "--host=%s" % ("x86_64-apple-darwin"),
-            "--build=%s" % ("x86_64-apple-darwin"),
-            "--target=%s" % ("aarch64-apple-darwin"),
+            "--disable-nspr-build", # Already built in a standalone way
+            "--with-nspr-cflags=\"%s\"" % (env.get("NSPR_CFLAGS")),
+            "--target=%s" % (Variables.get("targetTriplet")),
             "--with-thumb=yes"
         ])
 
@@ -114,10 +166,10 @@ def mozilla():
     return {
         "chdir": "js/src/obj",
         "location": DEPEDENCY_REPO + "/mozjs-45.5.3.tar.bz2",
-        "build": [configure, "make"],
+        "build": build + [configure, "make"],
         "env": env,
-        "outputs": ["mozglue/build/libmozglue.a$", "dist/lib/libnspr4.a$", "js/src/libjs_static.a$", "js/src/js-config.h$"],
-        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "mozilla_android.patch")],
+        "outputs": outputs,
+        "patchs": patchs,
     }
 
 @Deps.register("http-parser")
