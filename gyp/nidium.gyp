@@ -161,6 +161,43 @@
                     }
                 ]
             }],
+            ['target_os=="ios" or target_os=="tvos"', {
+                "link_settings": {
+                    'libraries': [
+                        '$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
+                        # On OSX if libjs_static.a is linked after libskia.a there is
+                        # an issue with duplicate symbols (seems like gyp does not respect
+                        # the link order)
+                        'libjs_static.a',
+                        'libskia.a',
+                        'libtranslator.a',
+                        'libtranslator_lib.a',
+                        'libpreprocessor.a',
+                        'libangle_common.a',
+                        'libSDL2.a',
+                        'libzip.a',
+                        '/usr/lib/libbz2.dylib',
+                        '/usr/lib/libz.dylib',
+                        'libiconv.dylib'
+                    ],
+
+                },
+                "xcode_settings": {
+                    'LD_RUNPATH_SEARCH_PATHS': [
+                        '@loader_path/../Frameworks'
+                    ],
+                    'CODE_SIGN_IDENTITY': 'iPhone Developer',
+                    'PROVISIONING_PROFILE': '',
+                    'PRODUCT_BUNDLE_IDENTIFIER': 'com.nidium.ios',
+                    'DEVELOPMENT_TEAM': '',
+                },
+                'include_dirs': [
+                    '<(nidium_interface_path)/ios/',
+                ],
+                'sources': [
+                    '<(nidium_app_path)/ios/main.cpp',
+                ],
+            }],
         ],
     }]
 }

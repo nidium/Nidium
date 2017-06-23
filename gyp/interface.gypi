@@ -27,6 +27,12 @@
                 '<(nidium_interface_path)/osx/DragNSView.mm',
             ],
         }],
+
+        ['target_os=="ios" or target_os=="tvos"', {
+            'sources': [
+                '<(nidium_interface_path)/iOS/IOSUIInterface.cpp',
+            ],
+        }],
         ['target_os=="linux"', {
             'sources': [
                 '<(nidium_interface_path)/linux/X11UIInterface.cpp',
