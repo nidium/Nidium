@@ -12,25 +12,9 @@
                 '<(third_party_path)/mozilla-central/js/src/',
                 '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
                 '<(third_party_path)/http-parser/',
-                '<(third_party_path)/leveldb/include/',
                 '<(third_party_path)/jsoncpp/dist',
                 '<(third_party_path)/rapidxml',
                 '../src/',
-            ],
-            'conditions': [
-                ['nidium_leveldb==1', {
-                    'include_dirs': [
-                        '<(third_party_path)/leveldb/include/',
-                    ],
-                    'sources': [
-                        '<(nidium_src_path)/Binding/JSAV.cpp',
-                        '<(nidium_src_path)/Binding/JSAudio.cpp',
-                        '<(nidium_src_path)/Binding/JSAudioContext.cpp',
-                        '<(nidium_src_path)/Binding/JSAudioNode.cpp',
-                        '<(nidium_src_path)/Binding/JSVideo.cpp',
-                    ],
-                    'defines': [ 'NDM_LEVELDB_ENABLED' ],
-                }],
             ],
             'defines': [
                 #'_FILE_OFFSET_BITS=64',
@@ -79,8 +63,24 @@
                     '<(third_party_path)/skia/include/core/',
                     '<(third_party_path)/skia/include/config/',
                 ]}],
-            ],
-            }
+                ['nidium_leveldb==1', {
+                    'include_dirs': [
+                        '<(third_party_path)/leveldb/include/',
+                    ],
+                    'defines': [ 'NDM_LEVELDB_ENABLED' ],
+                }],
+                ['nidium_js_disable_window_global==1', {
+                    'defines':[
+                        'NIDIUM_DISABLE_WINDOW_GLOBAL'
+                    ],
+                }],
+                ["target_os=='tvos' or target_os=='mac' or target_os=='ios'", {
+                    "defines": ['DSO_EXTENSION=".dylib"'],
+                }],
+                ['target_os=="linux" or target_os=="android"', {
+                    'defines': ['DSO_EXTENSION=".so"']
+                }],
+            ]},
         }, {
         'target_name': 'libnidiumcore-link',
         'type': 'none',
@@ -122,24 +122,6 @@
         'dependencies': [
             '<(nidium_network_path)/gyp/network.gyp:*',
             'libnidiumcore.gyp:libnidiumcore-includes',
-        ],
-        'conditions': [
-            ['target_os=="mac"', {
-                'defines': [
-                    'DSO_EXTENSION=".dylib"'
-                ],
-            }],
-            ['target_os=="linux" or target_os=="android"', {
-                'defines': [
-                    'DSO_EXTENSION=".so"'
-                ]
-            }],
-            ['nidium_js_disable_window_global==1', {
-                'defines':[
-                    'NIDIUM_DISABLE_WINDOW_GLOBAL'
-                ],
-            }]
-
         ],
         'sources': [
             '<(third_party_path)/jsoncpp/dist/jsoncpp.cpp',

@@ -48,7 +48,6 @@
         'asan%': 0,
         'jemalloc%': 0,
         'profiler%': 0,
-        'target_os%': '<(OS)',
         'mac_deployment_target': '10.7',
         'mac_sdk_version%': '10.11',
 
