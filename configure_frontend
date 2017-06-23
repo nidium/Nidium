@@ -519,14 +519,15 @@ def debug(debug):
 
 Build.add(Gyp("gyp/all.gyp"));
 
-# Temporary disable nidium audio and video for iOS/tvOS
 @CommandLine.option("--ios")
 @CommandLine.option("--tvos")
 def ios(ios, tvos):
     if not ios and not tvos:
         return
 
+    # Temporary disable nidium audio and video for iOS/tvOS
     Gyp.set("nidium_audio", 0);
+    Gyp.set("nidium_opengles2", 1)
 
 @Konstruct.hook("start")
 def setDependencies():

@@ -6,14 +6,15 @@
 #ifndef graphics_openglheader_h__
 #define graphics_openglheader_h__
 
-#if __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glext.h>
-#elif NIDIUM_OPENGLES2
+#if NIDIUM_OPENGLES2
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #include <EGL/egl.h>
 #define GL_DEPTH24_STENCIL8 GL_DEPTH24_STENCIL8_OES
+#elif __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glext.h>
+#include <OpenGL/gl3ext.h>
 #else
 #include <GL/gl.h>
 #include <GL/glext.h>

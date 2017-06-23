@@ -10,10 +10,6 @@
 
 #include "Graphics/GLHeader.h"
 
-#if __APPLE__
-#include <OpenGL/gl3ext.h>
-#endif
-
 #include "Graphics/CanvasContext.h"
 #include "Graphics/Canvas3DContext.h"
 #include "Graphics/CanvasHandler.h"
