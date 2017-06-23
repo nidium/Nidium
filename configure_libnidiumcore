@@ -35,6 +35,7 @@ Gyp = Builder.Gyp
 def leveldb():
     if Konstruct.config("ios", "tvos"):
         # Skip leveldb for now on iOS/tvOS
+        Gyp.set("nidium_leveldb", 0);
         return {}
 
     cxxFlags = os.environ.get("CXXFLAGS", "")
@@ -261,13 +262,6 @@ def autoTestStudio(autoTests):
     @Konstruct.hook("postBuild")
     def runNidiumAutoTests(success):
         Tests.runTest(success)
-
-@CommandLine.option("--ios")
-def ios(ios):
-    if not ios:
-        return
-
-    Gyp.set("nidium_leveldb", 0);
 
 if __name__ == '__main__':
     if not Builder.Gyp._defines.has_key('nidium_version'):

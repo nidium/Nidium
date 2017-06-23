@@ -171,8 +171,8 @@
         'conditions': [
             ['nidium_leveldb==1', {
                 'sources': [
+                    '<(nidium_src_path)/Core/DB.cpp',
                     '<(nidium_src_path)/Binding/JSDB.cpp',
-                    '<(nidium_src_path)/Binding/DB.cpp',
                 ],
             }],
         ],
