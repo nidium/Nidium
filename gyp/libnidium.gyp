@@ -53,7 +53,7 @@
         },
 
         'conditions': [
-            ['OS=="mac"', {
+            ['target_os=="mac"', {
                 'defines': [
                     'SK_GAMMA_SRGB',
                     'SK_GAMMA_APPLY_TO_A8',

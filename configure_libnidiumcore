@@ -92,7 +92,7 @@ def nspr():
     sdkMinVersion = Variables.get("appleSDKMinVersion")
     env.set("CFLAGS", appleEnv.get("CFLAGS") + " -m%s-version-min=%s" % (sdkName, sdkMinVersion))
     env.set("CXXFLAGS",appleEnv.get("CXXFLAGS") + " -m%s-version-min=%s" % (sdkName, sdkMinVersion))
-    env.set("LDFLAGS", appleEnv.get("CXXFLAGS") + " -m%s-version-min=%s" % (sdkName, sdkMinVersion))
+    env.set("LDFLAGS", appleEnv.get("LDFLAGS") + " -m%s-version-min=%s" % (sdkName, sdkMinVersion))
 
     env.set("NSPR_CFLAGS", "-I%s/mozilla-central/nsprpub/obj/dist/include/nspr/" % os.getcwd())
 
