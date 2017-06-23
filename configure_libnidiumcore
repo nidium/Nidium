@@ -88,9 +88,11 @@ def nspr():
     env.set("STRIP", "strip")
 
     # Set iOS/tvOS SDK and version
-    env.set("CFLAGS", appleEnv.get("CFLAGS") + " -mappletvos-version-min=10.2")
-    env.set("CXXFLAGS",appleEnv.get("CXXFLAGS") + " -mappletvos-version-min=10.2")
-    env.set("LDFLAGS", appleEnv.get("CXXFLAGS") + " -mappletvos-version-min=10.2")
+    sdkName = Variables.get("appleSDK")
+    sdkMinVersion = Variables.get("appleSDKMinVersion")
+    env.set("CFLAGS", appleEnv.get("CFLAGS") + " -m%s-version-min=%s" % (sdkName, sdkMinVersion))
+    env.set("CXXFLAGS",appleEnv.get("CXXFLAGS") + " -m%s-version-min=%s" % (sdkName, sdkMinVersion))
+    env.set("LDFLAGS", appleEnv.get("CXXFLAGS") + " -m%s-version-min=%s" % (sdkName, sdkMinVersion))
 
     env.set("NSPR_CFLAGS", "-I%s/mozilla-central/nsprpub/obj/dist/include/nspr/" % os.getcwd())
 
@@ -146,7 +148,7 @@ def mozilla():
         # We are building for ios
         env.set("MOZ_IOS", "1")
 
-        # Remove nspr from outputs as it's build in a standalone way
+        # Remove nspr from outputs as it's built in a standalone way
         outputs.remove("dist/lib/libnspr4.a$")
 
         configure += " " + " ".join([
