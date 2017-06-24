@@ -10,7 +10,6 @@
             'include_dirs': [
                 '<(third_party_path)/mozilla-central/js/src/obj/dist/include/',
                 '<(third_party_path)/mozilla-central/js/src/',
-                '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
                 '<(third_party_path)/http-parser/',
                 '<(third_party_path)/jsoncpp/dist',
                 '<(third_party_path)/rapidxml',
@@ -86,16 +85,24 @@
         'type': 'none',
         'direct_dependent_settings': {
             'conditions': [
-                ['target_os=="mac"', {
+                ['target_os=="mac" or target_os=="ios" or target_os=="tvos"', {
                     "link_settings": {
                         'libraries': [
                             'libhttp_parser.a',
                             'libjs_static.a',
                             'libnspr4.a',
                             'libmozglue.a',
-                            'libleveldb.a',
                         ]
-                    }
+                    },
+                    'conditions': [
+                        ['nidium_leveldb==1', {
+                            "link_settings": {
+                                'libraries': [
+                                    'libleveldb.a',
+                                ]
+                            }
+                        }]
+                    ]
                 }],
                 ['target_os=="linux" or target_os=="android"', {
                     'ldflags': [
@@ -110,9 +117,17 @@
                             '-lrt',
                             '-ldl',
                             '-lhttp_parser',
-                            '-lleveldb',
                         ]
-                    }
+                    },
+                    'conditions': [
+                        ['nidium_leveldb==1', {
+                            "link_settings": {
+                                'libraries': [
+                                    '-lleveldb',
+                                ]
+                            }
+                        }]
+                    ]
                 }]
             ],
         },

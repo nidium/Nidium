@@ -164,7 +164,15 @@
             ['target_os=="ios" or target_os=="tvos"', {
                 "link_settings": {
                     'libraries': [
-                        '$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
+                        'OpenGLES.framework',
+                        'CoreGraphics.framework',
+                        'QuartzCore.framework',
+                        'CoreFoundation.framework',
+                        'CoreText.framework',
+                        'CoreData.framework',
+                        'Foundation.framework',
+                        'UIKit.framework',
+                        'GameController.framework',
                         # On OSX if libjs_static.a is linked after libskia.a there is
                         # an issue with duplicate symbols (seems like gyp does not respect
                         # the link order)
@@ -176,8 +184,8 @@
                         'libangle_common.a',
                         'libSDL2.a',
                         'libzip.a',
-                        '/usr/lib/libbz2.dylib',
-                        '/usr/lib/libz.dylib',
+                        'libbz2.dylib',
+                        'libz.dylib',
                         'libiconv.dylib'
                     ],
 
