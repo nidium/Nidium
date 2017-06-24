@@ -151,6 +151,9 @@ def skia():
 
         build.append(cherryPickTVOS)
 
+    if Konstruct.config("ios-simulator", "tvos-simulator"):
+        args["target_cpu"] = "x64"
+
     skiaArgs = ""
     for k, v in args.items():
         skiaArgs += " %s=%s" % (k, json.dumps(v))
@@ -283,8 +286,8 @@ def SDL2():
         return {
             "location": location,
             "chdir": "",
-            "build": ["xcodebuild ARCHS=%s -project Xcode-iOS/SDL/SDL.xcodeproj -sdk %s" % (Variables.get("targetCpu"), Variables.get("appleSDK"))],
-            "outputs": ["Xcode-iOS/SDL/build/Release-appletvos/libSDL2.a"]
+            "build": ["xcodebuild OTHER_CFLAGS=\"-fembed-bitcode\" ARCHS=%s -project Xcode-iOS/SDL/SDL.xcodeproj -sdk %s" % (Variables.get("targetCpu"), Variables.get("appleSDK"))],
+            "outputs": ["Xcode-iOS/SDL/build/Release-%s/libSDL2.a" % Variables.get("appleSDK")]
         }
     else:
         return {
@@ -519,16 +522,6 @@ def debug(debug):
 
 Build.add(Gyp("gyp/all.gyp"));
 
-@CommandLine.option("--ios")
-@CommandLine.option("--tvos")
-def ios(ios, tvos):
-    if not ios and not tvos:
-        return
-
-    # Temporary disable nidium audio and video for iOS/tvOS
-    Gyp.set("nidium_audio", 0);
-    Gyp.set("nidium_opengles2", 1)
-
 @Konstruct.hook("start")
 def setDependencies():
     Deps.append(
@@ -542,6 +535,11 @@ def setDependencies():
         "rapidxml",
         #"breakpad",
     )
+
+    if Konstruct.config("ios", "tvos"):
+        # Temporary disable nidium audio and video for iOS/tvOS
+        Gyp.set("nidium_audio", 0);
+        Gyp.set("nidium_opengles2", 1)
 
     if Gyp.get("nidium_audio") == 1:
         Deps.append(
