@@ -14,8 +14,8 @@ namespace Interface {
 class System : public SystemInterface
 {
 public:
-    System();
-    ~System();
+    System() {}
+    ~System() {}
     float backingStorePixelRatio()
     {
         return 1;
