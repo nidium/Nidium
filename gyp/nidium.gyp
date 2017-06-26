@@ -185,7 +185,7 @@
                         'libzip.a',
                         'libbz2.dylib',
                         'libz.dylib',
-                        'libiconv.dylib'
+                        'libiconv.dylib',
                         'libSDL2.a',
                     ],
 
@@ -204,7 +204,7 @@
                     '<(nidium_interface_path)/ios/',
                 ],
                 'sources': [
-                    '<(nidium_app_path)/ios/main.cpp',
+                    '<(nidium_app_path)/ios/main.mm',
                 ],
             }],
         ],

@@ -30,7 +30,7 @@
 
         ['target_os=="ios" or target_os=="tvos"', {
             'sources': [
-                '<(nidium_interface_path)/iOS/IOSUIInterface.cpp',
+                '<(nidium_interface_path)/iOS/IOSUIInterface.mm',
             ],
         }],
         ['target_os=="linux"', {
