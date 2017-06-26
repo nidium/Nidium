@@ -182,11 +182,11 @@
                         'libtranslator_lib.a',
                         'libpreprocessor.a',
                         'libangle_common.a',
-                        'libSDL2.a',
                         'libzip.a',
                         'libbz2.dylib',
                         'libz.dylib',
                         'libiconv.dylib'
+                        'libSDL2.a',
                     ],
 
                 },
@@ -198,6 +198,7 @@
                     'PROVISIONING_PROFILE': '',
                     'PRODUCT_BUNDLE_IDENTIFIER': 'com.nidium.ios',
                     'DEVELOPMENT_TEAM': '',
+                    'INFOPLIST_FILE': '<(nidium_resources_path)/iOS/Info.plist',
                 },
                 'include_dirs': [
                     '<(nidium_interface_path)/ios/',
