@@ -50,18 +50,6 @@ diff --git skia/include/gpu/gl/GrGLInterface.h skia/include/gpu/gl/GrGLInterface
 index 3afa6be9fd..1556386b3d 100644
 --- skia/include/gpu/gl/GrGLInterface.h
 +++ skia/include/gpu/gl/GrGLInterface.h
-@@ -55,6 +55,11 @@ typedef intptr_t GrGLInterfaceCallbackData;
-  */
- const SK_API GrGLInterface* GrGLCreateNullInterface(bool enableNVPR = false);
- 
-+#if GR_GL_PER_GL_FUNC_CALLBACK
-+typedef void (*GrGLInterfaceCallbackProc)(const GrGLInterface*);
-+typedef intptr_t GrGLInterfaceCallbackData;
-+#endif
-+
- /** Function that returns a new interface identical to "interface" but without support for
-     GL_NV_path_rendering. */
- const GrGLInterface* GrGLInterfaceRemoveNVPR(const GrGLInterface*);
 @@ -477,6 +482,12 @@ public:
          GrGLFunction<GrEGLDestroyImageProc> fEGLDestroyImage;
      } fFunctions;
