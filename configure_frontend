@@ -118,6 +118,7 @@ def skia():
         "cxx": env.get("CXX")
     }
 
+    args["extra_cflags"] = env.get("CFLAGS").split(" ")
     args["extra_cflags_cc"] += env.get("CXXFLAGS").split(" ")
     args["extra_ldflags"] = env.get("LDFLAGS").split(" ")
 
@@ -153,6 +154,7 @@ def skia():
 
     if Konstruct.config("ios", "tvos"):
         args["extra_cflags_cc"] += Variables.get("appleSDKEnv").get("CXXFLAGS").split(" ")
+        args["extra_cflags"] += Variables.get("appleSDKEnv").get("CFLAGS").split(" ")
 
     if Konstruct.config("ios-simulator", "tvos-simulator"):
         args["target_cpu"] = "x64"
@@ -289,7 +291,10 @@ def SDL2():
         return {
             "location": location,
             "chdir": "",
-            "build": ["xcodebuild OTHER_CFLAGS=\"-fembed-bitcode\" ARCHS=%s -project Xcode-iOS/SDL/SDL.xcodeproj -sdk %s" % (Variables.get("targetCpu"), Variables.get("appleSDK"))],
+            "build": [
+                "sed -i.bak 's/#define SDL_AUDIO_DRIVER_COREAUDIO 1/#define SDL_AUDIO_DRIVER_COREAUDIO 0/' include/SDL_config_iphoneos.h",
+                "sed -i.bak 's/#define SDL_AUDIO_DRIVER_DUMMY  1/#define SDL_AUDIO_DRIVER_DUMMY 0/' include/SDL_config_iphoneos.h",
+                "xcodebuild OTHER_CFLAGS=\"-fembed-bitcode\" ARCHS=%s -project Xcode-iOS/SDL/SDL.xcodeproj -sdk %s" % (Variables.get("targetCpu"), Variables.get("appleSDK"))],
             "outputs": ["Xcode-iOS/SDL/build/Release-%s/libSDL2.a" % Variables.get("appleSDK")]
         }
     else:
