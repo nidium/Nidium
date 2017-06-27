@@ -153,6 +153,8 @@ def skia():
         build.append(cherryPickTVOS)
 
     if Konstruct.config("ios", "tvos"):
+        build.append("sed -i.bak '/fdata-sections/d' gn/BUILD.gn")
+        build.append("sed -i.bak '/ffunction-sections/d' gn/BUILD.gn")
         args["extra_cflags_cc"] += Variables.get("appleSDKEnv").get("CXXFLAGS").split(" ")
         args["extra_cflags"] += Variables.get("appleSDKEnv").get("CFLAGS").split(" ")
 
