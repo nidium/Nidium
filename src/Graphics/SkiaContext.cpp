@@ -567,8 +567,8 @@ sk_sp<ShadowLooper> SkiaContext::buildShadow()
                                 SkDoubleToScalar(m_CurrentShadow.m_X),
                                 SkDoubleToScalar(m_CurrentShadow.m_Y),
                                 m_CurrentShadow.m_Color,
-                                SkBlurDrawLooper::kIgnoreTransform_BlurFlag
-                                    | SkBlurDrawLooper::kHighQuality_BlurFlag);
+                                ShadowLooper::kIgnoreTransform_BlurFlag
+                                    | ShadowLooper::kHighQuality_BlurFlag);
 }
 
 void SkiaContext::beginPath()
@@ -1344,10 +1344,11 @@ void SkiaContext::drawImage(Image *image,
 void SkiaContext::redrawScreen()
 {
     SkCanvas *canvas = getCanvas();
+    SkISize size     = canvas->getBaseLayerSize();
 
-    canvas->readPixels(SkIRect::MakeSize(canvas->getBaseLayerSize()),
-                         m_Screen);
+    canvas->readPixels(*m_Screen, size.width(), size.height());
     canvas->writePixels(*m_Screen, 0, 0);
+
     CANVAS_FLUSH();
 }
 
