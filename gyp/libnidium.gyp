@@ -70,6 +70,20 @@
                     'GR_RELEASE=1',
                 ],
             }],
+            ['target_os=="tvos" or target_os=="ios"', {
+                'defines': [
+                    'SK_HAS_JPEG_LIBRARY',
+                    'SK_SUPPORT_PDF',
+                    'SK_HAS_PNG_LIBRARY',
+                    'SK_CODEC_DECODES_RAW',
+                    'SK_HAS_WEBP_LIBRARY',
+                    'SK_XML',
+                    'SK_GAMMA_APPLY_TO_A8',
+                    'SK_INTERNAL',
+                    'SK_ALLOW_STATIC_GLOBAL_INITIALIZERS=0',
+                    'SK_ENABLE_DISCRETE_GPU'
+                ],
+            }],
             ['target_os=="linux"', {
                 'defines': [
                     'EXPORT_JS_API',
