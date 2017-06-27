@@ -143,7 +143,7 @@ def skia():
         skiaArgs += " %s=%s" % (k, json.dumps(v))
 
     return {
-        "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", revision="98829b9"),
+        "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", branch="chrome/m58"),
         "build": [
             "python tools/git-sync-deps",
             "bin/gn gen out/Static --args='%s'" % (skiaArgs),
@@ -151,9 +151,9 @@ def skia():
             "ninja -C out/Static",
         ],
         "patchs": [
-            os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
-            os.path.join(CONFIGURE_PATH, "patch", "skia_gr_gl_callback.patch"),
-            os.path.join(CONFIGURE_PATH, "patch", "skia_android.patch")
+            #os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
+            #os.path.join(CONFIGURE_PATH, "patch", "skia_gr_gl_callback.patch"),
+            #os.path.join(CONFIGURE_PATH, "patch", "skia_android.patch")
         ],
         "outputs": [
             "out/Static/libskia.a",

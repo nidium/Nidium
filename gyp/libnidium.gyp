@@ -45,7 +45,8 @@
 
         'defines': [
             'GR_GL_CUSTOM_SETUP_HEADER=<../patch/skia_gl_config.h>',
-            'GL_GLEXT_PROTOTYPES'
+            'GL_GLEXT_PROTOTYPES',
+            'SK_SUPPORT_LEGACY_PAINT_TEXTDECORATION'
         ],
 
         'direct_dependent_settings': {
