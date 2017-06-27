@@ -114,6 +114,7 @@ def skia():
             "-DGR_GL_CUSTOM_SETUP_HEADER=<../../../../../patch/skia_gl_config.h>"
         ],
         "is_official_build": False,
+        "skia_enable_tools": False,
         "cc": env.get("CC"),
         "cxx": env.get("CXX")
     }
@@ -142,15 +143,13 @@ def skia():
         args["target_os"] = "ios"
     elif Konstruct.config("tvos"):
         args["target_os"] = "tvos"
-
-        def cherryPickTVOS():
-            # Check if the change-id of commit 7a5e0f3 exists
-            # in git log to know if we need to cherry-pick or
-            # not the commits for tvOS support
-            if Utils.run("git log | grep I4b33770f13ab9dec914d090b45d9921b19ee2c9d", failExit=False, returnOutput=True)[0] != 0:
-                Utils.run("git cherry-pick 7a5e0f3 3150ec6")
-
-        build.append(cherryPickTVOS)
+    else:
+        # Desktop build
+        args["skia_enable_tools"] = True
+        outputs.append({
+            "src": "out/Static/skdiff",
+            "dst": os.path.join(ROOT, "tests", "jsunittest", "gr", "skdiff")
+        })
 
     if Konstruct.config("ios", "tvos"):
         build.append("sed -i.bak '/fdata-sections/d' gn/BUILD.gn")
@@ -184,12 +183,8 @@ def skia():
             os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
             os.path.join(CONFIGURE_PATH, "patch", "skia_gr_gl_callback.patch"),
         ],
-        "outputs": [
+        "outputs": outputs + [
             "out/Static/libskia.a",
-            {
-                "src": "out/Static/skdiff",
-                "dst": os.path.join(ROOT, "tests", "jsunittest", "gr", "skdiff")
-            }
         ],
         "env": env
     }
