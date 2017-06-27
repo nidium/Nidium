@@ -6,6 +6,7 @@
 
 #include <unistd.h>
 
+#include <SDL_main.h>
 #include "System.h"
 #include "IOSUIInterface.h"
 
