@@ -143,15 +143,6 @@ def skia():
     elif Konstruct.config("tvos"):
         args["target_os"] = "tvos"
 
-        def cherryPickTVOS():
-            # Check if the change-id of commit 7a5e0f3 exists
-            # in git log to know if we need to cherry-pick or
-            # not the commits for tvOS support
-            if Utils.run("git log | grep I4b33770f13ab9dec914d090b45d9921b19ee2c9d", failExit=False, returnOutput=True)[0] != 0:
-                Utils.run("git cherry-pick 7a5e0f3 3150ec6")
-
-        build.append(cherryPickTVOS)
-
     if Konstruct.config("ios", "tvos"):
         build.append("sed -i.bak '/fdata-sections/d' gn/BUILD.gn")
         build.append("sed -i.bak '/ffunction-sections/d' gn/BUILD.gn")
