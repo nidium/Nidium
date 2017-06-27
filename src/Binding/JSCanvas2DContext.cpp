@@ -1838,7 +1838,7 @@ void Canvas2DContext::flush()
 
 void Canvas2DContext::getSize(int *width, int *height) const
 {
-    SkISize size = m_Skia->getCanvas()->getDeviceSize();
+    SkISize size = m_Skia->getCanvas()->getBaseLayerSize();
 
     *width  = size.width();
     *height = size.height();

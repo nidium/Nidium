@@ -6,7 +6,7 @@
 #include "Graphics/ShadowLooper.h"
 
 #include <stdbool.h>
-
+#include <SkArenaAlloc.h>
 #include <SkBlurMaskFilter.h>
 #include <SkCanvas.h>
 #include <SkReadBuffer.h>
@@ -140,10 +140,10 @@ void ShadowLooper::toString(SkString *str) const
 // }}}
 
 // {{{ Context
-ShadowLooper::Context *ShadowLooper::createContext(SkCanvas *,
-                                                   void *storage) const
+ShadowLooper::Context *ShadowLooper::makeContext(SkCanvas *,
+                                                   SkArenaAlloc* alloc) const
 {
-    return new (storage) ShadowLooperContext(this);
+    return alloc->make<ShadowLooperContext>(this);
 }
 
 
