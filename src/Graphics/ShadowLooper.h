@@ -58,6 +58,10 @@ public:
             SkBlurMask::ConvertRadiusToSigma(radius), dx, dy, flags));
     }
 
+    sk_sp<SkDrawLooper> onMakeColorSpace(SkColorSpaceXformer*) const override {
+        return nullptr;
+    }
+
     ShadowLooper::Context *makeContext(SkCanvas *, SkArenaAlloc*) const override;
 
     SK_TO_STRING_OVERRIDE()
