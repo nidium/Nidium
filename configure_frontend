@@ -151,6 +151,9 @@ def skia():
 
         build.append(cherryPickTVOS)
 
+    if Konstruct.config("ios", "tvos"):
+        args["extra_cflags_cc"] += Variables.get("appleSDKEnv").get("CXXFLAGS").split(" ")
+
     if Konstruct.config("ios-simulator", "tvos-simulator"):
         args["target_cpu"] = "x64"
 
