@@ -192,7 +192,7 @@
                 },
                 'postbuilds': [
                     {
-                        'postbuild_name': 'Copy resources',
+                        'postbuild_name': 'Copy Embed',
                         'action': [
                             'cp',
                             '-r',
