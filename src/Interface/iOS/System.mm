@@ -5,6 +5,7 @@
 */
 #include "System.h"
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
 namespace Nidium {
 namespace Interface {
@@ -18,6 +19,8 @@ System::System()
     // XXX: Should I free something here ?
 
     m_EmbedPath = strdup(&path[7]);
+
+    m_BackingStorePixelRatio = [[UIScreen mainScreen] scale];
 }
 
 } // namespace Interface

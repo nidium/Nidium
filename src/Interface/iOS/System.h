@@ -19,7 +19,7 @@ public:
 
     float backingStorePixelRatio()
     {
-        return 1;
+        return m_BackingStorePixelRatio;
     }
     const char *getCacheDirectory()
     {
@@ -50,6 +50,7 @@ public:
     const char *execute(const char *cmd) {}
 private:
     const char *m_EmbedPath;
+    float m_BackingStorePixelRatio = 1;
 };
 
 } // namespace Interface
