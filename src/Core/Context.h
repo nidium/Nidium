@@ -63,7 +63,7 @@ public:
 
     virtual void log(const char *str);
     virtual void vlog(const char *format, ...);
-    virtual void vlog(const char *format, va_list args);
+    virtual void vlog_valist(const char *format, va_list args);
     virtual void logClear(){};
     virtual void logShow(){};
     virtual void logHide(){};

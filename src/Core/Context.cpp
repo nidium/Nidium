@@ -93,14 +93,14 @@ void Context::vlog(const char *format, ...)
     va_list args;
 
     va_start(args, format);
-    this->vlog(format, args);
+    this->vlog_valist(format, args);
     va_end(args);
 }
 
-void Context::vlog(const char *format, va_list args)
+void Context::vlog_valist(const char *format, va_list args)
 {
     char *buff;
-
+    
     vasprintf(&buff, format, args);
 
     this->log(buff);
