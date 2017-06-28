@@ -113,8 +113,17 @@ def skia():
             "-Wno-return-local-addr",
             "-DGR_GL_CUSTOM_SETUP_HEADER=<../../../../../patch/skia_gl_config.h>"
         ],
-        "is_official_build": False,
+        "is_official_build": True,
         "skia_enable_tools": False,
+        "skia_use_expat": True,
+        "skia_use_system_expat": False,
+        "skia_use_libpng": True,
+        "skia_use_system_libpng": False,
+        "skia_use_libwebp": True,
+        "skia_use_system_libwebp": False,
+        "skia_use_libjpeg_turbo": True,
+        "skia_use_system_libjpeg_turbo": False,
+        "skia_enable_pdf": False,
         "cc": env.get("CC"),
         "cxx": env.get("CXX")
     }
