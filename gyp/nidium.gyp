@@ -218,6 +218,13 @@
                     '<(nidium_app_path)/ios/main.mm',
                 ],
             }],
+            ['target_os=="ios"', {
+                "link_settings": {
+                    'libraries': [
+                        'CoreMotion.framework',
+                    ],
+                },
+            }],
         ],
     }]
 }
