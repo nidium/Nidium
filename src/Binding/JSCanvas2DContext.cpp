@@ -1887,7 +1887,7 @@ Canvas2DContext::Canvas2DContext(
     height = nidium_max(height, 1);
 
     if (isGL) {
-        m_Skia = SkiaContext::CreateWithFBOBackend(ui->getNidiumContext(), width, height);
+        m_Skia = SkiaContext::CreateWithFBOBackend(ui->getNidiumContext(), width, height, ui->getFBO());
     } else {
         if (!ui) {
             ui = Interface::__NidiumUI;

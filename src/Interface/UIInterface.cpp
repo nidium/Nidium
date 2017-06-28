@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <signal.h>
 
+#include <SDL_config.h>
 #include <SDL.h>
 
 #include "Core/TaskManager.h"
@@ -283,10 +284,12 @@ void UIInterface::handleEvent(const SDL_Event *event)
             int keyCode = 0;
             int mod     = 0;
 
-            if ((&event->key)->keysym.sym == SDLK_r
-                && (event->key.keysym.mod & KMOD_CTRL)
-                && event->type == SDL_KEYDOWN) {
 
+
+            if (((&event->key)->keysym.sym == SDLK_r
+                && (event->key.keysym.mod & KMOD_CTRL)
+                && event->type == SDL_KEYDOWN) || ((&event->key)->keysym.scancode == SDL_SCANCODE_PAUSE && event->type == SDL_KEYDOWN)) {
+                fprintf(stderr, "Got a refresh\n");
                 if (m_PendingRefresh) {
                     break;
                 }
@@ -374,7 +377,7 @@ int UIInterface::HandleEvents(void *arg)
         uii->getConsole()->flush();
     }
 
-    if (uii->getFBO() != 0 && uii->m_NidiumCtx) {
+    if (0 && uii->getFBO() != 0 && uii->m_NidiumCtx) {
 #ifndef NIDIUM_OPENGLES2
         glReadBuffer(GL_COLOR_ATTACHMENT0);
 
@@ -486,6 +489,11 @@ void UIInterface::quit()
 {
     this->stopApplication();
     SDL_Quit();
+}
+
+void UIInterface::bindFramebuffer()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
 }
 
 void UIInterface::refresh()

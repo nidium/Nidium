@@ -82,7 +82,9 @@
                     'SK_GAMMA_APPLY_TO_A8',
                     'SK_INTERNAL',
                     'SK_ALLOW_STATIC_GLOBAL_INITIALIZERS=0',
-                    'SK_ENABLE_DISCRETE_GPU'
+                    'SK_ENABLE_DISCRETE_GPU',
+                    'SK_RELEASE',
+                    'GR_RELEASE=1',
                 ],
             }],
             ['target_os=="linux"', {

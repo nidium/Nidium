@@ -430,7 +430,8 @@ void Context::frame(bool draw)
     m_RootHandler->getContext()->flush();
     m_RootHandler->getContext()->resetGLContext();
     /* We draw on the UI fbo */
-    glBindFramebuffer(GL_FRAMEBUFFER, m_UI->getFBO());
+
+    m_UI->bindFramebuffer();
 
     m_Stats.composed = 0;
     for (auto &com : compList) {

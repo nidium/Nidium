@@ -7,8 +7,12 @@
 #include "System.h"
 #include "Frontend/Context.h"
 
+#include <SDL_config.h>
 #include <ape_netlib.h>
 #include <SDL.h>
+#include <SDL_syswm.h>
+
+#include "Graphics/GLHeader.h"
 
 namespace Nidium {
 namespace Interface {
@@ -30,10 +34,16 @@ void IOSUIInterface::setGLContextAttribute()
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
+    // Finally, if your application completely redraws the screen each frame,
+    // you may find significant performance improvement by setting the attribute SDL_GL_RETAINED_BACKING to 0.
+    SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0);
+
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+
+    fprintf(stderr, "iOS set gl context\n");
 }
 
 int IOSUIInterface::toLogicalSize(int size)
@@ -73,8 +83,25 @@ void IOSUIInterface::hitRefresh()
     this->restartApplication();
 }
 
+void IOSUIInterface::bindFramebuffer()
+{
+    UIInterface::bindFramebuffer();
+    glBindRenderbuffer(GL_RENDERBUFFER, m_FBO);
+}
+
 void IOSUIInterface::onWindowCreated()
 {
+    /*
+        iOS/tvos doesnt use window-system framebuffer.
+        SDL already generate a fbo and renderbuffer for us (which is not 0)
+    */
+
+    SDL_SysWMinfo info;
+    SDL_VERSION(&info.version);
+
+    SDL_GetWindowWMInfo(m_Win, &info);
+    
+    m_FBO = info.info.uikit.framebuffer;
     m_Console = new DummyConsole(this);
 }
 

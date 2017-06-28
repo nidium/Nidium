@@ -54,6 +54,8 @@ public:
         return m_Console;
     }
 
+    void bindFramebuffer() override;
+
     void initControls() override {};
 protected:
     void renderSystemTray() {};

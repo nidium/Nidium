@@ -297,6 +297,9 @@ public:
 
     virtual void quit();
 
+    /* bind the current framebuffer to OpenGL */
+    virtual void bindFramebuffer();
+
     uint8_t *readScreenPixel();
 
     void initPBOs();
