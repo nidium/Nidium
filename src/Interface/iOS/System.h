@@ -26,13 +26,16 @@ public:
     }
     const char *getEmbedDirectory()
     {
-        return "Documents/embed/";
+        return m_EmbedPath;
     }
     const char *getUserDirectory()
     {
         return "Documents/";
     }
-    void alert(const char *message, AlertType type = ALERT_INFO) {}
+    void alert(const char *message, AlertType type = ALERT_INFO)
+    {
+        fprintf(stderr, "Alert: %s\n", message);
+    }
     void initSystemUI() {}
     const char *cwd()
     {
@@ -44,6 +47,8 @@ public:
     }
     void sendNotification(const char *title, const char *content, bool sound) {}
     const char *execute(const char *cmd) {}
+private:
+    const char *m_EmbedPath;
 };
 
 } // namespace Interface

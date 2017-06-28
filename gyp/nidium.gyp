@@ -190,6 +190,17 @@
                     ],
 
                 },
+                'postbuilds': [
+                    {
+                        'postbuild_name': 'Copy resources',
+                        'action': [
+                            'cp',
+                            '-r',
+                            '<(nidium_embed_dir)',
+                            '<(nidium_exec_path)/<(nidium_exec_name).app/Embed/'
+                        ]
+                    }
+                ],
                 "xcode_settings": {
                     'LD_RUNPATH_SEARCH_PATHS': [
                         '@loader_path/../Frameworks'
