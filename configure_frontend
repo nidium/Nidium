@@ -278,7 +278,7 @@ def breakpad():
 
 @Deps.register("SDL2")
 def SDL2():
-    location = "https://www.libsdl.org/release/SDL2-2.0.5.tar.gz"
+    location = Deps.GitRepo("https://github.com/spurious/SDL-mirror", revision="7941386")
     if Konstruct.config("android"):
         # On Android SDL2 is built trough gyp (gyp/third-party/SDL2-android.gyp)
         # because SDL2 build script only works with android NDK and the scripts
