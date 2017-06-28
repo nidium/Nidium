@@ -113,7 +113,7 @@ def skia():
             "-Wno-return-local-addr",
             "-DGR_GL_CUSTOM_SETUP_HEADER=<../../../../../patch/skia_gl_config.h>"
         ],
-        "is_official_build": True,
+        "is_official_build": False,
         "cc": env.get("CC"),
         "cxx": env.get("CXX")
     }
@@ -173,8 +173,13 @@ def skia():
         skiaArgs += " %s=%s" % (k, json.dumps(v))
 
     return {
+<<<<<<< HEAD
         "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", branch="chrome/m58", shallow=False),
         "build": build + [
+=======
+        "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", branch="chrome/m60"),
+        "build": [
+>>>>>>> Skia/m58
             "python tools/git-sync-deps",
             "bin/gn gen out/Static --args='%s'" % (skiaArgs),
             "sed -i.bak '/simpleperf/d' out/Static/build.ninja",
@@ -378,7 +383,7 @@ def ffmpeg():
         env.set("PATH", os.path.join(ROOT, "tools") + ":" + Platform.getEnviron("PATH", ""))
 
     return {
-        "location": Deps.GitRepo("git@github.com:FFmpeg/FFmpeg.git", branch="release/3.3"),
+        "location": Deps.GitRepo("https://github.com/FFmpeg/FFmpeg.git", branch="release/3.3"),
         "patch": [],
         "build":
         [
