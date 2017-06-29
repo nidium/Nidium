@@ -106,9 +106,18 @@ void IOSUIInterface::onWindowCreated()
 
     /* If the program implements NidiumWindow */
     if (NSClassFromString(@"NidiumWindow")) {
-        fprintf(stderr, "got nidium window\n");
         m_NidiumWindow = [[NSClassFromString(@"NidiumWindow") alloc] initWithWindow:info.info.uikit.window];
     }
+}
+
+void IOSUIInterface::bridge(const char *data)
+{
+    if (m_NidiumWindow == nullptr) {
+        fprintf(stderr, "Bridge data received but discarded : %s\n", data);
+        return;
+    }
+    NSString *dataString = [NSString stringWithUTF8String:data];
+    [m_NidiumWindow performSelector:@selector(bridge:) withObject:dataString];
 }
 
 void IOSUIInterface::openFileDialog(const char *files[],

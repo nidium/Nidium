@@ -56,6 +56,8 @@ public:
 
     void bindFramebuffer() override;
 
+    void bridge(const char *data) override;
+
     void initControls() override {};
 protected:
     void renderSystemTray() {};
@@ -66,7 +68,7 @@ protected:
 private:
     DummyConsole *m_Console;
     int toLogicalSize(int physicalSize);
-    id m_NidiumWindow;
+    id m_NidiumWindow = nullptr;
 };
 // }}}
 
