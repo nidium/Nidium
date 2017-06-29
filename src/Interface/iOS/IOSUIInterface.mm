@@ -15,6 +15,8 @@
 #include "Graphics/GLHeader.h"
 #include "Binding/JSWindow.h"
 
+using Nidium::Binding::JSWindow;
+
 namespace Nidium {
 namespace Interface {
 
