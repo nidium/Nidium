@@ -29,6 +29,7 @@
 
     mainShadowRoot._setHost(document.canvas);
 
+    document.canvas.overflow = false;
     document.canvas.style.position = "relative";
     document.canvas.style.width = "100%";
     document.canvas.style.height = "100%";
