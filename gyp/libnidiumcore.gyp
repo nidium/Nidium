@@ -138,6 +138,9 @@
             '<(nidium_network_path)/gyp/network.gyp:*',
             'libnidiumcore.gyp:libnidiumcore-includes',
         ],
+        'includes': [
+            'system.gypi',
+        ],        
         'sources': [
             '<(third_party_path)/jsoncpp/dist/jsoncpp.cpp',
             '../src/Net/HTTP.cpp',

@@ -21,6 +21,7 @@
         'nidium_src_path': '../src/',
         'nidium_av_path': '<(nidium_src_path)/AV/',
         'nidium_app_path': '<(nidium_src_path)/Frontend/app/',
+        'nidium_system_path': '../src/System/',
         'nidium_interface_path': '../src/Interface/',
         'nidium_network_path': '../src/libapenetwork/',
         'nidium_resources_path': '../resources/',

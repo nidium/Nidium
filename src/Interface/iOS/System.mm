@@ -6,21 +6,18 @@
 #include "System.h"
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#include <string>
+
 
 namespace Nidium {
 namespace Interface {
 
 System::System()
 {
-    NSString *embedPath = [[NSBundle mainBundle] pathForResource:@"Embed" ofType:nil];
-    NSURL *url = [NSURL fileURLWithPath:embedPath];
-    const char *path = [url.absoluteString UTF8String];
-
-    // XXX: Should I free something here ?
-
-    m_EmbedPath = strdup(&path[7]);
+    m_EmbedPath = strdup((std::string([NSBundle mainBundle].resourcePath.UTF8String) + "/Embed/").c_str());
 
     m_BackingStorePixelRatio = [[UIScreen mainScreen] scale];
+
 }
 
 } // namespace Interface

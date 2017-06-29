@@ -10,8 +10,7 @@
 
 #include "IO/FileStream.h"
 #include "IO/NFSStream.h"
-
-#include "Interface/SystemInterface.h"
+#include "System/OS.h"
 
 namespace Nidium {
 namespace IO {
@@ -42,7 +41,7 @@ public:
 
     static const char *GetBaseDir()
     {
-        return Interface::SystemInterface::GetInstance()->getEmbedDirectory();
+        return System::OS::GetInstance()->getNidiumEmbedPath();
     }
 };
 
