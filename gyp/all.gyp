@@ -11,12 +11,24 @@
                 'dependencies': [
                     'libnidium_android.gyp:libnidium_android',
                 ],
+            }],
+            ['nidium_target_type=="static_library"', {
+                'target_name': 'nidiumapp',
+                'type': 'none',
+                'dependencies': [
+                    # Gyp doesn't build libraries when building a library
+                    # so add them here
+                    'libnidium.gyp:libnidium',
+                    'libnidiumcore.gyp:libnidiumcore',
+                    '<(nidium_network_path)/gyp/network.gyp:network',
+                    'nidium.gyp:<(nidium_output_name)',
+                ],
             },
             {
                 'target_name': 'nidiumapp',
                 'type': 'none',
                 'dependencies': [
-                    'nidium.gyp:<(nidium_lib_name)',
+                    'nidium.gyp:<(nidium_output_name)',
                 ],
             }]
         ]
