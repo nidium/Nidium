@@ -67,32 +67,43 @@ bool IOSUIInterface::createWindow(int width, int height)
 
 void IOSUIInterface::handleEvent(const SDL_Event *ev)
 {
-    if (ev->type == SDL_WINDOWEVENT && ev->window.event == SDL_WINDOWEVENT_RESIZED) {
-        this->getNidiumContext()->setWindowSize(
-            this->toLogicalSize(ev->window.data1),
-            this->toLogicalSize(ev->window.data2));
+    switch (ev->type) {
+        // When the device is rotated, notify nidium of the screen resize
+        case SDL_WINDOWEVENT:
+            if (ev->window.event == SDL_WINDOWEVENT_RESIZED) {
+                this->getNidiumContext()->setWindowSize(
+                        this->toLogicalSize(ev->window.data1),
+                        this->toLogicalSize(ev->window.data2));
+            }
+            break;
 #ifdef NDM_TARGET_TVOS
-    } else if (ev->type == SDL_KEYDOWN || ev->type == SDL_KEYUP) {
-        JSWindow *window = NULL;
-        if (!this->isContextReady()
-                || !(window = JSWindow::GetObject(m_NidiumCtx->getNJS()))) {
-            UIInterface::handleEvent(ev);
-        }
-
-        switch(ev->key.keysym.scancode) {
-            case SDL_SCANCODE_SELECT:
-                window->mouseClick(ev->motion.x, ev->motion.y,
-                                   ev->type == SDL_KEYDOWN ? true : false, 1 /* left click */,
-                                   ev->button.clicks);
-                break;
-            default:
+        // Forward apple TV remote controller click (SDL_SCANCODE_SELECT) as mouse click
+        case SDL_KEYUP:
+        case SDL_KEYDOWN: {
+            JSWindow *window = NULL;
+            if (!this->isContextReady()
+                    || !(window = JSWindow::GetObject(m_NidiumCtx->getNJS()))) {
                 UIInterface::handleEvent(ev);
-                break;
+            }
+
+            switch(ev->key.keysym.scancode) {
+                case SDL_SCANCODE_SELECT:
+                    window->mouseClick(ev->motion.x, ev->motion.y,
+                            ev->type == SDL_KEYDOWN ? true : false, 1 /* left click */,
+                            ev->button.clicks);
+                    return;
+            }
+            break;
         }
+        // SDL fakes apple TV remote controller touch event as
+        // mouse button down/up. Ignore them.
+        case SDL_MOUSEBUTTONUP:
+        case SDL_MOUSEBUTTONDOWN:
+            return;
 #endif
-    } else {
-        UIInterface::handleEvent(ev);
     }
+
+    UIInterface::handleEvent(ev);
 }
 
 void IOSUIInterface::quitApplication()
@@ -122,7 +133,7 @@ void IOSUIInterface::onWindowCreated()
     SDL_VERSION(&info.version);
 
     SDL_GetWindowWMInfo(m_Win, &info);
-    
+
     m_FBO = info.info.uikit.framebuffer;
     m_Console = new DummyConsole(this);
 }
