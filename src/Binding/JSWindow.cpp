@@ -446,6 +446,11 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
     EVENT_PROP("clientY", yv);
     EVENT_PROP("which", bv);
 
+    JS::RootedValue winEv(m_Cx);
+    winEv.setObjectOrNull(event);
+    this->fireJSEvent(state ? "mousedown" : "mouseup", &winEv);
+
+    // Legacy event
     JS::AutoValueArray<1> jevent(m_Cx);
     jevent[0].setObjectOrNull(event);
     JS::RootedValue onclick(m_Cx);
@@ -608,9 +613,13 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
     EVENT_PROP("clientX", xv);
     EVENT_PROP("clientY", yv);
 
+    JS::RootedValue winEv(m_Cx);
+    winEv.setObjectOrNull(event);
+    this->fireJSEvent("mousemove", &winEv);
+
+    // Legacy method
     JS::AutoValueArray<1> jevent(m_Cx);
     jevent[0].setObjectOrNull(event);
-
     JS::RootedValue onmove(m_Cx);
     JS::RootedObject obj(m_Cx, m_Instance);
     if (JS_GetProperty(m_Cx, obj, "_onmousemove", &onmove) && onmove.isObject()
