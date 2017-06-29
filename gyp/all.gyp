@@ -16,7 +16,7 @@
                 'target_name': 'nidiumapp',
                 'type': 'none',
                 'dependencies': [
-                    'nidium.gyp:<(nidium_exec_name)',
+                    'nidium.gyp:<(nidium_lib_name)',
                 ],
             }]
         ]

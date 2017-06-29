@@ -28,6 +28,7 @@
         'nidium_tools_path': '../tools/',
         'nidium_tests_path': '../tests/gunittest/',
         'nidium_exec_name': 'nidium',
+        'nidium_lib_name': 'libnidiumapp',
         'nidium_exec_path': '../bin/',
 
         'nidium_output': '../build/',

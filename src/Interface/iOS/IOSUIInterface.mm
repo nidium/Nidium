@@ -103,6 +103,12 @@ void IOSUIInterface::onWindowCreated()
     
     m_FBO = info.info.uikit.framebuffer;
     m_Console = new DummyConsole(this);
+
+    /* If the program implements NidiumWindow */
+    if (NSClassFromString(@"NidiumWindow")) {
+        fprintf(stderr, "got nidium window\n");
+        m_NidiumWindow = [[NSClassFromString(@"NidiumWindow") alloc] initWithWindow:info.info.uikit.window];
+    }
 }
 
 void IOSUIInterface::openFileDialog(const char *files[],

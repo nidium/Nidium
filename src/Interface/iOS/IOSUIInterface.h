@@ -66,6 +66,7 @@ protected:
 private:
     DummyConsole *m_Console;
     int toLogicalSize(int physicalSize);
+    id m_NidiumWindow;
 };
 // }}}
 

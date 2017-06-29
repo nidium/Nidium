@@ -4,9 +4,8 @@
 
 {
     'targets': [{
-        'target_name': '<(nidium_exec_name)',
-        'type': 'executable',
-        'mac_bundle': 1,
+        'target_name': '<(nidium_lib_name)',
+        'type': 'static_library',
         'product_dir': '<(nidium_exec_path)',
         'dependencies': [
             'libnidium.gyp:*',
@@ -210,6 +209,9 @@
                     'PRODUCT_BUNDLE_IDENTIFIER': 'com.nidium.ios',
                     'DEVELOPMENT_TEAM': '',
                     'INFOPLIST_FILE': '<(nidium_resources_path)/iOS/Info.plist',
+                    "OTHER_LDFLAGS": [
+                        '-ObjC',
+                    ]
                 },
                 'include_dirs': [
                     '<(nidium_interface_path)/ios/',
