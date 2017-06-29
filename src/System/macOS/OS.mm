@@ -4,19 +4,18 @@
    that can be found in the LICENSE file.
 */
 
-#include "System/iOS/OS.h"
+#include "System/macOS/OS.h"
 #import <Foundation/Foundation.h>
-#include <string>
 
 namespace Nidium {
 namespace System {
 
-OS *OS::_instance = new iOS::OS();
+OS *OS::_instance = new macOS::OS();
 
-namespace iOS {
+namespace macOS {
 
 OS::OS() {
-	m_EmbededPath = strdup((std::string([NSBundle mainBundle].resourcePath.UTF8String) + "/Embed/").c_str());
+	m_EmbededPath = strdup((std::string([NSBundle mainBundle].resourcePath.UTF8String) + "/src/Embed/").c_str());
 }
 
 const char *OS::getTempPath()
@@ -24,16 +23,10 @@ const char *OS::getTempPath()
     return NSTemporaryDirectory().UTF8String;
 }
 
-const char *OS::getNidiumEmbedPath()
-{
-	return m_EmbededPath;
-}
-
 OS::~OS() {
 	if (m_EmbededPath) {
 		free(m_EmbededPath);
 	}
 }
-
 
 }}}

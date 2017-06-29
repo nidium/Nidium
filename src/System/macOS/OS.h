@@ -3,23 +3,21 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef system_ios_os_h__
-#define system_ios_os_h__
+#ifndef system_macos_os_h__
+#define system_macos_os_h__
 
 #include "System/OS.h"
 
 namespace Nidium {
 namespace System {
-namespace iOS {
+namespace macOS {
 
 class OS : public System::OS {
 public:
 	OS();
 	~OS();
 	const char *getTempPath() override;
-    const char *getNidiumEmbedPath() override;
-private:
-	char *m_EmbededPath = nullptr;
+	const char *getNidiumEmbedPath() override;
 };
 
 }

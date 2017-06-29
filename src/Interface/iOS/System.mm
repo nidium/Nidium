@@ -5,19 +5,15 @@
 */
 #include "System.h"
 #import <Foundation/Foundation.h>
+#include <string>
 
 namespace Nidium {
 namespace Interface {
 
 System::System()
 {
-    NSString *embedPath = [[NSBundle mainBundle] pathForResource:@"Embed" ofType:nil];
-    NSURL *url = [NSURL fileURLWithPath:embedPath];
-    const char *path = [url.absoluteString UTF8String];
+    m_EmbedPath = strdup((std::string([NSBundle mainBundle].resourcePath.UTF8String) + "/Embed/").c_str());
 
-    // XXX: Should I free something here ?
-
-    m_EmbedPath = strdup(&path[7]);
 }
 
 } // namespace Interface

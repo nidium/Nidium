@@ -11,10 +11,25 @@ namespace System {
 
 class OS {
 public:
-	virtual const char *getTempPath() {
-		return "/tmp/";
-	}
 
+    /*
+        Get the current application temporary directory
+    */
+    virtual const char *getTempPath() {
+        return "/tmp/";
+    }
+
+    /*
+        Get the nidium embeded path
+    */
+    virtual const char *getNidiumEmbedPath()
+    {
+        return nullptr;
+    }
+
+    /*
+        Returns a filedescriptor of a new rw temporary file
+    */
     virtual int getTempFd();
 
     static OS *GetInstance()
@@ -22,6 +37,8 @@ public:
         return OS::_instance;
     }
     static OS *_instance;
+protected:
+    OS(){};
 };
 
 }
