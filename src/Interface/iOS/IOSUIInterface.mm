@@ -13,6 +13,7 @@
 #include <SDL_syswm.h>
 
 #include "Graphics/GLHeader.h"
+#include "Binding/JSWindow.h"
 
 namespace Nidium {
 namespace Interface {
@@ -68,6 +69,25 @@ void IOSUIInterface::handleEvent(const SDL_Event *ev)
         this->getNidiumContext()->setWindowSize(
             this->toLogicalSize(ev->window.data1),
             this->toLogicalSize(ev->window.data2));
+#ifdef NDM_TARGET_TVOS
+    } else if (ev->type == SDL_KEYDOWN || ev->type == SDL_KEYUP) {
+        JSWindow *window = NULL;
+        if (!this->isContextReady()
+                || !(window = JSWindow::GetObject(m_NidiumCtx->getNJS()))) {
+            UIInterface::handleEvent(ev);
+        }
+
+        switch(ev->key.keysym.scancode) {
+            case SDL_SCANCODE_SELECT:
+                window->mouseClick(ev->motion.x, ev->motion.y,
+                                   ev->type == SDL_KEYDOWN ? true : false, 1 /* left click */,
+                                   ev->button.clicks);
+                break;
+            default:
+                UIInterface::handleEvent(ev);
+                break;
+        }
+#endif
     } else {
         UIInterface::handleEvent(ev);
     }
