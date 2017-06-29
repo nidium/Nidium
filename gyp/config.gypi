@@ -27,9 +27,9 @@
         'nidium_resources_path': '../resources/',
         'nidium_tools_path': '../tools/',
         'nidium_tests_path': '../tests/gunittest/',
-        'nidium_exec_name': 'nidium',
-        'nidium_lib_name': 'libnidiumapp',
-        'nidium_exec_path': '../bin/',
+        'nidium_output_path%': '../bin/',
+        'nidium_output_name%': 'nidium',
+        'nidium_target_type%': 'executable',
 
         'nidium_output': '../build/',
 

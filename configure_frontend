@@ -523,6 +523,15 @@ def frontendAndroid(android):
                 #Utils.run("./gradlew install%s" % Gyp.getConfiguration(), env=env)
                 Utils.run("./gradlew installDebug", env=env)
 
+@CommandLine.option("--app-library", default=False)
+def appLibrary(asLib):
+    if not asLib:
+        return
+
+    Gyp.set("nidium_output_path", "../build/")
+    Gyp.set("nidium_target_type", "static_library")
+    Gyp.set("nidium_output_name", "libnidiumapp")
+
 @CommandLine.option("--debug-opengl", default=False)
 def glDebug(debug):
     if not debug:
