@@ -128,9 +128,9 @@ def skia():
         "cxx": env.get("CXX")
     }
 
-    args["extra_cflags"] = env.get("CFLAGS").split(" ")
-    args["extra_cflags_cc"] += env.get("CXXFLAGS").split(" ")
-    args["extra_ldflags"] = env.get("LDFLAGS").split(" ")
+    args["extra_cflags"] = env.get("CFLAGS", "").split(" ")
+    args["extra_cflags_cc"] += env.get("CXXFLAGS", "").split(" ")
+    args["extra_ldflags"] = env.get("LDFLAGS", "").split(" ")
 
     # Add depot_tools to path needed for skia
     Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
@@ -155,6 +155,9 @@ def skia():
     else:
         # Desktop build
         args["skia_enable_tools"] = True
+        args["skia_use_system_jsoncpp"] = False
+        args["skia_use_system_icu"] = False
+        args["skia_use_icu"] = True
         outputs.append({
             "src": "out/Static/skdiff",
             "dst": os.path.join(ROOT, "tests", "jsunittest", "gr", "skdiff")
