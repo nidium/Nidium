@@ -825,6 +825,9 @@ JSObject *Context::ReadStructuredCloneOp(JSContext *cx,
 
 Context::~Context()
 {
+
+    m_ContextCache.emptyCache();
+
     if (m_DebugHandler != NULL) {
         delete m_DebugHandler->getContext();
         delete m_DebugHandler;
