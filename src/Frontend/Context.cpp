@@ -729,6 +729,7 @@ void Context::initHandlers(int width, int height)
     m_RootHandler = new CanvasHandler(width, height, this);
 
     m_RootHandler->setPositioning(CanvasHandler::COORD_RELATIVE);
+    m_RootHandler->setOverflow(false);
 
     m_RootHandler->setContext(
         new Canvas2DContext(m_RootHandler, width, height, m_UI));
@@ -825,6 +826,9 @@ JSObject *Context::ReadStructuredCloneOp(JSContext *cx,
 
 Context::~Context()
 {
+
+    m_ContextCache.emptyCache();
+
     if (m_DebugHandler != NULL) {
         delete m_DebugHandler->getContext();
         delete m_DebugHandler;
