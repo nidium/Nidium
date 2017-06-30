@@ -13,7 +13,7 @@
     'conditions': [
         ['target_os=="mac"', {
             'sources': [
-                '<(nidium_system_path)/osx/OS.mm',
+                '<(nidium_system_path)/macOS/OS.mm',
             ],
         }],
         ['target_os=="ios" or target_os=="tvos"', {

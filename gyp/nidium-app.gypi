@@ -84,6 +84,23 @@
                         '<(nidium_tools_path)/osx_incbuild.sh',
                         '<(nidium_output_path)/<(nidium_output_name).app/Contents/'
                     ]
+                },
+                {
+                    'postbuild_name': 'Create resources directory',
+                    'action': [
+                        'mkdir',
+                        '-p',
+                        '<(nidium_output_path)/<(nidium_output_name).app/Contents/Resources/'
+                    ]
+                },
+                {
+                    'postbuild_name': 'Copy Embed',
+                    'action': [
+                        'cp',
+                        '-r',
+                        '<(nidium_embed_dir)',
+                        '<(nidium_output_path)/<(nidium_output_name).app/Contents/Resources/Embed/'
+                    ]
                 }
             ]
         }],

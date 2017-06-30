@@ -17,7 +17,11 @@ public:
 	OS();
 	~OS();
 	const char *getTempPath() override;
-	const char *getNidiumEmbedPath() override;
+	const char *getNidiumEmbedPath() override {
+        return m_EmbededPath;
+    }
+private:
+    char *m_EmbededPath;
 };
 
 }

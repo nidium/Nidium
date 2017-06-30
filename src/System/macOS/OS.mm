@@ -5,6 +5,7 @@
 */
 
 #include "System/macOS/OS.h"
+#include <string>
 #import <Foundation/Foundation.h>
 
 namespace Nidium {
@@ -15,7 +16,7 @@ OS *OS::_instance = new macOS::OS();
 namespace macOS {
 
 OS::OS() {
-	m_EmbededPath = strdup((std::string([NSBundle mainBundle].resourcePath.UTF8String) + "/src/Embed/").c_str());
+	m_EmbededPath = strdup((std::string([NSBundle mainBundle].resourcePath.UTF8String) + "/Embed/").c_str());
 }
 
 const char *OS::getTempPath()
