@@ -43,6 +43,7 @@ static JSClass TextEvent_class = { "TextInputEvent", 0};
 static JSClass KeyEvent_class = { "KeyEvent", 0};
 static JSClass NMLEvent_class = { "NMLEvent", 0};
 
+
 // }}}
 
 // {{{ Implementation
@@ -821,6 +822,8 @@ bool JSWindow::JS_setSize(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
+
+
 bool JSWindow::JS_openURL(JSContext *cx, JS::CallArgs &args)
 {
     JS::RootedString url(cx);
@@ -854,7 +857,6 @@ bool JSWindow::JS_exec(JSContext *cx, JS::CallArgs &args)
 
 bool JSWindow::JS_alert(JSContext *cx, JS::CallArgs &args)
 {
-
     JS::RootedString msg(cx);
     if (!JS_ConvertArguments(cx, args, "S", msg.address())) {
         return false;
@@ -865,6 +867,21 @@ bool JSWindow::JS_alert(JSContext *cx, JS::CallArgs &args)
 
     return true;
 }
+
+bool JSWindow::JS_bridge(JSContext *cx, JS::CallArgs &args)
+{
+    JS::RootedString data(cx);
+    if (!JS_ConvertArguments(cx, args, "S", data.address())) {
+        return false;
+    }
+
+    JSAutoByteString cdata(cx, data);
+    
+    Context::GetObject<Frontend::Context>(cx)->getUI()->bridge(cdata.ptr());
+
+    return true;
+}
+
 
 bool JSWindow::JS_openDirDialog(JSContext *cx, JS::CallArgs &args)
 {
@@ -1267,6 +1284,7 @@ JSFunctionSpec *JSWindow::ListMethods()
         CLASSMAPPER_FN(JSWindow, openURL, 1),
         CLASSMAPPER_FN(JSWindow, exec, 1),
         CLASSMAPPER_FN(JSWindow, alert, 1),
+        CLASSMAPPER_FN(JSWindow, bridge, 1),
         JS_FS_END
     };
 
