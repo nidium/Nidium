@@ -52,16 +52,24 @@ struct _nidium_document_restart_async
 
 static int nidium_document_restart(void *param)
 {
-    struct _nidium_document_restart_async *ndra
-        = (struct _nidium_document_restart_async *)param;
+    struct _nidium_document_restart_async *ndra = nullptr;
 
-    ndra->ui->restartApplication(ndra->location);
+    if (param) {
+        ndra = (struct _nidium_document_restart_async *)param;
+    }
 
-    free(ndra->location);
-    free(ndra);
+    if (ndra) {
+        ndra->ui->restartApplication(ndra->location);
+
+        free(ndra->location);
+        free(ndra);
+    } else {
+        ndra->ui->restartApplication();
+    }
 
     return 0;
 }
+
 
 
 bool JSDocument::JS_run(JSContext *cx, JS::CallArgs &args)
@@ -82,6 +90,14 @@ bool JSDocument::JS_run(JSContext *cx, JS::CallArgs &args)
 
     ape_global *ape = NidiumJS::GetObject(cx)->m_Net;
     timer_dispatch_async(nidium_document_restart, ndra);
+
+    return true;
+}
+
+bool JSDocument::JS_refresh(JSContext *cx, JS::CallArgs &args)
+{
+    ape_global *ape = NidiumJS::GetObject(cx)->m_Net;
+    timer_dispatch_async(nidium_document_restart, nullptr);
 
     return true;
 }
@@ -477,6 +493,7 @@ JSFunctionSpec *JSDocument::ListMethods()
 {
     static JSFunctionSpec funcs[] = {
         CLASSMAPPER_FN(JSDocument, run, 1),
+        CLASSMAPPER_FN(JSDocument, refresh, 0),
         CLASSMAPPER_FN(JSDocument, showFPS, 1),
         CLASSMAPPER_FN(JSDocument, setPasteBuffer, 1),
         CLASSMAPPER_FN(JSDocument, getPasteBuffer, 0),

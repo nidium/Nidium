@@ -62,6 +62,7 @@ public:
 protected:
 
     NIDIUM_DECL_JSCALL(run);
+    NIDIUM_DECL_JSCALL(refresh);
     NIDIUM_DECL_JSCALL(showFPS);
     NIDIUM_DECL_JSCALL(setPasteBuffer);
     NIDIUM_DECL_JSCALL(getPasteBuffer);
