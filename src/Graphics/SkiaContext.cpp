@@ -358,6 +358,7 @@ SkiaContext *SkiaContext::CreateWithTextureBackend(Frontend::Context *fctx,
     std::shared_ptr<CanvasSurface> cs = CanvasSurface::Create(ceilf(width * ratio), ceilf(height * ratio), gr);
 
     if (!cs) {
+        ndm_logf(NDM_LOG_ERROR, "SkiaContext", "Faield to create CanvasSurface -> CanvasSurface::Create(%f, %f)", ceilf(width * ratio), ceilf(height * ratio));
         return nullptr;
     }
 
