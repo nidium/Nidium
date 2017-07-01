@@ -125,6 +125,10 @@
         }
 
         add(child) {
+            if (!child) {
+                throw Error("add() takes one argument");
+            }
+
             if (!this.allowsChild()) {
                 throw Error(`<${this.tagName}> can't have children.`);
             }
