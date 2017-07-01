@@ -50,7 +50,7 @@
         'asan%': 0,
         'jemalloc%': 0,
         'profiler%': 0,
-        'mac_deployment_target': '10.7',
+        'mac_deployment_target': '10.8',
         'mac_sdk_version%': '10.11',
 
         'nidium_js_disable_window_global%': 1,
