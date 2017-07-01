@@ -9,6 +9,8 @@
 #include "UIInterface.h"
 #include "Frontend/InputHandler.h"
 
+@class UIView;
+
 namespace Nidium {
 namespace Interface {
 
@@ -69,6 +71,7 @@ private:
     DummyConsole *m_Console;
     int toLogicalSize(int physicalSize);
     id m_NidiumWindow = nullptr;
+    void patchSDLEvents(UIView *view);
 };
 // }}}
 

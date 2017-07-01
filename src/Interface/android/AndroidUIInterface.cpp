@@ -199,7 +199,7 @@ void AndroidUIInterface::onMessage(const Core::SharedMessages::Message &msg)
 
             System *sys = static_cast<System *>(SystemInterface::GetInstance());
 
-            if (!window->onHardwareKey(info->evType)) {
+            if (window->onMediaKey(info->evType)) {
                 sys->dispatchKeyEvent(info->ev);
             }
 

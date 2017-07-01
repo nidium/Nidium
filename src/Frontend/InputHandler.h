@@ -30,8 +30,8 @@ static const char *InputEvent_Names[]
     = { "mousemove", "mousedown", "mouseup", "dblclick", "dragstart",
         "dragend",   "dragover",  "drop",    "drag",     "mousewheel",
         "touchstart", "touchend", "touchmove", "scroll", "scroll",
-        "back", "volumeup", "volumedown", "compositionstart", 
-        "compositionupdate", "compositionend"};
+        "menu", "back", "volumeUp", "volumeDown", "play", "pause",
+        "compositionstart", "compositionupdate", "compositionend" };
 
 class InputTouch;
 
@@ -55,9 +55,12 @@ public:
         kTouchMove_Type,
         kTouchScroll_type,
         kScroll_type,
-        kHardwareKey_back,
-        kHardwareKey_volumeUp,
-        kHardwareKey_volumeDown,
+        kMediaKey_menu,
+        kMediaKey_back,
+        kMediaKey_volumeUp,
+        kMediaKey_volumeDown,
+        kMediaKey_play,
+        kMediaKey_pause,
         kCompositionStart_type,
         kCompositionUpdate_type,
         kCompositionEnd_type,

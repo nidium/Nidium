@@ -117,7 +117,7 @@ void JSWindow::assetReady(const NMLTag &tag)
                                                tag.content.len, "utf8"));
         EVENT_PROP("tag", tagStr);
         EVENT_PROP("id", idStr);
-        EVENT_PROP("data", dataStr);        
+        EVENT_PROP("data", dataStr);
 
         JS::RootedValue rval(cx);
         JS_CallFunctionValue(cx, event, onassetready, jevent, &rval);
@@ -293,8 +293,8 @@ void JSWindow::textInput(const char *data)
 
 void JSWindow::onKeyUpDown(int keyCode, int location, int mod, bool repeat, bool isUpKey)
 {
-    JS::RootedObject obje(m_Cx, JSEvents::CreateEventObject(m_Cx));
-    JSObjectBuilder obj(m_Cx, obje);
+    JS::RootedObject evObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+    JSObjectBuilder obj(m_Cx, evObj);
 
     JS::RootedValue space(m_Cx, JS::BooleanValue(keyCode == 32));
     JS::RootedValue repeatValue(m_Cx, JS::BooleanValue(!!(repeat)));
@@ -387,25 +387,30 @@ void JSWindow::systemMenuClicked(const char *id)
     JSOBJ_CALLFUNCNAME(obj, "_onsystemtrayclick", ev);
 }
 
-bool JSWindow::onHardwareKey(InputEvent::Type evType)
+bool JSWindow::onMediaKey(InputEvent::Type evType, bool isUpKey)
 {
-    JS::RootedObject evObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
-    JS::RootedValue evValue(m_Cx);
+    JS::RootedObject evObj(m_Cx, JSEvent::CreateObject(m_Cx));
+    JSObjectBuilder obj(m_Cx, evObj);
 
+    obj.set(InputEvent::GetName(evType), true);
+
+    JS::RootedValue evValue(m_Cx);
     evValue.setObjectOrNull(evObj);
 
-    const char *evName = InputEvent::GetName(evType);
-
-    this->fireJSEvent(evName, &evValue);
+    if (isUpKey) {
+        this->fireJSEvent("mediakeyup", &evValue);
+    } else {
+        this->fireJSEvent("mediakeydown", &evValue);
+    }
 
     JS::RootedValue defaultPrevented(m_Cx);
     if (JS_GetProperty(m_Cx, evObj, "defaultPrevented", &defaultPrevented)) {
         if (defaultPrevented.isBoolean() && defaultPrevented.toBoolean()) {
-            return true;
+            return false;
         }
     }
 
-    return false;
+    return true;
 }
 
 void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
@@ -876,7 +881,7 @@ bool JSWindow::JS_bridge(JSContext *cx, JS::CallArgs &args)
     }
 
     JSAutoByteString cdata(cx, data);
-    
+
     Context::GetObject<Frontend::Context>(cx)->getUI()->bridge(cdata.ptr());
 
     return true;

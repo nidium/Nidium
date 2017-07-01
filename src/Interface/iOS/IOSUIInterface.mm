@@ -15,7 +15,98 @@
 #include "Graphics/GLHeader.h"
 #include "Binding/JSWindow.h"
 
+#import <objc/runtime.h>
+
 using Nidium::Binding::JSWindow;
+using Nidium::Frontend::InputEvent;
+
+static const char *SDLViewAssociatedObject = "_IOSUIInterface";
+
+typedef void (*OriginalPressesType)(id self, SEL selector, NSSet<UIPress *> *presses, UIPressesEvent *event);
+static OriginalPressesType originalPressesBegan;
+
+@interface NSPointer : NSObject
+{
+@public
+    void *m_Ptr;
+}
+
+- (id) initWithPtr:(void *)ptr;
+@end
+
+@implementation NSPointer
+- (id) initWithPtr:(void *)ptr
+{
+    self = [super init];
+    if (!self) return nil;
+
+    self->m_Ptr = ptr;
+
+    return self;
+}
+@end
+
+@interface NidiumEventInterceptor: UIView
+    - (void)pressesBeganOverride:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event;
+@end
+
+@implementation NidiumEventInterceptor
+- (SDL_Scancode)scancodeFromPressType:(UIPressType)presstype
+{
+    switch (presstype) {
+        case UIPressTypeUpArrow:
+            return SDL_SCANCODE_UP;
+        case UIPressTypeDownArrow:
+            return SDL_SCANCODE_DOWN;
+        case UIPressTypeLeftArrow:
+            return SDL_SCANCODE_LEFT;
+        case UIPressTypeRightArrow:
+            return SDL_SCANCODE_RIGHT;
+        case UIPressTypeSelect:
+            /* HIG says: "primary button behavior" */
+            return SDL_SCANCODE_SELECT;
+        case UIPressTypeMenu:
+            /* HIG says: "returns to previous screen" */
+            return SDL_SCANCODE_MENU;
+        case UIPressTypePlayPause:
+            /* HIG says: "secondary button behavior" */
+            return SDL_SCANCODE_PAUSE;
+        default:
+            return SDL_SCANCODE_UNKNOWN;
+    }
+}
+
+- (void)pressesBeganOverride:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
+{
+    NSPointer *idthis = objc_getAssociatedObject(self, SDLViewAssociatedObject);
+    Nidium::Interface::IOSUIInterface *ui =
+        (Nidium::Interface::IOSUIInterface *)idthis->m_Ptr;
+
+    JSWindow *window = nullptr;
+    NSMutableSet *newPresses = nil;
+    if (ui->m_NidiumCtx
+            && (window = JSWindow::GetObject(ui->m_NidiumCtx->getNJS()))) {
+        for (UIPress *press in presses) {
+            SDL_Scancode scancode = [self scancodeFromPressType:press.type];
+            if (scancode == SDL_SCANCODE_MENU) {
+                if (!window->onMediaKey(InputEvent::kMediaKey_menu, false /* down */)) {
+                    // Stop propagation call detected, don't send the event to SDL
+                    if (newPresses == nil) {
+                        newPresses = [[NSMutableSet alloc] initWithSet:presses];
+                    }
+                    [newPresses removeObject:press];
+                }
+            }
+        }
+    }
+
+    originalPressesBegan(self,
+                         @selector(pressesBegan:withEvent:),
+                        newPresses != nil ? newPresses : presses,
+                        event);
+}
+
+@end
 
 namespace Nidium {
 namespace Interface {
@@ -25,6 +116,13 @@ extern UIInterface *__NidiumUI;
 IOSUIInterface::IOSUIInterface()
     : UIInterface(), m_Console(NULL)
 {
+#ifdef NDM_TARGET_TVOS
+    /*
+        By default SDL prevents default behavior for remote controller buttons.
+        Change that, so we can have the default behavior for the menu button.
+    */
+    SDL_SetHint(SDL_HINT_APPLE_TV_CONTROLLER_UI_EVENTS, "1");
+#endif
 }
 
 void IOSUIInterface::setGLContextAttribute()
@@ -45,8 +143,6 @@ void IOSUIInterface::setGLContextAttribute()
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-
-    fprintf(stderr, "iOS set gl context\n");
 }
 
 int IOSUIInterface::toLogicalSize(int size)
@@ -68,7 +164,9 @@ bool IOSUIInterface::createWindow(int width, int height)
 void IOSUIInterface::handleEvent(const SDL_Event *ev)
 {
     switch (ev->type) {
-        // When the device is rotated, notify nidium of the screen resize
+        /*
+            When the device is rotated, notify nidium of the screen resize
+        */
         case SDL_WINDOWEVENT:
             if (ev->window.event == SDL_WINDOWEVENT_RESIZED) {
                 this->getNidiumContext()->setWindowSize(
@@ -77,26 +175,37 @@ void IOSUIInterface::handleEvent(const SDL_Event *ev)
             }
             break;
 #ifdef NDM_TARGET_TVOS
-        // Forward apple TV remote controller click (SDL_SCANCODE_SELECT) as mouse click
+        /*
+            Forward apple TV remote controller click (SDL_SCANCODE_SELECT) as mouse click
+        */
         case SDL_KEYUP:
         case SDL_KEYDOWN: {
             JSWindow *window = NULL;
             if (!this->isContextReady()
                     || !(window = JSWindow::GetObject(m_NidiumCtx->getNJS()))) {
-                UIInterface::handleEvent(ev);
+                break;
             }
-
             switch(ev->key.keysym.scancode) {
                 case SDL_SCANCODE_SELECT:
                     window->mouseClick(ev->motion.x, ev->motion.y,
-                            ev->type == SDL_KEYDOWN ? true : false, 1 /* left click */,
-                            ev->button.clicks);
+                                       ev->type == SDL_KEYDOWN ? true : false, 1 /* left click */,
+                                       ev->button.clicks);
                     return;
+                case SDL_SCANCODE_PAUSE:
+                    window->onMediaKey(InputEvent::kMediaKey_pause, ev->type == SDL_KEYDOWN ? true : false);
+                    return;
+                case SDL_SCANCODE_MENU:
+                    window->onMediaKey(InputEvent::kMediaKey_menu, ev->type == SDL_KEYDOWN ? true : false);
+                    return;
+                default:
+                    break;
             }
             break;
         }
-        // SDL fakes apple TV remote controller touch event as
-        // mouse button down/up. Ignore them.
+        /*
+            SDL fakes apple TV remote controller touch event as
+            mouse button down/up. Ignore them.
+        */
         case SDL_MOUSEBUTTONUP:
         case SDL_MOUSEBUTTONDOWN:
             return;
@@ -141,6 +250,8 @@ void IOSUIInterface::onWindowCreated()
     if (NSClassFromString(@"NidiumWindow")) {
         m_NidiumWindow = [[NSClassFromString(@"NidiumWindow") alloc] initWithWindow:info.info.uikit.window];
     }
+
+    this->patchSDLEvents(info.info.uikit.window.rootViewController.view);
 }
 
 void IOSUIInterface::bridge(const char *data)
@@ -151,6 +262,7 @@ void IOSUIInterface::bridge(const char *data)
     }
     NSString *dataString = [NSString stringWithUTF8String:data];
     [m_NidiumWindow performSelector:@selector(bridge:) withObject:dataString];
+
 }
 
 void IOSUIInterface::openFileDialog(const char *files[],
@@ -168,6 +280,28 @@ void IOSUIInterface::runLoop()
     APE_timer_create(m_Gnet, 1, UIInterface::HandleEvents,
                      static_cast<void *>(this));
     APE_loop_run(m_Gnet);
+}
+
+/*
+    Override SDL UIView pressesBegan method so we can intercept
+    the "menu" key in a sync way and allow the event to be
+    prevented by the JS.
+*/
+void IOSUIInterface::patchSDLEvents(UIView *view)
+{
+    Class SDL_uiview = object_getClass((id)view);
+
+   Method newPressesBeganMethod =
+       class_getInstanceMethod([NidiumEventInterceptor class], @selector(pressesBeganOverride:withEvent:));
+   Method oldPressesBeganMethod =
+       class_getInstanceMethod(SDL_uiview, @selector(pressesBegan:withEvent:));
+
+    originalPressesBegan = (OriginalPressesType)method_getImplementation(oldPressesBeganMethod);
+
+    method_exchangeImplementations(oldPressesBeganMethod, newPressesBeganMethod);
+
+    NSPointer *idthis = [[NSPointer alloc] initWithPtr:this];
+    objc_setAssociatedObject(view, SDLViewAssociatedObject, idthis, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 } // namespace Interface
 } // namespace Nidium
