@@ -78,8 +78,8 @@ bool UIInterface::createWindow(int width, int height)
         }
 
         m_Win = SDL_CreateWindow(
-            "nidium", 100, 100, width, height,
-            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /* | SDL_WINDOW_FULLSCREEN*/);
+            "nidium", 0, 0, width, height,
+            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI /* | SDL_WINDOW_FULLSCREEN*/);
 
         if (m_Win == NULL) {
             ndm_logf(NDM_LOG_ERROR, "UIInterface", "Can't create window (SDL)");
@@ -114,7 +114,7 @@ bool UIInterface::createWindow(int width, int height)
     }
 
     this->setWindowFrame(NIDIUM_WINDOWPOS_UNDEFINED_MASK,
-                         NIDIUM_WINDOWPOS_UNDEFINED_MASK, width, height);
+                         NIDIUM_WINDOWPOS_UNDEFINED_MASK, m_Width, m_Height);
 
     /*
         This will create root canvas, initial size and so on

@@ -122,6 +122,8 @@ IOSUIInterface::IOSUIInterface()
         Change that, so we can have the default behavior for the menu button.
     */
     SDL_SetHint(SDL_HINT_APPLE_TV_CONTROLLER_UI_EVENTS, "1");
+#else
+    SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight Portrait PortraitUpsideDown");
 #endif
 }
 
@@ -154,24 +156,32 @@ int IOSUIInterface::toLogicalSize(int size)
 
 bool IOSUIInterface::createWindow(int width, int height)
 {
-    // iOS/tvOS has a fixed window size, so we ignore the width/height given
-    // (that comes from the NML) and set the size to the size of the view
-    // FIXME : Find out how to get real values
-    System *sys = static_cast<System *>(SystemInterface::GetInstance());
-    return UIInterface::createWindow(1920, 1080);
+    /*
+        iOS/tvOS has a fixed window size, thus we ignore the size from the NML.
+        Also, SDL doesn't need the real values of the view, just the aspect ratio,
+        the real size is retrived in the onWindowCreated() callback.
+     */
+#ifdef NDM_TARGET_TVOS
+    width = 1920;
+    height = 1080;
+#else
+    width = 320;
+    height = 480;
+#endif
+
+    return UIInterface::createWindow(width, height);
 }
 
 void IOSUIInterface::handleEvent(const SDL_Event *ev)
 {
+    fprintf(stderr, "SDL got event %d\n", ev->type);
     switch (ev->type) {
         /*
             When the device is rotated, notify nidium of the screen resize
         */
         case SDL_WINDOWEVENT:
             if (ev->window.event == SDL_WINDOWEVENT_RESIZED) {
-                this->getNidiumContext()->setWindowSize(
-                        this->toLogicalSize(ev->window.data1),
-                        this->toLogicalSize(ev->window.data2));
+                this->getNidiumContext()->setWindowSize(ev->window.data1, ev->window.data2);
             }
             break;
 #ifdef NDM_TARGET_TVOS
@@ -234,7 +244,7 @@ void IOSUIInterface::bindFramebuffer()
 void IOSUIInterface::onWindowCreated()
 {
     /*
-        iOS/tvos doesnt use window-system framebuffer.
+        iOS/tvOS doesnt use window-system framebuffer.
         SDL already generate a fbo and renderbuffer for us (which is not 0)
     */
 
@@ -250,8 +260,18 @@ void IOSUIInterface::onWindowCreated()
     if (NSClassFromString(@"NidiumWindow")) {
         m_NidiumWindow = [[NSClassFromString(@"NidiumWindow") alloc] initWithWindow:info.info.uikit.window];
     }
-
+    
+    /*
+        When creating the SDL window, we don't know the size yet, so we query & set the
+        window size once it's created and before nidium set it's internal buffer size
+    */
+    int w, h;
+    SDL_GetWindowSize(m_Win, &w, &h);
+    this->setWindowSize(w, h);
+    
+#ifdef NDM_TARGET_TVOS
     this->patchSDLEvents(info.info.uikit.window.rootViewController.view);
+#endif
 }
 
 void IOSUIInterface::bridge(const char *data)
