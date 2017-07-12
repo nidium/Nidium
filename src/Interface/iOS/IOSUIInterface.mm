@@ -14,6 +14,7 @@
 
 #include "Graphics/GLHeader.h"
 #include "Binding/JSWindow.h"
+#include "IOSScrollView.h"
 
 #import <objc/runtime.h>
 
@@ -260,7 +261,18 @@ void IOSUIInterface::onWindowCreated()
     if (NSClassFromString(@"NidiumWindow")) {
         m_NidiumWindow = [[NSClassFromString(@"NidiumWindow") alloc] initWithWindow:info.info.uikit.window];
     }
-    
+
+    /*
+        Add a ScrollView on top of nidium view, so we can recognize
+        scroll gesture and use native scrolling animation with nidium
+    */
+    UIWindow *iosWindow = info.info.uikit.window;
+    IOSScrollView *scrollView = [[IOSScrollView alloc]
+                                 initWithFrame:[iosWindow bounds]
+                                 target:info.info.uikit.window.rootViewController.view
+                                 interface:this];
+    [iosWindow addSubview:scrollView];
+
     /*
         When creating the SDL window, we don't know the size yet, so we query & set the
         window size once it's created and before nidium set it's internal buffer size
@@ -268,8 +280,13 @@ void IOSUIInterface::onWindowCreated()
     int w, h;
     SDL_GetWindowSize(m_Win, &w, &h);
     this->setWindowSize(w, h);
-    
+
 #ifdef NDM_TARGET_TVOS
+    /*
+        Override SDL UIView pressesBegan method so we can intercept
+        the "menu" key (back) in a sync way and allow the event to
+        be prevented by the JS.
+    */
     this->patchSDLEvents(info.info.uikit.window.rootViewController.view);
 #endif
 }
@@ -302,11 +319,6 @@ void IOSUIInterface::runLoop()
     APE_loop_run(m_Gnet);
 }
 
-/*
-    Override SDL UIView pressesBegan method so we can intercept
-    the "menu" key in a sync way and allow the event to be
-    prevented by the JS.
-*/
 void IOSUIInterface::patchSDLEvents(UIView *view)
 {
     Class SDL_uiview = object_getClass((id)view);

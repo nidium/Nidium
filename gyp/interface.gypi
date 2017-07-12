@@ -32,6 +32,7 @@
             'sources': [
                 '<(nidium_interface_path)/iOS/IOSUIInterface.mm',
                 '<(nidium_interface_path)/iOS/System.mm',
+                '<(nidium_interface_path)/iOS/IOSScrollView.mm',
             ],
         }],
         ['target_os=="linux"', {
