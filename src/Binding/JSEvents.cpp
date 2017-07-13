@@ -19,16 +19,44 @@ static bool
 Nidium_jsevents_stopPropagation(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp));
+
     if (!thisobj) {
         JS_ReportError(cx, "Illegal invocation");
         return false;
     }
+
     if (!JS_InstanceOf(cx, thisobj, &JSEvent_class, NULL)) {
         JS_ReportError(cx, "Illegal invocation");
         return false;
     }
+
     JS::RootedValue cancelBubble(cx, JS::BooleanValue(true));
-    JS_SetProperty(cx, thisobj, "cancelBubble", cancelBubble);
+    if (!JS_SetProperty(cx, thisobj, "cancelBubble", cancelBubble)) {
+        return false;
+    }
+
+    return true;
+}
+
+static bool
+Nidium_jsevents_preventDefault(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp));
+
+    if (!thisobj) {
+        JS_ReportError(cx, "Illegal invocation");
+        return false;
+    }
+
+    if (!JS_InstanceOf(cx, thisobj, &JSEvent_class, NULL)) {
+        JS_ReportError(cx, "Illegal invocation");
+        return false;
+    }
+
+    JS::RootedValue defaultPrevented(cx, JS::BooleanValue(true));
+    if (!JS_SetProperty(cx, thisobj, "defaultPrevented", defaultPrevented)) {
+        return false;
+    }
 
     return true;
 }
@@ -44,7 +72,7 @@ static JSFunctionSpec JSEvents_funcs[]
               0,
               JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
         JS_FN("preventDefault",
-              Nidium_jsevents_stub,
+              Nidium_jsevents_preventDefault,
               0,
               JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
         JS_FN("forcePropagation",

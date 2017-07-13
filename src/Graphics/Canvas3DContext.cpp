@@ -260,31 +260,18 @@ bool Canvas3DContext::createFBO(int width, int height)
 
     GL_CALL(Viewport(0, 0, width, height));
 
+#ifndef NIDIUM_OPENGLES2
     GL_CALL(Enable(GR_GL_VERTEX_PROGRAM_POINT_SIZE));
 
     /* Vertex Array Buffer are required in GL3.0+ */
     GL_CALL(GenVertexArrays(1, &m_GLObjects.vao));
     GL_CALL(BindVertexArray(m_GLObjects.vao));
-
-    // Cull face is disable by default on WebGL
-    GL_CALL(FrontFace(GR_GL_CCW));
-    GL_CALL(Disable(GR_GL_CULL_FACE));
-
-#if 0
-    GL_CALL(ShadeModel(GL_SMOOTH));
-    GL_CALL(DepthFunc(GL_LEQUAL));
-    GL_CALL(Hint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST));
-    GL_CALL(Hint(GL_POLYGON_SMOOTH_HINT, GL_NICEST));
-    GL_CALL(CppObj, Enable(GL_FRAGMENT_PRECISION_HIGH));
-    GL_CALL(DepthMask(GL_TRUE));
-    GL_CALL(DepthFunc(GL_LEQUAL));
-    GL_CALL(DepthRange(0.f, 1.f));
 #endif
 
-    GL_CALL(Enable(GR_GL_DEPTH_TEST));
-    GL_CALL(ClearDepth(1.0));
+    GL_CALL(FrontFace(GR_GL_CCW));
 
-    GL_CALL(Clear(GR_GL_COLOR_BUFFER_BIT | GR_GL_DEPTH_BUFFER_BIT));
+    // Cull face is disable by default on WebGL
+    GL_CALL(Disable(GR_GL_CULL_FACE));
 
     return true;
 }

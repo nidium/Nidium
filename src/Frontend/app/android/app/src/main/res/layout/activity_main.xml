@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="com.nidium.android.MainActivity">
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:ems="10"
+        android:id="@+id/nml_url"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:text="http://p.nf/android.nml" />
+
+    <Button
+        android:text="Load"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/load_remote_nml" />
+
+    <TextView
+        android:text="Available NML :"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="19dp"
+        android:id="@+id/nml_list_title"
+        android:textSize="15sp"
+        android:textColor="@android:color/black"
+        android:background="@drawable/border_bottom"
+
+        android:layout_below="@+id/load_remote_nml"
+        android:layout_alignParentStart="true"
+        android:textAlignment="viewStart"
+        android:layout_alignParentEnd="true" />
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/nml_list"
+        android:layout_below="@+id/nml_list_title"
+        android:layout_alignParentStart="true" />
+</RelativeLayout>

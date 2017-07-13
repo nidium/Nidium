@@ -15,13 +15,20 @@
 #endif
 
 #include <pa_ringbuffer.h>
-#include <Coro.h>
 
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
+#ifdef __ANDROID__
+#include <libavcodec/jni.h>
+#endif
 }
+
+#ifdef __ANDROID__
+#include <SDL.h>
+#include <jni.h>
+#endif
 
 using Nidium::Core::PthreadAutoLock;
 
@@ -31,9 +38,14 @@ namespace AV {
 #undef DPRINT
 #if 0
 #define DEBUG_PRINT
-#define DPRINT(...)                                   \
+#ifdef __ANDROID__
+#define DPRINT(...)\
+    __android_log_print(ANDROID_LOG_INFO, "Nidium", __VA_ARGS__)
+#else
+#define DPRINT(...)\
     fprintf(stdout, ">[%d]%lld / ", (unsigned int)pthread_self(), av_gettime() / 1000); \
     fprintf(stdout, __VA_ARGS__)
+#endif
 #else
 #define DPRINT(...) (void)0
 #endif
@@ -160,6 +172,12 @@ int Video::openInitInternal()
     AVCodec *codec;
 
     av_register_all();
+#ifdef __ANDROID__
+    JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();
+    JavaVM *vm;
+    env->GetJavaVM(&vm);
+    av_jni_set_java_vm(vm, nullptr);
+#endif
 
     int ret
         = avformat_open_input(&m_Container, m_Filename, NULL, NULL);
@@ -167,13 +185,13 @@ int Video::openInitInternal()
     if (ret != 0) {
         char error[1024];
         av_strerror(ret, error, 1024);
-        fprintf(stderr, "Couldn't open file : %s\n", error);
+        DPRINT("Couldn't open file : %s\n", error);
         return ERR_FAILED_OPEN;
     }
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
-        fprintf(stderr, "Couldn't find stream information\n");
+        DPRINT("Couldn't find stream information\n");
         return ERR_NO_INFORMATION;
     }
 
@@ -199,12 +217,14 @@ int Video::openInitInternal()
     // this->codecCtx->release_buffer = Video::releaseBuffer;
 
     codec = avcodec_find_decoder(m_CodecCtx->codec_id);
+    //codec = avcodec_find_decoder_by_name ("h264_mediacodec");
     if (!codec) {
+        DPRINT("Codec not found");
         return ERR_NO_CODEC;
     }
 
     if (avcodec_open2(m_CodecCtx, codec, NULL) < 0) {
-        fprintf(stderr, "Could not find or open the needed codec\n");
+        DPRINT("Could not find or open the needed codec\n");
         return ERR_NO_CODEC;
     }
 
@@ -217,13 +237,13 @@ int Video::openInitInternal()
         = (uint8_t *)malloc(sizeof(Video::Frame) * NIDIUM_VIDEO_BUFFER_SAMPLES);
 
     if (m_Buff == NULL) {
-        fprintf(stderr, "Failed to alloc buffer\n");
+        DPRINT("Failed to alloc buffer\n");
         return ERR_OOM;
     }
 
     if (0 > PaUtil_InitializeRingBuffer(m_rBuff, sizeof(Video::Frame),
                                         NIDIUM_VIDEO_BUFFER_SAMPLES, m_Buff)) {
-        fprintf(stderr, "Failed to init ringbuffer\n");
+        DPRINT("Failed to init ringbuffer\n");
         return ERR_OOM;
     }
 
@@ -354,7 +374,7 @@ void Video::seek(double time, uint32_t flags)
 bool Video::seekMethod(int64_t target, int flags)
 {
     DPRINT("av_seek_frame\n");
-    if (!(m_SeekFlags & NIDIUM_VIDEO_SEEK_KEYFRAME)) {
+    if (!(m_SeekFlags & NIDIUM_VIDEO_SEEK_KEYFRAME) && !(flags & AVSEEK_FLAG_BACKWARD)) {
         flags |= AVSEEK_FLAG_ANY;
     }
     int ret = av_seek_frame(m_Container, m_VideoStream, target, flags);
@@ -802,7 +822,7 @@ int Video::display(void *custom)
     v->m_FrameTimer += delay * 1000;
     actualDelay = (v->m_FrameTimer - (av_gettime() / 1000.0)) / 1000;
 
-    DPRINT("Using delay %f diff=%d delay=%f\n", actualDelay, diff, delay);
+    DPRINT("Using delay %f diff=%f delay=%f\n", actualDelay, diff, delay);
 
     if (v->m_Playing) {
         if (actualDelay <= NIDIUM_VIDEO_SYNC_THRESHOLD && diff <= 0) {
@@ -846,10 +866,6 @@ int Video::setSizeInternal()
         NIDIUM_PTHREAD_WAIT(&m_NotInDisplay);
     }
 
-    // Flush buffers & timers to discard old frames
-    this->flushBuffers();
-    // this->clearTimers(true);
-
     int width  = m_NewWidth == 0 ? m_CodecCtx->width : m_NewWidth;
     int height = m_NewHeight == 0 ? m_CodecCtx->height : m_NewHeight;
 
@@ -859,30 +875,29 @@ int Video::setSizeInternal()
         m_ConvertedFrame = av_frame_alloc();
 
         if (m_DecodedFrame == NULL || m_ConvertedFrame == NULL) {
-            fprintf(stderr, "Failed to alloc frame\n");
+            DPRINT("Failed to alloc frame\n");
             m_NoDisplay = false;
             return ERR_OOM;
         }
-    } else {
-        sws_freeContext(m_SwsCtx);
-    }
 
-    m_SwsCtx = sws_getContext(m_CodecCtx->width, m_CodecCtx->height,
-                              m_CodecCtx->pix_fmt, width, height, AV_PIX_FMT_RGBA,
-                              SWS_BICUBIC, NULL, NULL, NULL);
+        m_SwsCtx = sws_getContext(m_CodecCtx->width, m_CodecCtx->height,
+                                  m_CodecCtx->pix_fmt, m_CodecCtx->width, m_CodecCtx->height,
+                                  AV_PIX_FMT_RGBA,
+                                  SWS_BICUBIC, NULL, NULL, NULL);
 
-    if (!m_SwsCtx) {
-        m_NoDisplay = false;
-        return ERR_NO_VIDEO_CONVERTER;
-    }
+        if (!m_SwsCtx) {
+            m_NoDisplay = false;
+            return ERR_NO_VIDEO_CONVERTER;
+        }
 
-    // Update the size of the frames in the frame pool
-    AVPicture *picture = reinterpret_cast<AVPicture *>(m_ConvertedFrame);
-    int frameSize = av_image_fill_arrays(picture->data, picture->linesize,
-                    NULL, AV_PIX_FMT_RGBA, width, height, 1);
-    for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
-        free(m_Frames[i]);
-        m_Frames[i] = static_cast<uint8_t *>(malloc(frameSize));
+        AVPicture *picture = reinterpret_cast<AVPicture *>(m_ConvertedFrame);
+        int frameSize = av_image_fill_arrays(picture->data, picture->linesize,
+                        NULL, AV_PIX_FMT_RGBA, m_CodecCtx->width, m_CodecCtx->height, 1);
+
+        for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
+            free(m_Frames[i]);
+            m_Frames[i] = static_cast<uint8_t *>(malloc(frameSize));
+        }
     }
 
     m_Width  = width;
@@ -890,35 +905,6 @@ int Video::setSizeInternal()
 
     m_NoDisplay = false;
     return 0;
-#if 0
-    // XXX : Nop
-    // Determine required frameSize and allocate buffer frame pool
-    ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(m_rBuff);
-
-    int idx = m_FramesIdx;
-    uint8_t *data;
-    for (ring_buffer_size_t i = 0; i < avail; i++) {
-        Frame frame;
-
-        data = static_cast<uint8_t*>(malloc(frameSize));
-        PaUtil_ReadRingBuffer(m_rBuff, static_cast<void *>(&frame), 1);
-
-        this->convertFrame(&frame, data);
-
-        free(m_Frames[m_FramesIdx].data);
-        m_Frames[m_FramesIdx].data = data;
-
-        PaUtil_WriteRingBuffer(m_rBuff, &frame, 1);
-
-        if (idx == NIDIUM_VIDEO_BUFFER_SAMPLES - 1) {
-            idx = 0;
-        } else {
-            idx++;
-        }
-    }
-
-    m_FramesIdx = idx;
-#endif
 }
 
 void Video::setSize(int width, int height)
@@ -1047,8 +1033,8 @@ void *Video::decode(void *args)
                 bool videoFailed = !v->processVideo();
                 bool audioFailed = !v->processAudio();
 #ifdef DEBUG_PRINT
-                DPRINT("audioFailed=%d videoFailed=%d\n", audioFailed,
-                       videoFailed);
+                DPRINT("audioFailed=%d videoFailed=%d videoAvail=%ld\n", audioFailed,
+                       videoFailed, PaUtil_GetRingBufferWriteAvailable(v->m_rBuff));
 #else
                 (void)videoFailed;
                 (void)audioFailed;
@@ -1132,11 +1118,7 @@ bool Video::processAudio()
 
 bool Video::processVideo()
 {
-    if (PaUtil_GetRingBufferWriteAvailable(m_rBuff) < 1) {
-        DPRINT("processVideo not enough space to write data\n");
-        return false;
-    }
-
+    DPRINT("process video\n");
     if (m_DoSetSize) {
         m_DoSetSize = false;
         int ret     = this->setSizeInternal();
@@ -1146,29 +1128,37 @@ bool Video::processVideo()
         }
     }
 
-    int gotFrame;
-    Packet *p = this->getPacket(m_VideoQueue);
+    while (PaUtil_GetRingBufferWriteAvailable(m_rBuff) > 0) {
+        //DPRINT("in loop i=%d avail=%ld", i, PaUtil_GetRingBufferWriteAvailable(m_rBuff));
+        int gotFrame;
+        Packet *p = this->getPacket(m_VideoQueue);
 
-    if (p == NULL) {
-        DPRINT("processVideo no more packet\n");
-        if (m_Error == AVERROR_EOF) {
-            m_Eof = true;
+        if (p == NULL) {
+            DPRINT("processVideo no more packet\n");
+            if (m_Error == AVERROR_EOF) {
+                m_Eof = true;
+            }
+            return false;
         }
-        return false;
+
+        AVPacket packet = p->curr;
+
+        //DPRINT("decode video");
+        avcodec_decode_video2(m_CodecCtx, m_DecodedFrame, &gotFrame, &packet);
+        //DPRINT("end decode video");
+
+        if (gotFrame) {
+            this->processFrame(m_DecodedFrame);
+            //DPRINT("end process frame");
+        }
+
+        delete p;
+        av_packet_unref(&packet);
+        //i++;
     }
 
-    AVPacket packet = p->curr;
-
-    avcodec_decode_video2(m_CodecCtx, m_DecodedFrame, &gotFrame, &packet);
-
-    if (gotFrame) {
-        this->processFrame(m_DecodedFrame);
-    }
-
-    delete p;
-    av_packet_unref(&packet);
-
-    return true;
+    //DPRINT("process video over");
+    return PaUtil_GetRingBufferWriteAvailable(m_rBuff) != 0;
 }
 
 bool Video::processFrame(AVFrame *avFrame)

@@ -4,11 +4,22 @@
 
 {
     'targets': [{
-        'target_name': 'nidiumapp',
-        'type': 'none',
-        'dependencies': [
-            'nidium.gyp:nidium',
-        ],
+        'conditions': [
+            ['target_os=="android"', {
+                'target_name': 'nidiumapp',
+                'type': 'none',
+                'dependencies': [
+                    'libnidium_android.gyp:libnidium_android',
+                ],
+            },
+            {
+                'target_name': 'nidiumapp',
+                'type': 'none',
+                'dependencies': [
+                    'nidium.gyp:<(nidium_exec_name)',
+                ],
+            }]
+        ]
     }]
 }
 

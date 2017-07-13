@@ -21,9 +21,7 @@
         ],
         'msvs_settings': {
             'VCLinkerTool': {
-                'SubSystem': '2',  # windows app
-                "AdditionalOptions": [
-                ],
+                'SubSystem': '2',  # GUI app
             },
         },
         'conditions': [
@@ -39,64 +37,48 @@
                 ],
             }],
             ['OS=="win"', {
-                'conditions': [
-                    ['nidium_enable_breakpad==1', {
-                        'dependencies': [
-                            'crashreporter.gyp:nidium-crash-reporter',
-                         ],
-                    }],
-                ],
                 'link_settings': {
                     'libraries': [
                         'SDL2.lib',
                         'skia.lib',
                         'translator.lib',
+                        'translator_lib.lib',
                         'preprocessor.lib',
                         'angle_common.lib',
                         'libANGLE.lib',
                         'libEGL.lib',
                         'libGLESv2.lib',
                         'zip.lib',
-                        'gif.lib',
-
+                        #'gif.lib',
                         'opengl32.lib',
-                    #'usp10.lib',
-                    #'kernel32.lib',
-                    #'gdi32.lib',
-                    #'winspool.lib',
-                    #'comdlg32.lib',
-                    #'advapi32.lib',
-                    #'ole32.lib',
-                    #'oleaut32.lib',
-                    #'user32.lib',
-                    #'uuid.lib',
-                    #'odbc32.lib',
-                    #'odbccp32.lib',
-                    #'DelayImp.lib',
-                    #'windowscodecs.lib',
+                        #'usp10.lib',
+                        #'kernel32.lib',
+                        #'gdi32.lib',
+                        #'winspool.lib',
+                        #'comdlg32.lib',
+                        #'advapi32.lib',
+                        #'ole32.lib',
+                        #'oleaut32.lib',
+                        #'user32.lib',
+                        #'uuid.lib',
+                        #'odbc32.lib',
+                        #'odbccp32.lib',
+                        #'DelayImp.lib',
+                        #'windowscodecs.lib',
                         'shell32.lib',
                         'shlwapi.lib',
-#                         'winmm.lib',
-#                         'imm32.lib',
-#                         'delayimp.lib',
-#                        'glu32.lib',
+                         #'winmm.lib',
+                         #'imm32.lib',
+                         #'delayimp.lib',
+                         #'glu32.lib',
                     ],
                 },
-                'defines': [
-                ],
                 'sources': [
                     '<(nidium_app_path)/windows/main.cpp',
                 ],
 
-             }],
-             ['OS=="linux"', {
-                'conditions': [
-                    ['nidium_enable_breakpad==1', {
-                        'dependencies': [
-                            'crashreporter.gyp:nidium-crash-reporter',
-                         ],
-                    }],
-                ],
+            }],
+            ['target_os=="linux"', {
                 'ldflags': [
                     '-rdynamic',
                 ],
@@ -128,7 +110,7 @@
                 #    'action': ['strip', '$(PRODUCT_DIR)/<(nidium_exec_name)']
                 #}]
             }],
-            ['OS=="mac"', {
+            ['target_os=="mac"', {
                 # XXX : Dono why, but this has no effect
                 "xcode_settings": {
                     'STRIP_INSTALLED_PRODUCT': 'YES',

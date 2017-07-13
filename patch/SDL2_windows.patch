@@ -1,11 +1,46 @@
---- SDL2/src/audio/xaudio2/SDL_xaudio2.c.org	2017-02-26 00:18:45 -0800
-+++ SDL2/src/audio/xaudio2/SDL_xaudio2.c	2017-02-26 00:19:10 -0800
-@@ -65,7 +65,7 @@
-    The XAudio2 implementation available in the Windows 8 SDK targets Windows 8 and newer.
-    If you want to build SDL with XAudio2 support you should install the DirectX SDK.
-  */
--#include <dxsdkver.h>
-+//#include <dxsdkver.h>
- #if (!defined(_DXSDK_BUILD_MAJOR) || (_DXSDK_BUILD_MAJOR < 1284))
- #  pragma message("Your DirectX SDK is too old. Disabling XAudio2 support.")
- #else
+# Disable SDL2 audio (not needed)
+# Disable OpenGL & D3D support (not needed, nidium use OpenGLES with ANGLE on windows)
+--- SDL2/include/SDL_config_windows.h	2017-05-18 16:27:02.512391191 +0200
++++ SDL2/include/SDL_config_windows.h	2017-05-18 16:28:05.265725885 +0200
+@@ -154,11 +154,11 @@
+ #endif
+ 
+ /* Enable various audio drivers */
+-#define SDL_AUDIO_DRIVER_DSOUND 1
+-#define SDL_AUDIO_DRIVER_XAUDIO2    1
+-#define SDL_AUDIO_DRIVER_WINMM  1
+-#define SDL_AUDIO_DRIVER_DISK   1
+-#define SDL_AUDIO_DRIVER_DUMMY  1
++#define SDL_AUDIO_DRIVER_DSOUND 0
++#define SDL_AUDIO_DRIVER_XAUDIO2    0
++#define SDL_AUDIO_DRIVER_WINMM  0
++#define SDL_AUDIO_DRIVER_DISK   0
++#define SDL_AUDIO_DRIVER_DUMMY  0
+ 
+ /* Enable various input drivers */
+ #define SDL_JOYSTICK_DINPUT 1
+@@ -180,7 +180,7 @@
+ #define SDL_VIDEO_DRIVER_WINDOWS    1
+ 
+ #ifndef SDL_VIDEO_RENDER_D3D
+-#define SDL_VIDEO_RENDER_D3D    1
++#define SDL_VIDEO_RENDER_D3D    0
+ #endif
+ #ifndef SDL_VIDEO_RENDER_D3D11
+ #define SDL_VIDEO_RENDER_D3D11	0
+@@ -188,13 +188,13 @@
+ 
+ /* Enable OpenGL support */
+ #ifndef SDL_VIDEO_OPENGL
+-#define SDL_VIDEO_OPENGL    1
++#define SDL_VIDEO_OPENGL    0
+ #endif
+ #ifndef SDL_VIDEO_OPENGL_WGL
+ #define SDL_VIDEO_OPENGL_WGL    1
+ #endif
+ #ifndef SDL_VIDEO_RENDER_OGL
+-#define SDL_VIDEO_RENDER_OGL    1
++#define SDL_VIDEO_RENDER_OGL    0
+ #endif
+ #ifndef SDL_VIDEO_RENDER_OGL_ES2
+ #define SDL_VIDEO_RENDER_OGL_ES2    1

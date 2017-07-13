@@ -9,9 +9,7 @@
         'direct_dependent_settings': {
             'include_dirs': [
                 '<(third_party_path)/mozilla-central/js/src/obj/dist/include/',
-                '<(third_party_path)/mozilla-central/js/src/',
-                '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
-                '<(third_party_path)/mozilla-central/nsprpub/pr/include/',
+                '<(third_party_path)/mozilla-central/js/src/obj/dist/nspr-include/',
                 '<(third_party_path)/http-parser/',
                 '<(third_party_path)/leveldb/include/',
                 '<(third_party_path)/jsoncpp/dist',
@@ -80,7 +78,7 @@
                         'WIN32',
                         # This flag or EXPORT_JS_API seems to be needed for getting the correct signature of JS_Init() functions
                         'STATIC_JS_API',
-                    ],
+                    ]
                 }],
             ],
             }
@@ -88,16 +86,10 @@
         'target_name': 'libnidiumcore-link',
         'type': 'none',
         'direct_dependent_settings': {
-            'msvs_settings': {
-                'VCLinkerTool': {
-                    "AdditionalOptions": [
-                    ],
-                },
-            },
             'conditions': [
-                ['OS=="win"', {
+                ['target_os=="win"', {
                     'ldflags': [
-                        '-OPT:REF'
+                        '-OPT:REF' # XXX : Should we use NOREF instead ? 
                     ],
                     "link_settings": {
                         'libraries': [
@@ -117,12 +109,11 @@
                             '-ldelayimp',
 
                             'http_parser.lib',
-                            'libleveldb.a',
+                            'libleveldb.lib',
 
-
-                            'libnspr4.lib',
-                            'libplds4.lib',
-                            'libplc4.lib',
+                            'nspr4.lib',
+                            'plds4.lib',
+                            'plc4.lib',
 
                             # Temporary workaround some link issues. There must be a better way.
                             'Compression.obj',
@@ -132,7 +123,7 @@
                        ]
                     }
                 }],
-                ['OS=="mac"', {
+                ['target_os=="mac"', {
                     "link_settings": {
                         'libraries': [
                             'libhttp_parser.a',
@@ -143,7 +134,7 @@
                         ]
                     }
                 }],
-                ['OS=="linux"', {
+                ['target_os=="linux" or target_os=="android"', {
                     'ldflags': [
                         '-Wl,--gc-sections',
                     ],
@@ -170,7 +161,7 @@
             'libnidiumcore.gyp:libnidiumcore-includes',
         ],
         'conditions': [
-            ['OS=="win"', {
+            ['target_os=="win"', {
                 'sources': [
                     '../src/Port/MSWindows.cpp'
                 ],
@@ -178,17 +169,17 @@
                     'DSO_EXTENSION=".lib"'
                 ],
             }],
-            ['OS!="win"', {
+            ['target_os!="win"', {
                 'sources': [
                     '../src/Port/Posix.cpp'
                 ],
             }],
-            ['OS=="mac"', {
+            ['target_os=="mac"', {
                 'defines': [
                     'DSO_EXTENSION=".dylib"'
                 ],
             }],
-            ['OS=="linux"', {
+            ['target_os=="linux" or target_os=="android"', {
                 'defines': [
                     'DSO_EXTENSION=".so"'
                 ]

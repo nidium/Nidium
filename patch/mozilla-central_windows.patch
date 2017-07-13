@@ -1,4 +1,18 @@
---- mozilla-central.org/js/src/jsmath.cpp	2017-04-05 22:56:41 +0200
+# mozbuild/mozbuild/virtualenv.py on windows looks for python.exe but the python script that setup the virtualenv does not add ".exe" to python script
+# Spidermonkey configure script does not correctly detect that log2 is already defined. This fix should no longer be needed after JSAPI45
+--- mozilla-central/python/virtualenv/virtualenv.py 2017-05-22 10:10:25.999381469 +0200
++++ mozilla-central/python/virtualenv/virtualenv.py	2017-05-22 10:10:39.112715085 +0200
+@@ -1339,6 +1339,8 @@
+         if py_executable_ext.lower() == '.exe':
+             # python2.4 gives an extension of '.4' :P
+             secondary_exe += py_executable_ext
++        if sys.platform in ('win32', 'cygwin') and py_executable_ext.lower() != '.exe':
++            secondary_exe += '.exe'
+         if os.path.exists(secondary_exe):
+             logger.warn('Not overwriting existing %s script %s (you must use %s)'
+                         % (expected_exe, secondary_exe, py_executable))
+
+--- mozilla-central/js/src/jsmath.cpp	2017-04-05 22:56:41 +0200
 +++ mozilla-central/js/src/jsmath.cpp	2017-04-05 22:57:30 +0200
 @@ -1060,12 +1060,14 @@
      return math_function<math_log10_impl>(cx, argc, vp);
@@ -13,17 +27,3 @@
  }
  #endif
 +#endif
- 
- double
- js::math_log2_impl(MathCache* cache, double x)
---- mozilla-central.org/js/src/configure	2017-04-05 23:13:26 +0200
-+++ mozilla-central/js/src/configure	2017-04-05 22:26:39 +0200
-@@ -15818,7 +15818,7 @@
-     MOZ_ICU_VERSION="$version"
- 
-     if test "$OS_TARGET" = WINNT; then
--        MOZ_SHARED_ICU=1
-+        MOZ_SHARED_ICU=0
-     fi
- 
-     if test -z "${JS_STANDALONE}" -a -n "${JS_SHARED_LIBRARY}${MOZ_NATIVE_ICU}"; then

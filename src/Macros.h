@@ -12,6 +12,9 @@
 
 #include "Interface/UIInterface.h"
 #include <ape_log.h>
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
 
 #define __FILENAME__ \
     (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)

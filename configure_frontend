@@ -23,94 +23,78 @@ from konstructor import ROOT
 
 Gyp = Builder.Gyp
 
-Deps.set(
-    "giflib",
-    "libzip",
-    "breakpad",
-    "basekit",
-    "libcoroutine",
-    "SDL2",
-    "rapidxml",
-    "depot_tools",
-    "angle",
-    "skia",
-    Deps.Konstruct("libnidiumcore", "configure_libnidiumcore")
-)
-
-if Platform.system == "Linux":
-    Deps.set("libnotify", "lss")
-elif Platform.system == "Darwin":
-    Deps.set("libnotify")
-    Platform.setEnviron("MACOSX_DEPLOYMENT_TARGET=10.7")
-elif Platform.system == "Windows":
-    Deps.set("pthreads4w", "opengl")
-    if Platform.wordSize == 32:
-        Deps.set("ninja")
+if Platform.system == "Windows":
     Platform.setEnviron("DEPOT_TOOLS_WIN_TOOLCHAIN=0")
-    Platform.setCompiler("cl", 'cl')
-    Platform.setEnviron("LD=Link")
-    Platform.setEnviron("AR=lib")
+    # On windows, nidium use OpenGLES trough ANGLE
+    Gyp.set("nidium_opengles2", 1)
 
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_FRONTEND")
 Gyp.set("nidium_js_disable_window_global", 0)
 Gyp.set("nidium_audio", 0)
-
-if Builder.Gyp.get("nidium_audio", True):
-    Deps.set(
-        "portaudio",
-        "zita-resampler",
-        "ffmpeg",
-    )
+Gyp.set("nidium_webgl", 1)
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
 CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 @Deps.register("portaudio")
 def portaudio():
-    no_backend = ['jack', 'asihpi', 'winapi']
-    do_backend = []
+    env = Utils.Env()
+    output = "lib/libs/libportaudio.a"
+
     if Platform.system == "Windows":
-        Platform.setCompiler("cl", 'cl')
-        Platform.setEnviron('LD=link')
         cmake, platform, toolset = Platform.CMake()
         build = [cmake + " -DPA_UNICODE_BUILD=1 -DPA_USE_WASAPI=0 -DPA_USE_WDMKS=0 -DPA_USE_WMME=1",
                 Platform.MsBuild("portaudio_static.vcxproj")]
         output = "./Release/portaudio_static_x86.lib"
         patch = []
     else:
-        configure = "./configure"
-        for backend in no_backend:
-            configure += " --without-%s" % (backend)
-        for backend in do_backend:
-            configure += " --with-%s" % (backend)
-        configure += " --disable-debug-output --enable-static --disable-shared"
-        build = [configure, "make -j1", "make  src/common/pa_ringbuffer.o"]
-        output = "lib/.libs/libportaudio.a"
-        patch = [os.path.join(CONFIGURE_PATH, "patch", "portaudio.patch")]
+        configure = "./configure --disable-shared --enable-static --without-jack --without-asihpi --without-winapi"
+
+        if Konstruct.config("android"):
+            # Portaudio doesn't have good support for OpenSLES audio API, use custom build
+            location =  Deps.GitRepo("https://github.com/Gundersanne/portaudio_opensles.git", revision="901176c")
+            build = ["aclocal", "libtoolize --force", "autoconf",
+                     configure + "--with-opensles %s --host=%s" % (Variables.get("targetTriplet"))]
+            patch = []
+            env.update(Variables.get("androidEnvClang"))
+        else:
+            location = DEPEDENCY_REPO + "/portaudio.tgz"
+            build = [configure]
+            patch = [os.path.join(CONFIGURE_PATH, "patch", "portaudio.patch")]
+
+        build.append("make -j1 lib/libportaudio.la src/common/pa_ringbuffer.o")
+
     return {
-        "location": DEPEDENCY_REPO + "/portaudio.tgz",
-        "build":  build,
+        "location": location,
+        "patchs": patch,
+        "build": build,
         "outputs": [output],
-        "patchs" : patch
+        "env": env
     }
 
 @Deps.register("zita-resampler")
 def zitaresampler():
-    cxx_flags = "CXXFLAGS=-D_USE_MATH_DEFINES"
-    if Platform.system == "Windows":
-        cxx_flags += " -I ../../pthreads4w -D_POSIX_C_SOURCE=200112L "
-    Platform.setEnviron(cxx_flags)
+    if Konstruct.config("android"):
+        env.update(Variables.get("androidEnvClang"))
+    elif Platform.system == "Windows":
+        env.append("CXXFLAGS", "-D_USE_MATH_DEFINES -I ../../pthreads4w -D_POSIX_C_SOURCE=200112L")
+
     return {
         "location": DEPEDENCY_REPO + "/zita-resampler-1.3.0.tar.bz2",
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "zita-resampler.patch")],
         "chdir": "libs/",
         "build": ["make"],
-        "outputs": ["libzita-resampler(.a|.lib)"]
+        "outputs": ["libzita-resampler(.a|.lib)"],
+        "env": env
     }
 
 @Deps.register("giflib")
 def giflib():
+    return {}
+# giflib doesn't seems to be required by skia anymore
+"""
+<<<<<<< HEAD
     location = "http://downloads.sourceforge.net/project/giflib/giflib-4.x/giflib-4.2.3.tar.gz"
     if Platform.system == "Windows":
         Platform.setCompiler("cl", 'cl')
@@ -134,111 +118,145 @@ def giflib():
             "build": ["./configure", "make"],
             "outputs": ["lib/.libs/libgif.a"]
         }
+=======
+    # skdiff is used during unit-tests and it needs libgif.so.4
+    Platform.setEnviron("LD_LIBRARY_PATH=%s:%s/giflib/lib/.libs/" % (Platform.getEnviron("LD_LIBRARY_PATH", ""), os.getcwd()))
+
+    env = Utils.Env()
+    configure = "./configure"
+
+    if Konstruct.config("android"):
+        env.update(Variables.get("androidEnvClang"))
+        # giflib use some old deprecated flags, Workaround that
+        # see https://code.google.com/p/android/issues/detail?id=19710
+        env.append("CFLAGS", "-include %s/giflib/lib/android.h" % (os.getcwd()))
+        configure = "./configure --host=%s" % (Variables.get("targetTriplet"))
+
+    return {
+        "location": "http://downloads.sourceforge.net/project/giflib/giflib-4.x/giflib-4.2.3.tar.gz",
+        "build": [configure, "make coverity"],
+        "outputs": ["lib/.libs/libgif.a"],
+        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "giflib_android.patch")],
+        "env": env
+    }
+"""
 
 @Deps.register("skia")
 def skia():
-    pref = "lib"
-    ext = ".a"
-    if Platform.system == "Windows":
-        pref = ""
-        ext = ".lib"
-        import stat
-        cpu = ["x86", "x64"][Platform.wordSize == 64]
-        args = {
-            "is_official_build": True,
-            "target_cpu":cpu,
-            "cc": Platform.getEnviron("CC"),
-            "cxx": Platform.getEnviron("CXX")
-        }
-        toolset = Platform.MSVC.toolset(Variables.get('msvs_version', 2015))
-        skiaArgs = ['%s=%s' % (k, json.dumps(v)) for k, v in args.items()]
-        #gn has a realy frustrating quoting argument policy
-        gn_string = """gn gen out/Static --ide='vs' '--args=%s\'""" % (" ".join(skiaArgs))
-        gn_hack = "../nidium_gn_quote.sh"
-        file_h = open("skia/" + gn_hack, 'w')
-        dir = "/c/data/nidium/Nidium/third-party/"
-        file_h.write("#!/bin/bash\n\n" +
-                   "export PATH=%s/depot_tools/python276_bin:%s/depot_tools/python:%s/angle/buildtools/win" % (dir, dir, dir) +
-                 "\n\n" +
-                gn_string )
-        file_h.close()
-        st = os.stat("skia/" + gn_hack)
-        os.chmod("skia/" + gn_hack, st.st_mode | stat.S_IEXEC)
-        build = [ #"python tools/git-sync-deps",
-                  #"bash ./%s||true" % (gn_hack),
-                  #"python gn/gn_meta_sln.py",
-                  #Platform.MsBuild("out/sln/skia.sln", None, None, None)]
-                ]
-    else:
-        args = {
+    env = Utils.Env()
+    build = [
+        "python tools/git-sync-deps"
+    ]
+    patchs = []
+    libSkia = "libskia.a"
+    skdiff = "skdiff"
+    args = {
+        "gn": {
             "extra_cflags_cc": [
-                "-Wno-unused-function",
-                "-Wno-array-bounds",
-                "-Wno-return-local-addr",
-                "-DGR_GL_CUSTOM_SETUP_HEADER=<../../../../../patch/skia_gl_config.h>"
-                ],
+                """-DGR_GL_CUSTOM_SETUP_HEADER="%s" """ % ("../../../../../patch/skia_gl_config.h")
+            ],
             "is_official_build": True,
             "cc": Platform.getEnviron("CC"),
             "cxx": Platform.getEnviron("CXX")
         }
+    }
 
-    if Platform.system == "Darwin":
-        args["extra_cflags_cc"].append("-stdlib=libc++")
-        args["extra_ldflags"] = ["-stdlib=libc++"]
-    skiaArgs = ''
-    for k, v in args.items():
-        #skiaArgs += r' %s="%s"' % (k, json.dumps(v))
-        skiaArgs += " %s=%s" % (k, json.dumps(v))
-    build = [ "python tools/git-sync-deps",
-               """./bin/gn gen out/Static '--args=%s' """ % (skiaArgs),
-             "ninja %s -C out/Static" % ("-v" if Variables.get("verbose") else "")]
+    if Konstruct.config("android"):
+        patchs.append(os.path.join(CONFIGURE_PATH, "patch", "skia_android.patch"))
+
+    if Platform.system == "Windows":
+        patchs.append(os.path.join(CONFIGURE_PATH, "patch", "skia_windows.patch"),)
+        args["--ide"] = "vs"
+        skdiff = "skdiff.exe"
+        libSkia = "skia.lib"
+    else:
+        args["gn"]["extra_cflags_cc"].append("-Wno-unused-function",
+                                       "-Wno-array-bounds",
+                                       "-Wno-return-local-addr")
+
+        build.append("sed -i.bak '/simpleperf/d' out/Static/build.ninja")
+
+        if Platform.system == "Darwin":
+            args["gn"]["extra_cflags_cc"].append("-stdlib=libc++")
+            args["gn"]["extra_ldflags"] = ["-stdlib=libc++"]
+        elif Konstruct.config("android"):
+            androidEnv = Variables.get("androidEnvClang")
+            args["gn"]["cc"] = androidEnv.get("CC")
+            args["gn"]["cxx"] = androidEnv.get("CXX")
+
+            args["gn"]["ndk"] = Variables.get("androidNdkPath")
+            args["gn"]["target_cpu"] = Variables.get("targetArch")
+
     # Add depot_tools to path needed for skia
     Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
 
     # depot_tools and skia needs python2.7 but use "python" as the default
     # interpreter which could be python3.x on some system. Workaround that
     # by using a custom python wrapper that will redirect to the correct python version
-    Platform.setEnviron("PATH=" + os.path.join(ROOT, "tools") + ":" + os.environ.get("PATH", ""))
+    env.set("PATH", os.path.join(ROOT, "tools") + Utils.Env.SEPARATOR + Platform.getEnviron("PATH", ""))
+
+    skiaArgs = ""
+    for k, v in args["gn"].items():
+        skiaArgs += " %s=%s" % (k, json.dumps(v))
+
+    gnArgs = ""
+    for k, v in args.items():
+        if k == "gn":
+            continue
+        gnArgs += " %s=%s" % (k, json.dumps(v))
 
     return {
         "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", revision="98829b9"),
-        "build": build,
+        "build": build + [
+            "bin\gn.exe gen out/Static/ --args=%s %s" % (json.dumps(skiaArgs), gnArgs),
+            "python gn/gn_meta_sln.py" if Platform.system == "Windows" else "",
+            "ninja -C out/Static",
+        ],
         "patchs": [
             os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
-            os.path.join(CONFIGURE_PATH, "patch", "skia_gr_gl_callback.patch")
-        ],
+            os.path.join(CONFIGURE_PATH, "patch", "skia_gr_gl_callback.patch"),
+        ] + patchs,
         "outputs": [
-            "out/Static/%sskia%s" % (pref, ext),
+            "out/Static/%s" % (libSkia),
             {
-                "src": "out/Static/skdiff",
-                "dst": os.path.join(ROOT, "tests", "jsunittest", "gr", "skdiff")
+                "src": "out/Static/%s" % (skdiff),
+                "dst": os.path.join(ROOT, "tests", "jsunittest", "gr", skdiff)
             }
-        ]
+        ],
+        "env": env
     }
 
 @Deps.register("libzip")
 def libzip():
-    Platform.setEnviron('CMAKE_AR=lib')
+    env = Utils.Env()
+
+    build = []
+    output = "lib/.libs/libzip.a"
+
     if Platform.system == "Windows":
         output = "./lib/Release/zip.lib"
         cmake, platform, toolset = Platform.CMake()
         build = [cmake + " -DZLIB_LIBRARY=%s/zlib/zlib.lib -DZLIB_INCLUDE_DIR=%s/zlib" % (Deps.getDir(), Deps.getDir()),
                 Platform.MsBuild("libzip.sln")]
     else:
-        output = "lib/.libs/libzip.a"
-        build = ["autoreconf -fi",
-                 "./configure  --disable-shared --with-zlib=%s/zlib/" % (Deps.getDir()), "make"]
+        configureArgs = "--disable-shared --with-zlib=%s/zlib/" % (Deps.getDir())
+        if Konstruct.config("android"):
+            configureArgs = " --host=%s" % (Variables.get("targetTriplet"))
+            env.update(Variables.get("androidEnvClang"))
+
+        build = ["./configure %s" % (configureArgs), "make"]
+
     return {
         "location": "https://nih.at/libzip/libzip-1.2.0.tar.gz",
         "build": build,
-        "outputs": [output]
+        "outputs": [output],
+        "env": env
     }
 
 @Deps.register("lss")
 def lss():
     if Platform.system == "Windows":
-        Log.error("The '%s' platform does not need lss" % (Platform.system))
-        sys.exit(1)
+        Utils.exit("The '%s' platform does not need lss" % (Platform.system))
     return {
         "location": Deps.GitRepo("https://chromium.googlesource.com/linux-syscall-support", revision="348bdf8d32b37c8fb2627df7a0a977d1d640e1fc")
     }
@@ -252,43 +270,83 @@ def fixAngleThinArchive():
 
 @Deps.register("angle")
 def angle():
-    outputs = ["preprocessor", "translator", "angle_common"]
+    env = Utils.Env()
+    outputs = []
+    patchs = []
+    buildSteps = [
+        "python scripts/bootstrap.py",
+        "gclient sync",
+    ]
+
+    env.set("PATH", env.get("PATH") + Utils.Env.SEPARATOR +  os.path.join(Deps.getDir(), "depot_tools"))
+
     if Platform.system == "Windows":
-        pref = ''
-        ext = '.lib'
-        Platform.setEnviron("CXXFLAGS=-MD")
-        Platform.setEnviron("CFLAGS=-MD")
-        patch = [os.path.join(CONFIGURE_PATH, "patch", "angle_windows.patch")]
-        location =  Deps.GitRepo("https://github.com/Microsoft/angle.git", revision="f1706c4")
-        anglePath = os.path.join(CONFIGURE_PATH, "third-party/angle")
-        platform = ["Win32", "x64"][Platform.wordSize == 64]
-        outPath = "src/Release_%s/lib/" % (platform)
-        Platform.setEnviron('AngleRootPath=%s' % (anglePath))
-        build = [Platform.MsBuild("%s/src/angle.sln" % anglePath, options="/p:NODEFAULTLIB=ucrt.lib /p:NODEFAULTLIB=libcpmt.lib")]
-        outputs = outputs + [ 'angle_image_util', 'libANGLE', 'libEGL', 'libGLESv2' ]
+        env.set("GYP_GENERATORS", "msvs")
+        env.set("GYP_MSVS_VERSION", "2015")
+
+        buildSteps.append(Platform.MsBuild("build/ANGLE.sln"))
+
+        patchs = [
+            os.path.join(CONFIGURE_PATH, "patch", "angle_windows.patch")
+        ]
+
+        outPath = "build/Release_x64/lib/"
+        outputs = [
+            os.path.join(outPath, "preprocessor.lib"),
+            os.path.join(outPath, "translator.lib"),
+            os.path.join(outPath, "translator_lib.lib"),
+            os.path.join(outPath, "angle_common.lib"),
+            os.path.join(outPath, "libANGLE.lib"),
+            os.path.join(outPath, "libEGL.lib"),
+            os.path.join(outPath, "libGLESv2.lib"),
+            {
+                "src": os.path.join(outPath, "..", "libGLESv2.dll"),
+                "dst": os.path.join(ROOT, "bin", "libGLESv2.dll")
+            },
+            {
+                "src": os.path.join(outPath, "..", "libEGL.dll"),
+                "dst": os.path.join(ROOT, "bin", "libEGL.dll")
+            }
+        ]
     else:
-        pref = 'lib'
-        ext = '.a'
-        patch = []
-        location =  Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785")
-        cxxFlags = os.environ.get("CXXFLAGS", "")
-        cxxFlags += " -Wno-c++11-narrowing -Wno-sign-compare -Wno-error"
+        buildSteps.append(fixAngleThinArchive)
+        buildSteps.append("ninja -C out/Release/ preprocessor translator translator_lib angle_common")
+
+        # Disable some errors for clang 3.5 & 3.7
+        env.append("CXXFLAGS", " -Wno-c++11-narrowing -Wno-sign-compare -Wno-error")
+
+        # Angle only build with ninja
+        env.set("GYP_GENERATORS", "ninja")
+
+        # Angle build script needs python 2.7
+        env.set("PATH", os.path.join(ROOT, "tools") + ":" + env.get("PATH"))
+
         if Platform.wordSize == 32:
-            cxxFlags += " -msse -msse2 -msse3"
+            env.append("CXXFLAGS", " -msse -msse2 -msse3")
+
         if Platform.system == "Darwin":
             outPath = "out/Release/"
         elif Platform.system == "Linux":
             outPath = "out/Release/obj/src/"
-        build = [ "python scripts/bootstrap.py",
-                'GYP_GENERATORS=ninja LDFLAGS="%s" CXXFLAGS="%s"' % (os.environ.get("LDFLAGS", ""), cxxFlags) +  " gclient sync",
-                fixAngleThinArchive,
-                "ninja -C out/Release/"]
-        outputs.append("translator_lib")
+
+        if Konstruct.config("android"):
+            env.update(Variables.get("androidEnvClang"))
+            # Regenerate gyp files for android
+            buildSteps.insert(2, "python build/gyp_angle -Dis_android=1")
+
+        outputs = [
+            os.path.join(outPath, "libpreprocessor.a"),
+            os.path.join(outPath, "libtranslator.a"),
+            os.path.join(outPath, "libtranslator_lib.a"),
+            os.path.join(outPath, "libangle_common.a")
+        ]
+
     return {
-        "location": location,
-        "build": build,
-        "patchs" : patch,
-        "outputs": [os.path.join(outPath, pref + i) + ext for i in outputs]
+        "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785"),
+        "build": buildSteps,
+        "outputs": outputs,
+        "env": env,
+        "patchs": patchs
     }
 
 @Deps.register("breakpad")
@@ -299,77 +357,103 @@ def breakpad():
 
 @Deps.register("SDL2")
 def SDL2():
-    # SDL2 Build as framework
-    #build: ["xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'"],
-    #outputs["SDL2/Xcode/SDL/out/SDL2.framework"])
-    if Platform.system == "Windows":
-        build = [Platform.MsBuild("../VisualC/SDL_VS2013.sln")]
-        patchs = [os.path.join(CONFIGURE_PATH, "patch", "SDL2_windows.patch")]
-        platform = ["Win32", "x64"][Platform.wordSize == 64]
-        outputs = ["../VisualC/SDL/%s/Release/SDL2.lib" % (platform)]
-    else:
-        build = ["../configure", "make"]
-        patchs = []
-        outputs = ["build/.libs/libSDL2.a"]
-    return {
-        "location": "https://www.libsdl.org/release/SDL2-2.0.3.tar.gz",
-        "chdir": "build",
-        "patchs": patchs,
-        "build": build,
-        "outputs": outputs
-    }
+    build = ["../configure", "make"]
+    outputs = ["build/.libs/libSDL2.a"]
+    patchs = []
+    location = "https://www.libsdl.org/release/SDL2-2.0.5.tar.gz"
 
-@Deps.register("opengl")
-def opengl():
-        return {'location' : Deps.GitRepo("https://github.com/KhronosGroup/OpenGL-Registry.git", revision="f1ca0f3")}
+    if Konstruct.config("android"):
+        # On Android SDL2 is built trough gyp (gyp/third-party/SDL2-android.gyp)
+        # because SDL2 build script only works with android NDK and the scripts
+        # does not match our toolchain
+        return {
+            "location": location,
+            "patchs": [os.path.join(CONFIGURE_PATH, "patch", "SDL2_android.patch")],
+        }
+
+    if Platform.system == "Windows":
+        build = [Platform.MsBuild("../VisualC/SDL.sln")]
+        patchs = [os.path.join(ROOT, "patch", "SDL2_windows.patch")]
+        outPath = "../VisualC/%s/Release/" % ("Win32" if Platform.wordSize == 32 else "x64")
+        outputs = [
+            outPath + "SDL2.lib",
+            {
+                "src": outPath + "SDL2.dll",
+                "dst": os.path.join(ROOT, "bin", "SDL2.dll")
+            }
+        ]
+
+    return {
+        "location": location,
+        "chdir": "build",
+        "build": build,
+        "outputs": outputs,
+        "patchs": patchs
+    }
 
 @Deps.register("depot_tools")
 def depotTools():
     Deps.Gclient.setExec(os.path.join("depot_tools", "gclient"))
+
     if Platform.system == "Windows":
-        ddict = { 'location' : "https://storage.googleapis.com/chrome-infra/depot_tools.zip"}
+        rules = { 'location' : "https://storage.googleapis.com/chrome-infra/depot_tools.zip"}
         if Platform.wordSize == 32:
-            ddict['build'] = ['cp ../ninja/ninja.exe ../depot_tools/' ]
+            rules['build'] = ['cp ../ninja/ninja.exe ../depot_tools/' ]
     else:
-        ddict = {'location' : Deps.GitRepo("https://chromium.googlesource.com/chromium/tools/depot_tools.git", revision="8bf327c")}
-    return ddict
+        rules = {'location' : Deps.GitRepo("https://chromium.googlesource.com/chromium/tools/depot_tools.git", revision="8bf327c")}
+
+    return rules
 
 @Deps.register("basekit")
 def basekit():
+    env = Utils.Env()
+
+    build = ["make"]
+    patchs = [os.path.join(CONFIGURE_PATH, "patch", "basekit.patch")]
+
+
     if Platform.system == "Windows":
-        Platform.setEnviron('SYS=Windows')
-        Platform.setEnviron('INSTALL_PREFIX=%s' % (os.path.join(CONFIGURE_PATH,
-        "third-party/basekit/install")))
-        patch = [os.path.join(CONFIGURE_PATH, "patch", "basekit_windows.patch")]
+        # XXX : WIP
+        env.set("SYS", "Windows")
+        env.set("INSTALL_PREFIX", os.path.join(ROOT, "third-party", "basekit", "install"))
+        patchs = [os.path.join(root, "patch", "basekit_windows.patch")]
         build = ['mkdir "_build/objs" "_build/lib"||true',
                  "make -j1  _build/lib/libbasekit.a PLATFORM=%s" % (["x86","x64"][Platform.wordSize == 64])]
-    else:
-        patch = [os.path.join(CONFIGURE_PATH, "patch", "basekit.patch")]
-        build = ["make"]
+    elif Konstruct.config("android"):
+        env.update(Variables.get("androidEnvClang"))
+        NdkPath = Variables.get("androidNdkPath")
+        NDKAPIVersion = Variables.get("androidNDKAPIVersion")
+        arch = "arm"
+        env.append("CFLAGS", "-I %s/platforms/android-%d/arch-%s/usr/include/" % (NdkPath, NDKAPIVersion, arch))
+
     return {
         "location": Deps.GitRepo("https://github.com/stevedekorte/basekit.git", revision="a3e54ba83b85f530dc9442a33d2779240ed96189"),
         "build": build,
-        "patchs": patch,
-        "outputs": ["_build/lib/libbasekit(.a|.lib)"]
+        "patchs": patchs,
+        "outputs": ["_build/lib/libbasekit(.a|.lib)"],
+        "env": env
     }
 
 @Deps.register("libcoroutine")
 def libcoro():
+    env = Utils.Env()
+    build = ["make"]
+    patchs = [os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.patch")]
+
     if Platform.system == "Windows":
-        Platform.setEnviron('SYS=Windows')
+        # XXX : WIP
+        env.set('SYS=Windows')
         build = ['mkdir "_build/objs" "_build/lib"||true', "make -j1 _build/objs _build/lib/liblibcoroutine.a"]
         patchs = [os.path.join(CONFIGURE_PATH, "patch", "libcoroutine_windows.patch")]
-    else:
-        build = ["make"]
-        patchs = [os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.patch")]
-        if Konstruct.config("valgrind"):
-            patchs.append(os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.debug.patch"))
+    elif Konstruct.config("android"):
+        env.update(Variables.get("androidEnvClang"))
 
     return {
         "location": Deps.GitRepo("https://github.com/stevedekorte/coroutine.git", revision="b0bf11d8a0ec70bc0f1f5043513d334e1eff15fc"),
         "patchs": patchs,
         "build": build,
-        "outputs": [["_build/lib/liblibcoroutine(.a|.lib)", "libcoroutine\\1"]]
+        "outputs": [["_build/lib/liblibcoroutine(.a|.lib)", "libcoroutine\\1"]],
+        "env": env
     }
 
 @Deps.register("rapidxml")
@@ -381,37 +465,53 @@ def rapidxml():
 
 @Deps.register("ffmpeg")
 def ffmpeg():
-    outputs = [
-        "libavcodec/libavcodec(.a|.lib)",
-        "libswresample/libswresample(.a|.lib)",
-        "libavutil/libavutil(.a|.lib)",
-        "libavformat/libavformat(.a|.lib)",
-    ]
-    make_opt = ''
-    #ffmpeg 3.0.7 has a problem on windows where an pathname gets in the $(OBJ) list, lib.exe is more sensitive than ar
+    env = Utils.Env()
+    configureArgs = ''
+    makeOpt = ""
+    configure = "./configure"
+
     if Platform.system == "Windows":
-        configure = "bash configure --toolchain=msvc --extra-cxxflags=\"-MD\" --extra-cflags=\"-MD\" --extra-ldflags=\"/nodefaultlib:libcmt.lib\" --disable-swscale"
-        patchs = [  os.path.join(CONFIGURE_PATH, "patch", "ffmpeg_windows.patch")]
-        patchs = []
+        # FFmpeg 3.0.7 has a problem on windows where an pathname gets in the $(OBJ) list, lib.exe is more sensitive than ar
+        # TODO : Check if this is this still the case with the recent ffmpeg update ?
+        configure = "bash configure"
+        configureArgs += " --toolchain=msvc --extra-cxxflags=\"-MD\" --extra-cflags=\"-MD\" --extra-ldflags=\"/nodefaultlib:libcmt.lib\" --disable-swscale"
+        # patchs = [  os.path.join(CONFIGURE_PATH, "patch", "ffmpeg_windows.patch")]
         make_opt += " -j1"
-    else:
-        outputs.append("libswscale/libswscale(.a|.lib)")
-        configure = "./configure"
-        patchs = []
+    elif Konstruct.config("android"):
+        env.update(Variables.get("androidEnvClang"))
+        configureArgs += " --enable-cross-compile"
+        configureArgs += " --cross-prefix=%s" % ("arm-linux-androideabi-") #(Variables.get("targetTriplet"))
+        configureArgs += " --target-os=linux"
+        configureArgs += " --arch=arm"
+        configureArgs += " --cpu=cortex-a8"
+        configureArgs += " --enable-yasm"
+        configureArgs += " --enable-runtime-cpudetect"
+        configureArgs += " --enable-pic"
+        configureArgs += " --disable-asm"
+        configureArgs += " --cc=%s" % (Variables.get("androidEnvClang").get("CC"))
+        configureArgs += " --enable-decoder=h264_mediacodec --enable-mediacodec --enable-hwaccel=h264_mediacodec --enable-jni"
+        env.set("PATH", os.path.join(ROOT, "tools") + ":" + Platform.getEnviron("PATH", ""))
+
     return {
-        "location": Deps.GitRepo("git://git.ffmpeg.org/ffmpeg.git", tag="n3.0.7"),
-        "patchs": patchs,
+        "location": Deps.GitRepo("git://git.ffmpeg.org/ffmpeg.git", tag="n3.3"),
         "build":
         [
-            configure + " \
-           --disable-vaapi --disable-avdevice --disable-postproc --disable-avfilter --disable-ffserver --disable-lzma --disable-bzlib \
-            --enable-decoder=ac3,aac,mp3,vorbis,pcm_s16be_planar,pcm_s16le,pcm_s16le_planar,pcm_s24be,pcm_s24daud,pcm_s24le,pcm_s24le_planar,pcm_s32be,pcm_s32le,pcm_s32le_planar,pcm_s8,pcm_s8_planar,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpeg4,mpeg2video,wmv1,wmv2,wmv3,wmv3_crystalhd,wmv3_vdpau,wmv3image,wmalossless,wmapro,wmav1,wmav2,wmavoice,vc1,vc1_crystalhd,vc1_vdpau,vc1image\
+            "%s %s --disable-shared \
+            --disable-vaapi --disable-avdevice --disable-postproc --disable-avfilter --disable-ffserver --disable-lzma --disable-bzlib --disable-vdpau\
+            --enable-decoder=ac3,aac,mp3,vorbis,pcm_s16be_planar,pcm_s16le,pcm_s16le_planar,pcm_s24be,pcm_s24daud,pcm_s24le,pcm_s24le_planar,pcm_s32be,pcm_s32le,pcm_s32le_planar,pcm_s8,pcm_s8_planar,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpeg4,mpeg2video,wmv1,wmv2,wmv3,wmv3_crystalhd,wmv3image,wmalossless,wmapro,wmav1,wmav2,wmavoice,vc1,vc1_crystalhd,vc1image\
             --enable-parser=vorbis,mpegaudio,mpegvideo,mpeg4video,h264,vp8,aac,vc1\
-            --enable-demuxer=matroska,mp3,ogg,vorbis,pcm_alaw,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,pcm_mulaw,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpegvideo,aac,mov,avi,wav,asf\
-            --enable-stripping --enable-static --disable-shared",
-            "make" + make_opt
+            --enable-demuxer=matroska,mp3,ogg,vorbis,pcm_alaw,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,pcm_mulaw,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpegvideo,aac,mov,avi,wav,asf",
+            "make V=1" % (configure, configureArgs)
         ],
-        "outputs": outputs
+        "outputs":
+        [
+            "libavcodec/libavcodec(.a|.lib)",
+            "libswresample/libswresample(.a|.lib)",
+            "libavutil/libavutil(.a|.lib)",
+            "libavformat/libavformat(.a|.lib)",
+            "libswscale/libswscale(.a|.lib)"
+        ],
+        "env": env
     }
 
 @Deps.register("libnotify")
@@ -486,6 +586,53 @@ def testStudio(unitTests):
 
     Tests.register(tests)
 
+@CommandLine.option("--bundle", default=False)
+def frontendAndroidBundle(bundle):
+    if not bundle:
+        return
+
+    Gyp.set("nidium_android_bundle", 1)
+
+@CommandLine.option("--android")
+def frontendAndroid(android):
+    if not android:
+        return
+
+    Gyp.set("nidium_opengles2", 1)
+
+    @Konstruct.hook("postBuild")
+    def postBuildAndroid(success):
+        import shutil
+        if not success:
+            return
+
+        cpu = Variables.get("targetCpu")
+        libDir = "armeabi"
+        if "v7" in cpu:
+            libDir = "armeabi-v7a"
+
+        outDir = "src/Frontend/app/android/app/src/main/jniLibs/%s/" % libDir
+
+        Log.info("Copying libnidium_android.so to %s" % outDir)
+
+        Utils.mkdir(outDir)
+        shutil.copy("build/out/%s/lib/libnidium_android.so" % Gyp.getConfiguration(), outDir)
+
+        with Utils.Chdir("src/Frontend/app/android/"):
+            env = Utils.Env();
+            env.set("ANDROID_HOME", os.path.join(ROOT, "third-party", "android-sdk"))
+
+            Log.info("Building android app")
+            if Gyp.get("nidium_android_bundle"):
+                Utils.run("./gradlew assembleRelease installRelease", env=env)
+            else:
+                #Utils.run("./gradlew assemble%s" % Gyp.getConfiguration(), env=env)
+                Utils.run("./gradlew assembleDebug", env=env)
+
+                Log.info("Installing android app")
+                #Utils.run("./gradlew install%s" % Gyp.getConfiguration(), env=env)
+                Utils.run("./gradlew installDebug", env=env)
+
 @CommandLine.option("--debug-opengl", default=False)
 def glDebug(debug):
     if not debug:
@@ -501,6 +648,37 @@ def debug(debug):
     glDebug(True)
 
 Build.add(Gyp("gyp/all.gyp"));
+
+@Konstruct.hook("start")
+def setDependencies():
+    Deps.append(
+        "depot_tools",
+        "giflib",
+        "skia",
+        "libzip",
+        "SDL2",
+        "rapidxml",
+        "angle"
+        #"breakpad",
+    )
+
+    if Platform.system != "Windows":
+        # linux, OSX, android
+        Deps.append("lss")
+
+    if Gyp.get("nidium_audio") == 1:
+        Deps.append(
+            "zita-resampler",
+            "basekit",
+            "libcoroutine",
+            "portaudio",
+            "ffmpeg"
+            )
+
+    if not Konstruct.config("android") and Platform.system == "Linux":
+        Deps.append("libnotify")
+
+    Deps.append(Deps.Konstruct("libnidiumcore", "configure_libnidiumcore"))
 
 if __name__ == '__main__':
     Log.info("Checking for required software...")

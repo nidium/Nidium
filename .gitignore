@@ -4,6 +4,7 @@ bin
 build
 tests/jsautotest/autotests.js
 tools/pprof
+tools/android-toolchain
 third-party/
 !third-party/setproctitle/
 !third-party/rapidxml/

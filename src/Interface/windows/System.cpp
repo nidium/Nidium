@@ -79,10 +79,7 @@ System::~System()
 
 void System::print(const char *buf)
 {
-    if (this->m_LogF) {
-        fwrite(buf, 1, strlen(buf), this->m_LogF);
-        fflush(this->m_LogF);
-    }
+    fwrite(buf, 1, strlen(buf), stdout);
 }
 
 
