@@ -68,6 +68,11 @@ This is needed by ANGLE to get d3d11 DLLs.
 
 * Download from https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk
 
+You'll need to add Windows 10 SDK bin directory to your path as some of our third-party needs `rc.exe` which is not in standard path :
+```
+set PATH=C:\Program Files (x86)\Windows Kits\10\bin\10.0.15063.0/x64/;%PATH%
+```
+
 ## Mozilla build
 
 To build spidermonkey we well reuse parts of the mozilla buildprocess, this has a lot of unixy tools, including bash, sed, awk, sort, grep, find, vim, which etc
