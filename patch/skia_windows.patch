@@ -1,0 +1,46 @@
+# Skia needs to be built with ANGLE on windows
+# Skia needs to use /MD for building/linking
+diff --git BUILD.gn BUILD.gn
+index 390f136901..216d63a6a0 100644
+--- skia/BUILD.gn
++++ skia/BUILD.gn
+@@ -11,7 +11,7 @@ if (!defined(is_skia_standalone)) {
+ }
+ 
+ declare_args() {
+-  skia_use_angle = false
++  skia_use_angle = true
+   skia_use_expat = true
+   skia_use_fontconfig = is_linux
+   skia_use_freetype = is_android || is_fuchsia || is_linux
+diff --git gn/BUILD.gn gn/BUILD.gn
+index ec3a1f1ee3..0de433d6a0 100644
+--- skia/gn/BUILD.gn
++++ skia/gn/BUILD.gn
+@@ -445,7 +445,7 @@ toolchain("msvc") {
+     pdbname = "{{target_out_dir}}/{{label_name}}_c.pdb"
+ 
+     # Label names may have spaces so pdbname must be quoted.
+-    command = "$env_setup$bin/cl.exe /nologo /showIncludes /FC @$rspfile /c {{source}} /Fo{{output}} /Fd\"$pdbname\""
++    command = "$env_setup$bin/cl.exe /MD /nologo /showIncludes /FC @$rspfile /c {{source}} /Fo{{output}} /Fd\"$pdbname\""
+     depsformat = "msvc"
+     outputs = [
+       "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.obj",
+@@ -460,7 +460,7 @@ toolchain("msvc") {
+     pdbname = "{{target_out_dir}}/{{label_name}}_c.pdb"
+ 
+     # Label names may have spaces so pdbname must be quoted.
+-    command = "$env_setup$bin/cl.exe /nologo /showIncludes /FC @$rspfile /c {{source}} /Fo{{output}} /Fd\"$pdbname\""
++    command = "$env_setup$bin/cl.exe /MD /nologo /showIncludes /FC @$rspfile /c {{source}} /Fo{{output}} /Fd\"$pdbname\""
+     depsformat = "msvc"
+     outputs = [
+       "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.obj",
+@@ -522,7 +522,7 @@ toolchain("msvc") {
+     rspfile = "$exename.rsp"
+ 
+     command =
+-        "$env_setup$bin/link.exe /nologo /OUT:$exename /PDB:$pdbname @$rspfile"
++        "$env_setup$bin/link.exe /MD /nologo /OUT:$exename /PDB:$pdbname @$rspfile"
+ 
+     default_output_extension = ".exe"
+     default_output_dir = "{{root_out_dir}}"
