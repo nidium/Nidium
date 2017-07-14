@@ -45,6 +45,8 @@ If you are running into user rights issue when creating symlink it could be beca
 
 The community edition is free and has all the stuff that we need.
 
+> Nidium cannot be build with Visual Studio 2017 as our current version of SpiderMonkey only supports VS 2015.
+
 * Download from http://www.microsoft.com/en-us/download/details.aspx?id=48146
 * Run
   - choose custom;
