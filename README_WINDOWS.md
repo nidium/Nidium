@@ -45,6 +45,8 @@ If you are running into user rights issue when creating symlink it could be beca
 
 The community edition is free and has all the stuff that we need.
 
+> Nidium cannot be build with Visual Studio 2017 as our current version of SpiderMonkey only supports VS 2015.
+
 * Download from http://www.microsoft.com/en-us/download/details.aspx?id=48146
 * Run
   - choose custom;
@@ -62,11 +64,18 @@ When the installation is done, you can take another coffeebreak to start Visual 
 
 Nidium use DirectX (trough ANGLE) to display hardware accelerated graphics. Make sure your computer has DirectX installed ( https://support.microsoft.com/en-us/help/179113/how-to-install-the-latest-version-of-directx )
 
+<!--
 ## Windows 10 SDK
 
 This is needed by ANGLE to get d3d11 DLLs.
 
 * Download from https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk
+
+You'll need to add Windows 10 SDK bin directory to your path as some of our third-party needs `rc.exe` which is not in standard path :
+```
+set PATH=C:\Program Files (x86)\Windows Kits\10\bin\10.0.15063.0/x64/;%PATH%
+```
+-->
 
 ## Mozilla build
 
