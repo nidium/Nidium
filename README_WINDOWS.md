@@ -64,6 +64,7 @@ When the installation is done, you can take another coffeebreak to start Visual 
 
 Nidium use DirectX (trough ANGLE) to display hardware accelerated graphics. Make sure your computer has DirectX installed ( https://support.microsoft.com/en-us/help/179113/how-to-install-the-latest-version-of-directx )
 
+<!--
 ## Windows 10 SDK
 
 This is needed by ANGLE to get d3d11 DLLs.
@@ -74,6 +75,7 @@ You'll need to add Windows 10 SDK bin directory to your path as some of our thir
 ```
 set PATH=C:\Program Files (x86)\Windows Kits\10\bin\10.0.15063.0/x64/;%PATH%
 ```
+-->
 
 ## Mozilla build
 
