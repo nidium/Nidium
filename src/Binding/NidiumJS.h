@@ -19,6 +19,7 @@
 
 
 struct _ape_htable;
+typedef struct _ape_global ape_global;
 
 namespace Nidium {
 namespace Core {
@@ -28,8 +29,6 @@ namespace Binding {
 
 class JSModules;
 template<typename T>class ClassMapper;
-
-#define NIDIUM_JS_FNPROPS JSPROP_ENUMERATE | JSPROP_PERMANENT
 
 typedef struct _NidiumBytecodeScript
 {

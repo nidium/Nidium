@@ -20,10 +20,10 @@
 #include <Yoga.h>
 #include <YGStringEnums.h>
 
-#ifndef NAN                                                                     
-static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};                 
-#define NAN (*(const float *) __nan)                                            
-#endif                                                                          
+#ifndef NAN
+static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};
+#define NAN (*(const float *) __nan)
+#endif
 
 
 /*
@@ -38,6 +38,7 @@ class UIInterface;
 }
 namespace Binding {
 class JSCanvas;
+class Canvas2DContext;
 }
 namespace Graphics {
 
@@ -125,7 +126,7 @@ class CanvasHandlerBase
 private:
     /*
         This need to be initialized before properties
-    */    
+    */
     std::vector<void *> m_PropertyList;
 
 public:
@@ -177,7 +178,7 @@ public:
         inline operator T() const {
             return get();
         }
-        
+
         /* Change the computed value */
         inline void set(T val) {
             m_Value = val;
@@ -235,10 +236,10 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(Left,         float, NAN, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Width,        float, NAN, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Height,       float, NAN, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     float, -1,  State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    float, -1,  State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     float, 0,   State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    float, 0,   State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     float, NAN, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    float, NAN, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Coating,      float, 0,   State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(EventReceiver,bool, true, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Display,      bool, true, State::kDefault);
@@ -251,18 +252,19 @@ public:
 
 
 // {{{ CanvasHandler
-class CanvasHandler : public CanvasHandlerBase, public Core::Events 
+class CanvasHandler : public CanvasHandlerBase, public Core::Events
 {
 private:
     /*
         This need to be initialized before properties
-    */    
+    */
     std::vector<void *> m_PropertyList;
 
 public:
     friend class SkiaContext;
     friend class Nidium::Frontend::Context;
     friend class Binding::JSCanvas;
+    friend class Binding::Canvas2DContext;
 
     static const uint8_t EventID = 1;
 
@@ -288,7 +290,8 @@ public:
 	    kEvents_Scroll,
         kEvents_Paint,
         kEvents_Mount,
-        kEvents_Unmount
+        kEvents_Unmount,
+        kEvents_ContextLost
     };
 
     enum Position
@@ -350,7 +353,7 @@ public:
         return p_Top.getCachedValue();
     }
 
-    float getTopScrolled() 
+    float getTopScrolled()
     {
         float top = getPropTop();
         if (m_CoordPosition == COORD_RELATIVE && m_Parent != NULL) {
@@ -373,7 +376,8 @@ public:
         Get the real dimensions computed by Yoga
     */
     bool getDimensions(float *width, float *height,
-        float *left = nullptr, float *top = nullptr)
+        float *left = nullptr, float *top = nullptr,
+        float *aleft = nullptr, float *atop = nullptr)
     {
         *width = YGNodeLayoutGetWidth(m_YogaRef);
         *height = YGNodeLayoutGetHeight(m_YogaRef);
@@ -395,6 +399,20 @@ public:
                 return false;
             }
         }
+
+        if (aleft) {
+            *aleft = p_Left.getCachedValue();
+        }
+
+        if (atop) {
+            *atop = p_Top.getCachedValue();
+        }
+
+        *width = ceilf(*width);
+        *height = ceilf(*height);
+
+        *left = floorf(*left);
+        *top = floorf(*top);
 
         return true;
     }
@@ -453,7 +471,7 @@ public:
     void setOverflow(bool state) {
         m_Overflow = state;
         /* TODO: We should set YGOverflowScroll only if the view is scrollable */
-        YGNodeStyleSetOverflow(m_YogaRef, state ? YGOverflowScroll : YGOverflowVisible);
+        YGNodeStyleSetOverflow(m_YogaRef, state ? YGOverflowScroll : YGOverflowHidden);
     }
 
     bool canOverflow() const {
@@ -578,7 +596,7 @@ public:
     CanvasHandlerBase *getParentBase() override
     {
         return m_Parent;
-    }    
+    }
 
     CanvasHandler *getFirstChild() const
     {
@@ -599,7 +617,7 @@ public:
     int32_t countChildren() const;
     bool containsPoint(float x, float y);
     void layerize(LayerizeContext &layerContext,
-        std::vector<ComposeContext> &compList, bool draw);
+        std::vector<ComposeContext> &compList, bool draw, uint64_t frame);
 
     CanvasHandler *m_Parent;
     CanvasHandler *m_Children;
@@ -615,12 +633,21 @@ public:
     void computeLayoutPositions();
 
 protected:
-
-    void paint();
     void propertyChanged(EventsChangedProperty property);
 
 private:
+    /*
+        Change the underlying context size (e.g. set the FBO size).
+        Logical pixels
+    */
     void deviceSetSize(float width, float height);
+    /*
+        Send a (sync) PAINT event.
+        JSCanvas will fire a "paint" event immediatly.
+    */
+    void paint();
+    void contextLost();
+
     void onTouch(Frontend::InputEvent *ev, Core::Args &args, CanvasHandler *handler);
     void onInputEvent(Frontend::InputEvent *ev);
     void onDrag(Frontend::InputEvent *ev, CanvasHandler *target, bool end = false);

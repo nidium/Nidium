@@ -36,7 +36,8 @@ public:
         kModuleType_JS,
         kModuleType_Native,
         kModuleType_NativeEmbedded,
-        kModuleType_JSON
+        kModuleType_JSON,
+        kModuleType_NidiumComponent
     };
 
     char *m_AbsoluteDir;

@@ -16,7 +16,7 @@
 #endif
 #endif
 
-#include "Binding/ClassMapper.h"
+#include "Binding/ClassMapperWithEvents.h"
 #include "Net/HTTP.h"
 
 namespace Nidium {

@@ -147,6 +147,8 @@ public:
         return NULL;
     }
 
+    virtual void markFrame(uint64_t frame) {}
+
     /*
         Create a grid of |resolution^2| points using triangle strip
 
@@ -176,6 +178,7 @@ protected:
     CanvasHandler *m_Handler;
     GLState *m_GLState;
     GLResources m_Resources;
+
     void updateMatrix(float left,
                       float top,
                       float layerWidth,

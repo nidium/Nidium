@@ -9,6 +9,7 @@
 
 #include "Binding/JSDebugger.h"
 #include "Binding/JSConsole.h"
+#include "Binding/NidiumJS.h"
 
 namespace Nidium {
 namespace Binding {

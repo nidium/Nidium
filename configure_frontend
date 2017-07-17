@@ -89,57 +89,6 @@ def zitaresampler():
         "env": env
     }
 
-@Deps.register("giflib")
-def giflib():
-    return {}
-# giflib doesn't seems to be required by skia anymore
-"""
-<<<<<<< HEAD
-    location = "http://downloads.sourceforge.net/project/giflib/giflib-4.x/giflib-4.2.3.tar.gz"
-    if Platform.system == "Windows":
-        Platform.setCompiler("cl", 'cl')
-        Platform.setEnviron("LD=link")
-        Platform.setEnviron("AR=lib")
-        return {
-            "location": location,
-            "build": ["bash ../configure --disable-shared --enable-static",
-                      'sed -i.bak -e "s/AR_FLAGS /AR_FLAGS/" libtool',
-                      "make -j1"],
-            "chdir": "lib",
-            "patchs": [os.path.join(CONFIGURE_PATH, "patch", "giflib_windows.patch")],
-            "outputs": ["../lib/.libs/gif.lib"]
-        }
-
-    else:
-        # skdiff is used during unit-tests and it needs libgif.so.4
-        Platform.setEnviron("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:%s/giflib/lib/.libs/" % os.getcwd())
-        return {
-            "location": location,
-            "build": ["./configure", "make"],
-            "outputs": ["lib/.libs/libgif.a"]
-        }
-=======
-    # skdiff is used during unit-tests and it needs libgif.so.4
-    Platform.setEnviron("LD_LIBRARY_PATH=%s:%s/giflib/lib/.libs/" % (Platform.getEnviron("LD_LIBRARY_PATH", ""), os.getcwd()))
-
-    env = Utils.Env()
-    configure = "./configure"
-
-    if Konstruct.config("android"):
-        env.update(Variables.get("androidEnvClang"))
-        # giflib use some old deprecated flags, Workaround that
-        # see https://code.google.com/p/android/issues/detail?id=19710
-        env.append("CFLAGS", "-include %s/giflib/lib/android.h" % (os.getcwd()))
-        configure = "./configure --host=%s" % (Variables.get("targetTriplet"))
-
-    return {
-        "location": "http://downloads.sourceforge.net/project/giflib/giflib-4.x/giflib-4.2.3.tar.gz",
-        "build": [configure, "make coverity"],
-        "outputs": ["lib/.libs/libgif.a"],
-        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "giflib_android.patch")],
-        "env": env
-    }
-"""
 
 @Deps.register("skia")
 def skia():
@@ -174,8 +123,6 @@ def skia():
                                        "-Wno-array-bounds",
                                        "-Wno-return-local-addr")
 
-        build.append("sed -i.bak '/simpleperf/d' out/Static/build.ninja")
-
         if Platform.system == "Darwin":
             args["gn"]["extra_cflags_cc"].append("-stdlib=libc++")
             args["gn"]["extra_ldflags"] = ["-stdlib=libc++"]
@@ -205,11 +152,16 @@ def skia():
             continue
         gnArgs += " %s=%s" % (k, json.dumps(v))
 
+    if Platform.system == "Windows":
+        build.append("bin\gn.exe gen out/Static --args=%s %s" % (json.dumps(skiaArgs), gnArgs))
+        build.append("python gn/gn_meta_sln.py")
+    else:
+        build.append("bin/gn gen out/Static --args='%s'" % (skiaArgs, gnArgs))
+        build.append("sed -i.bak '/simpleperf/d' out/Static/build.ninja")
+
     return {
-        "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", revision="98829b9"),
+        "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", branch="chrome/m58"),
         "build": build + [
-            "bin\gn.exe gen out/Static/ --args=%s %s" % (json.dumps(skiaArgs), gnArgs),
-            "python gn/gn_meta_sln.py" if Platform.system == "Windows" else "",
             "ninja -C out/Static",
         ],
         "patchs": [
@@ -281,8 +233,12 @@ def angle():
     env.set("PATH", env.get("PATH") + Utils.Env.SEPARATOR +  os.path.join(Deps.getDir(), "depot_tools"))
 
     if Platform.system == "Windows":
+        import tempfile
         env.set("GYP_GENERATORS", "msvs")
         env.set("GYP_MSVS_VERSION", "2015")
+        # Override TEMP path because depot_tools fails to use the currently defined %TEMP% variable
+        # (could be because of slash vs backslash used in the path when ran from SpiderMonkey shell)
+        env.set("TEMP", tempfile.gettempdir())
 
         buildSteps.append(Platform.MsBuild("build/ANGLE.sln"))
 
@@ -493,7 +449,8 @@ def ffmpeg():
         env.set("PATH", os.path.join(ROOT, "tools") + ":" + Platform.getEnviron("PATH", ""))
 
     return {
-        "location": Deps.GitRepo("git://git.ffmpeg.org/ffmpeg.git", tag="n3.3"),
+        "location": Deps.GitRepo("https://github.com/FFmpeg/FFmpeg.git", branch="release/3.3"),
+        "patch": [],
         "build":
         [
             "%s %s --disable-shared \
@@ -653,7 +610,6 @@ Build.add(Gyp("gyp/all.gyp"));
 def setDependencies():
     Deps.append(
         "depot_tools",
-        "giflib",
         "skia",
         "libzip",
         "SDL2",

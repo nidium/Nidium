@@ -30,7 +30,8 @@ static const char *InputEvent_Names[]
     = { "mousemove", "mousedown", "mouseup", "dblclick", "dragstart",
         "dragend",   "dragover",  "drop",    "drag",     "mousewheel",
         "touchstart", "touchend", "touchmove", "scroll", "scroll",
-        "back", "volumeup", "volumedown"};
+        "back", "volumeup", "volumedown", "compositionstart", 
+        "compositionupdate", "compositionend"};
 
 class InputTouch;
 
@@ -57,6 +58,11 @@ public:
         kHardwareKey_back,
         kHardwareKey_volumeUp,
         kHardwareKey_volumeDown,
+        kCompositionStart_type,
+        kCompositionUpdate_type,
+        kCompositionEnd_type,
+        kKeyUp_type,
+        kKeyDown_type
     };
 
     enum ScrollState
@@ -64,6 +70,14 @@ public:
         kScrollState_start = 0,
         kScrollState_move,
         kScrollState_end
+    };
+
+    enum KeyModifier
+    {
+        kKeyModifier_Shift   = 1 << 0,
+        kKeyModifier_Alt     = 1 << 1,
+        kKeyModifier_Control = 1 << 2,
+        kKeyModifier_Meta    = 1 << 3
     };
 
     InputEvent(Type type,
@@ -75,7 +89,6 @@ public:
           m_Handler(NULL), m_Origin(NULL), m_depthAffectedCanvas(0),
           m_Type(type)
     {
-
         if (idata && idata_len <= 8) {
             memcpy(m_data, idata, sizeof(uint32_t) * idata_len);
         }

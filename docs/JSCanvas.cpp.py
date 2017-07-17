@@ -338,16 +338,15 @@ Nidium is currently supporting the following context types:
 * 2D Context is based on the [2DContext API](http://www.w3.org/html/wg/drafts/2dcontext/html5_canvas/).
 * A WebGL Context is based on the [WebGL API](https://www.khronos.org/registry/webgl/specs/1.0/).
 
->* This operation is slow the first time the method is called.
->* The context can't be changed once it's created.
-""",
+>Info :
+This operation is slow the first time the method is called, and the context can't be changed once it's created.""",
     SeesDocs( "document.canvas|Canvas|Canvas.getContext|Canvas.setContext|Canvas.clear" ),
     [ExampleDoc("""var canvas = new Canvas(200, 100);
     var context = canvas.getContext("2d");
 context.fillStyle = "red";
 context.fillRect(0, 0, 200, 100);""")],
     IS_Dynamic, IS_Public, IS_Slow,
-    [ ParamDoc( "mode", "Context mode: '2d'|'webgl'", "string", NO_Default, IS_Obligated) ],
+    [ ParamDoc( "mode", "Context mode: `2d` or `webgl`", "string", NO_Default, IS_Obligated) ],
     ReturnDoc( "The context or null", "CanvasRenderingContext2D|WebGLRenderingContext", nullable=True )
 )
 
@@ -355,7 +354,7 @@ FunctionDoc( "Canvas.setContext", "Sets the canvas context.",
     SeesDocs( "Canvas.getContext|Canvas.setContext|Canvas.clear" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "obj", "Object", "CanvasRenderingContext2D", NO_Default, IS_Obligated) ],
+    [ ParamDoc( "obj", "Context object", "CanvasRenderingContext2D", NO_Default, IS_Obligated) ],
     NO_Returns
 )
 

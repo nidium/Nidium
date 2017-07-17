@@ -23,7 +23,7 @@
 #include "Binding/JSConsole.h"
 #include "Binding/JSUtils.h"
 #include "Binding/JSAudioContext.h"
-#include "Binding/ClassMapper.h"
+#include "Binding/JSEvents.h"
 
 using namespace Nidium::AV;
 

@@ -4,6 +4,7 @@
    that can be found in the LICENSE file.
 */
 #include "Binding/JSDebug.h"
+#include "Binding/NidiumJS.h"
 
 #include <string.h>
 

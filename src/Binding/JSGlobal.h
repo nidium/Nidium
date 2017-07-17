@@ -7,6 +7,8 @@
 #define binding_jsglobal_h__
 
 #include "Binding/ClassMapper.h"
+#include "Binding/NidiumJS.h"
+#include <jsapi.h>
 
 namespace Nidium {
 namespace Binding {

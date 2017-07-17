@@ -62,6 +62,7 @@ public:
                   float relX, float relY,
                   float velocityX, float velocityY,
                   int state);
+    void onKeyboard(int keyCode, const char *str, Frontend::InputEvent::Type evType);
     void onHardwareKey(int keyCode, jobject ev);
 
     void onMessage(const Core::SharedMessages::Message &msg) override;
@@ -77,6 +78,7 @@ private:
     {
         kAndroidMessage_scroll,
         kAndroidMessage_hardwareKey,
+        kAndroidMessage_keyboard
     };
 
     struct AndroidHarwareKeyMessage {
@@ -106,6 +108,20 @@ private:
                              Frontend::InputEvent::ScrollState state)
             : x(x), y(y), relX(relX), relY(relY),
               velocityX(velocityX), velocityY(velocityY), state(state) { };
+    };
+
+    struct AndroidKeyboardMessage {
+        char *str;
+        int keyCode;
+        Frontend::InputEvent::Type ev;
+
+        AndroidKeyboardMessage(int keyCode, const char *str, Frontend::InputEvent::Type ev)
+            : keyCode(keyCode), ev(ev)
+        {
+            if (str) {
+                this->str = strdup(str);
+            }
+        };
     };
 
     DummyConsole *m_Console;

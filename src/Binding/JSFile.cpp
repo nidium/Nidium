@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <ape_netlib.h>
+#include <js/Conversions.h>
 
 #ifdef _MSC_VER
 #include "Port/MSWindows.h"

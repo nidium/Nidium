@@ -38,19 +38,15 @@ namespace Nidium {
 namespace Frontend {
 
 // {{{ NML
-/*@FIXME:: refractor the constructor, so that m_JSObjectLayout get's
+static void NML_onAssetsItemRead(Assets::Item *item, void *arg);
+static void NML_onAssetsReady(Assets *assets, void *arg);
+/*@FIXME:: refractor the constructor, so that m_JSObjectLST get's
  * njs'javascript context*/
 NML::NML(ape_global *net)
-    : m_Net(net), m_Stream(NULL), m_nAssets(0), m_Njs(NULL), m_Loaded(NULL),
-      m_LoadedArg(NULL), m_Layout(NULL), m_JSObjectLayout(NULL),
+    : m_Net(net), m_Stream(NULL), m_Njs(NULL), m_Loaded(NULL),
+      m_LoadedArg(NULL), m_JSObjectLST(NULL),
       m_DefaultItemsLoaded(false)
 {
-    m_AssetsList.size      = 0;
-    m_AssetsList.allocated = 4;
-
-    m_AssetsList.list = static_cast<Assets **>(
-        malloc(sizeof(Assets *) * m_AssetsList.allocated));
-
     m_Meta.title       = NULL;
     m_Meta.size.width  = 0;
     m_Meta.size.height = 0;
@@ -63,12 +59,12 @@ void NML::setNJS(NidiumJS *js)
 {
     m_Njs = js;
     /*
-    if (m_JSObjectLayout.get()) {
+    if (m_JSObjectLST.get()) {
         @FIXME: actually check that it is a context: even better: set the
     context here, and not in
     the constructor
-        m_JSObjectLayout.remove();
-        m_JSObjectLayout(js->getJSContext());
+        m_JSObjectLST.remove();
+        m_JSObjectLST(js->getJSContext());
     }
     */
 }
@@ -98,7 +94,7 @@ void NML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
     m_Stream->getContent();
 }
 
-void NML::loadDefaultItems(Assets *assets)
+void NML::loadDefaultItems()
 {
     if (m_DefaultItemsLoaded) {
         return;
@@ -110,7 +106,34 @@ void NML::loadDefaultItems(Assets *assets)
                                              Assets::Item::ITEM_SCRIPT, m_Net);
     preload->setTagName("__NidiumPreload__");
 
-    assets->addToPendingList(preload);
+    m_Assets->addToPendingList(preload);
+}
+
+bool callNMLCallback(NML *instance, NML::tag_callback cbk, rapidxml::xml_node<> *node)
+{
+    NML::nidium_xml_ret_t ret;
+
+    if ((ret = (instance->*cbk)(*node)) != NML::NIDIUM_XML_OK) {
+        printf("XML : Nidium error (%d)\n", ret);
+        SystemInterface::GetInstance()->alert(
+            "NML ERROR", SystemInterface::ALERT_CRITIC);
+        return false;
+    }
+
+    return true;
+}
+
+static int findLine(const char *str, const char *originalStr, const char *chr)
+{
+    int line = 1;
+    int i = 0;
+    int pos = chr - str;
+    while(originalStr[i] && i < pos) {
+        if (originalStr[i] == '\n') line++;
+        i++;
+    }
+
+    return line;
 }
 
 bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
@@ -123,15 +146,17 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
         return false;
     }
 
+    char *originalStr = strdup(data);
+    Core::PtrAutoDelete<char *> _str(originalStr, free);
     try {
         doc.parse<0>(data);
     } catch (rapidxml::parse_error &err) {
         char cerr[2048];
-
-        sprintf(cerr, "NML error : %s", err.what());
+        int line = findLine(data, originalStr, err.where<char>());
+        sprintf(cerr, "NML parse error at line %d %s\n", line, err.what());
+        //sprintf(cerr, "NML error : %s", err.what());
         SystemInterface::GetInstance()->alert(cerr,
                                               SystemInterface::ALERT_CRITIC);
-
         return false;
     }
 
@@ -150,19 +175,22 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
 
     for (xml_node<> *child = node->first_node(); child != NULL;
          child = child->next_sibling()) {
+        bool processed = false;
+
         for (int i = 0; m_NmlTags[i].str != NULL; i++) {
             if (!strncasecmp(m_NmlTags[i].str, child->name(),
                              child->name_size())) {
-
-                nidium_xml_ret_t ret;
-
-                if ((ret = (this->*m_NmlTags[i].cb)(*child)) != NIDIUM_XML_OK) {
-                    fprintf(stderr, "XML : Nidium error (%d)", ret);
-                    SystemInterface::GetInstance()->alert(
-                        "NML ERROR", SystemInterface::ALERT_CRITIC);
+                if (callNMLCallback(this, m_NmlTags[i].cb, child)) {
+                    processed = true;
+                    break;
+                } else {
                     return false;
                 }
             }
+        }
+
+        if (!processed && !callNMLCallback(this, m_NmlTags[2].cb, child)) {
+            return false;
         }
     }
 
@@ -173,19 +201,25 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
         return false;
     }
 
+    m_Assets->endListUpdate(m_Net);
+
     return true;
 }
-
 
 JSObject *NML::BuildLST(JSContext *cx, char *str)
 {
     using namespace rapidxml;
+    char *originalStr = strdup(str);
+
+    Core::PtrAutoDelete<char *> _str(originalStr, free);
 
     rapidxml::xml_document<> doc;
 
     try {
         doc.parse<0>(str);
     } catch (rapidxml::parse_error &err) {
+        int line = findLine(str, originalStr, err.where<char>());
+        printf("NML parse error at line %d %s\n", line, err.what());
         return NULL;
     }
 
@@ -197,7 +231,8 @@ JSObject *NML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 #define NODE_PROP(where, name, val)         \
     JS_DefineProperty(cx, where, name, val, \
                       JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
-#define NODE_STR(data, len)                         \
+
+#define NODE_STR(data, len)         \
     JSUtils::NewStringWithEncoding( \
         cx, static_cast<const char *>(data), len, "utf8")
 
@@ -224,6 +259,7 @@ JSObject *NML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
                 JS::RootedString typeStr(
                     cx, NODE_STR(child->name(), child->name_size()));
                 NODE_PROP(obj, "type", typeStr);
+
                 JS::RootedObject obj_attr(
                     cx, JS_NewPlainObject(cx));
                 NODE_PROP(obj, "attributes", obj_attr);
@@ -233,8 +269,26 @@ JSObject *NML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
                         cx, NODE_STR(attr->value(), attr->value_size()));
                     NODE_PROP(obj_attr, attr->name(), str);
                 }
-                JS::RootedObject obj_children(cx, BuildLSTFromNode(cx, *child));
-                NODE_PROP(obj, "children", obj_children);
+
+                if (!strncasecmp(child->name(), CONST_STR_LEN("script"))
+                        || !strncasecmp(child->name(), CONST_STR_LEN("template"))
+                        || !strncasecmp(child->name(), CONST_STR_LEN("nss"))) {
+                    JS::RootedObject objChildren(cx, JS_NewPlainObject(cx));
+                    JS::RootedObject childrenArray(cx, JS_NewArrayObject(cx, 1));
+                    JS::RootedString typeStr(cx, NODE_STR("textNode", 8));
+                    JS::RootedString childStr(
+                        cx, NODE_STR(child->value(), child->value_size()));
+
+                    NODE_PROP(objChildren, "type", typeStr);
+                    NODE_PROP(objChildren, "text", childStr);
+
+                    JS_SetElement(cx, childrenArray, 0, objChildren);
+
+                    NODE_PROP(obj, "children", childrenArray);
+                } else {
+                    JS::RootedObject objChildren(cx, BuildLSTFromNode(cx, *child));
+                    NODE_PROP(obj, "children", objChildren);
+                }
             } break;
             default:
                 skip = true;
@@ -257,7 +311,7 @@ JSObject *NML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
     </canvas>
     <foo></foo>
 */
-JSObject *NML::buildLayoutTree(rapidxml::xml_node<> &node)
+JSObject *NML::buildLST(rapidxml::xml_node<> &node)
 {
     return BuildLSTFromNode(m_Njs->m_Cx, node);
 }
@@ -320,11 +374,18 @@ void NML::onGetContent(const char *data, size_t len)
         data_nullterminated = (char *)(data);
     }
 
-    if (this->loadData(data_nullterminated, len, doc)) {
+    m_Assets = new Assets(NML_onAssetsItemRead, NML_onAssetsReady, this);
 
-        if (m_Layout) {
-            m_JSObjectLayout = this->buildLayoutTree(*m_Layout);
-            Binding::NidiumLocalContext::RootObjectUntilShutdown(m_JSObjectLayout);
+    bool ret = this->loadData(data_nullterminated, len, doc);
+
+    this->loadDefaultItems();
+
+    m_Assets->endListUpdate(m_Net);
+
+    if (ret) {
+        if (m_LST) {
+            m_JSObjectLST = this->buildLST(*m_LST);
+            Binding::NidiumLocalContext::RootObjectUntilShutdown(m_JSObjectLST);
         }
     } else {
         /*
@@ -333,8 +394,8 @@ void NML::onGetContent(const char *data, size_t len)
         exit(1);
     }
 
-    /* Invalidate layout node since memory pool is free'd */
-    m_Layout = NULL;
+    /* Invalidate LST node since memory pool is free'd */
+    m_LST = NULL;
     /* Stream has ended */
     ape_global *ape = m_Net;
     timer_dispatch_async(delete_stream, m_Stream);
@@ -347,18 +408,19 @@ void NML::onGetContent(const char *data, size_t len)
 
 NML::~NML()
 {
-    if (m_JSObjectLayout.get()) {
-        Binding::NidiumLocalContext::UnrootObject(m_JSObjectLayout);
-        m_JSObjectLayout = nullptr;
+    if (m_JSObjectLST.get()) {
+        Binding::NidiumLocalContext::UnrootObject(m_JSObjectLST);
+        m_JSObjectLST = nullptr;
     }
 
     if (m_Stream) {
         delete m_Stream;
     }
-    for (int i = 0; i < m_AssetsList.size; i++) {
-        delete m_AssetsList.list[i];
+
+    if (m_Assets) {
+        delete m_Assets;
     }
-    free(m_AssetsList.list);
+
     if (m_Meta.title) {
         free(m_Meta.title);
     }
@@ -402,7 +464,7 @@ void NML::onAssetsItemReady(Assets::Item *item)
                         obj.set(it.first.c_str(), it.second.c_str());
                     }
 
-                    args[1].setObjectOrNull(m_JSObjectLayout);
+                    args[1].setObjectOrNull(m_JSObjectLST);
 
                     JS_CallFunctionName(cx, gbl, "__nidiumPreload", args,
                                         &rval);
@@ -444,12 +506,8 @@ static void NML_onAssetsItemRead(Assets::Item *item, void *arg)
 
 void NML::onAssetsBlockReady(Assets *asset)
 {
-    m_nAssets--;
-
-    if (m_nAssets == 0) {
-        JS::RootedObject layoutObj(m_Njs->m_Cx, m_JSObjectLayout);
-        JSWindow::GetObject(m_Njs)->onReady(layoutObj);
-    }
+    JS::RootedObject lstObj(m_Njs->m_Cx, m_JSObjectLST);
+    JSWindow::GetObject(m_Njs)->onReady(lstObj);
 }
 
 static void NML_onAssetsReady(Assets *assets, void *arg)
@@ -457,20 +515,6 @@ static void NML_onAssetsReady(Assets *assets, void *arg)
     class NML *nml = static_cast<class NML *>(arg);
 
     nml->onAssetsBlockReady(assets);
-}
-
-void NML::addAsset(Assets *asset)
-{
-    m_nAssets++;
-    if (m_AssetsList.size == m_AssetsList.allocated) {
-        m_AssetsList.allocated *= 2;
-        m_AssetsList.list = static_cast<Assets **>(realloc(
-            m_AssetsList.list, sizeof(Assets *) * m_AssetsList.allocated));
-    }
-
-    m_AssetsList.list[m_AssetsList.size] = asset;
-
-    m_AssetsList.size++;
 }
 // }}}
 
@@ -551,10 +595,7 @@ NML::nidium_xml_ret_t NML::loadAssets(rapidxml::xml_node<> &node)
 
     using namespace rapidxml;
 
-    Assets *assets = new Assets(NML_onAssetsItemRead, NML_onAssetsReady, this);
-
-    this->addAsset(assets);
-    this->loadDefaultItems(assets);
+    this->loadDefaultItems();
 
     for (xml_node<> *child = node.first_node(); child != NULL;
          child               = child->next_sibling()) {
@@ -568,11 +609,11 @@ NML::nidium_xml_ret_t NML::loadAssets(rapidxml::xml_node<> &node)
             /* Name could be automatically changed afterward */
             item->setName(src->value());
 
-            assets->addToPendingList(item);
+            m_Assets->addToPendingList(item);
         } else {
             item = new Assets::Item(NULL, Assets::Item::ITEM_UNKNOWN, m_Net);
             item->setName("inline"); /* TODO: NML name */
-            assets->addToPendingList(item);
+            m_Assets->addToPendingList(item);
             item->setContent(child->value(), child->value_size(), true);
         }
 
@@ -586,16 +627,18 @@ NML::nidium_xml_ret_t NML::loadAssets(rapidxml::xml_node<> &node)
         // ndm_logf(NDM_LOG_DEBUG, "NML", "Node : %s", child->name());
     }
 
-    assets->endListUpdate(m_Net);
-
     return NIDIUM_XML_OK;
 }
 
-NML::nidium_xml_ret_t NML::loadLayout(rapidxml::xml_node<> &node)
+NML::nidium_xml_ret_t NML::parseNode(rapidxml::xml_node<> &node)
 {
     if (!m_Meta.loaded) return NIDIUM_XML_ERR_META_MISSING;
 
-    m_Layout = node.document()->clone_node(&node);
+    if (!m_LST) {
+        m_LST = node.document()->allocate_node(rapidxml::node_element);
+    }
+
+    m_LST->append_node(node.document()->clone_node(&node));
 
     return NIDIUM_XML_OK;
 }

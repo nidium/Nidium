@@ -236,9 +236,7 @@ void Context::sizeChanged(int w, int h)
 
     /* Skia GL */
     this->getRootHandler()->setSize(static_cast<int>(w), static_cast<int>(h));
-    /* Nidium Canvas */
-    m_JSWindow->getCanvasHandler()->setSize(static_cast<int>(w),
-                                            static_cast<int>(h));
+
     /* Redraw */
     m_UI->refresh();
 }
@@ -248,18 +246,21 @@ void Context::createDebugCanvas()
     Canvas2DContext *context
         = static_cast<Canvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
-    m_DebugHandler = new CanvasHandler(context->getSkiaContext()->getWidth(),
-                                       DEBUG_HEIGHT, this);
+    m_DebugHandler = new CanvasHandler(NAN, NAN, this);
     Canvas2DContext *ctx2d
-        = new Canvas2DContext(m_DebugHandler, context->getSkiaContext()->getWidth(),
-                              DEBUG_HEIGHT, NULL, false);
+        = new Canvas2DContext(m_DebugHandler, 1,
+                              1, NULL, false);
     m_DebugHandler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
 
     m_RootHandler->addChild(m_DebugHandler);
 
+    m_DebugHandler->setPropHeight(DEBUG_HEIGHT);
     m_DebugHandler->setPropRight(0);
-    m_DebugHandler->setPropOpacity(0.6);
+    m_DebugHandler->setPropLeft(0);
+    m_DebugHandler->setPropBottom(0);
+    m_DebugHandler->setPositioning(CanvasHandler::COORD_ABSOLUTE);
+    m_DebugHandler->setPropOpacity(0.8);
     m_DebugHandler->p_EventReceiver = false;
     ctx2d->getSkiaContext()->setFontType("monospace");
 }
@@ -288,23 +289,22 @@ void Context::postDraw()
 {
     if (JSDocument::m_ShowFPS && m_DebugHandler) {
 
-        SkiaContext *s
-            = (static_cast<Canvas2DContext *>(m_DebugHandler->getContext())
+        SkiaContext *s = (static_cast<Canvas2DContext *>(m_DebugHandler->getContext())
                    ->getSkiaContext());
-        m_DebugHandler->bringToFront();
 
         s->setFillColor(0xFF000000u);
-        s->drawRect(0, 0, m_DebugHandler->getPropWidth(),
-                    m_DebugHandler->getPropHeight(), 0);
+
+        s->drawRect(0, 0, m_DebugHandler->getComputedWidth(),
+                    m_DebugHandler->getComputedHeight(), 0);
         s->setFillColor(0xFFEEEEEEu);
 
-        s->drawTextf(5, 12, "Nidium build %s %s", __DATE__, __TIME__);
+        s->drawTextf(5, 12, "nidium build %s %s", __DATE__, __TIME__);
         s->drawTextf(5, 25, "Frame: %lld (%lldms)", m_Stats.nframe,
                      m_Stats.lastdifftime / 1000000LL);
         s->drawTextf(5, 38, "Time : %lldns",
                      m_Stats.lastmeasuredtime - m_Stats.starttime);
-        s->drawTextf(5, 51, "FPS  : %.2f (%.2f) (%d)", m_Stats.fps,
-                     m_Stats.sampleminfps, m_ComposedCanvasCount);
+        s->drawTextf(5, 51, "FPS  : %.2f (%d/%d/%d)", m_Stats.fps,
+                     m_Stats.composed, m_Stats.repaint, m_Stats.resize);
 
         s->setLineWidth(0.0);
 
@@ -312,12 +312,12 @@ void Context::postDraw()
             // s->drawLine(300 + i * 3, 55, 300 + i * 3, (40 / 60) *
             // m_Stats.samples[i]);
             s->setStrokeColor(0xFF004400u);
-            s->drawLine(m_DebugHandler->getPropWidth() - 20 - i * 3, 55,
-                        m_DebugHandler->getPropWidth() - 20 - i * 3, 20.f);
+            s->drawLine(m_DebugHandler->getComputedWidth() - 20 - i * 3, 55,
+                        m_DebugHandler->getComputedWidth() - 20 - i * 3, 20.f);
             s->setStrokeColor(0xFF00BB00u);
             s->drawLine(
-                m_DebugHandler->getPropWidth() - 20 - i * 3, 55,
-                m_DebugHandler->getPropWidth() - 20 - i * 3,
+                m_DebugHandler->getComputedWidth() - 20 - i * 3, 55,
+                m_DebugHandler->getComputedWidth() - 20 - i * 3,
                 nidium_min(60 - ((40.f / 62.f)
                                  * static_cast<float>(m_Stats.samples[i])),
                            55));
@@ -328,6 +328,7 @@ void Context::postDraw()
         // sprintf(fps, "%d fps", currentFPS);
         // s->system(fps, 5, 10);
         s->flush();
+        m_DebugHandler->bringToFront();
     }
 #if DEBUG
     if (m_Debug2Handler) {
@@ -420,7 +421,7 @@ void Context::frame(bool draw)
 
     m_RootHandler->computeLayoutPositions();
     /* Build the composition list */
-    m_RootHandler->layerize(ctx, compList, draw);
+    m_RootHandler->layerize(ctx, compList, draw, getCurrentFrame());
 
     m_UI->makeMainGLCurrent();
     rootctx->clear(0xffffffff);
@@ -434,9 +435,9 @@ void Context::frame(bool draw)
     /* We draw on the UI fbo */
     glBindFramebuffer(GL_FRAMEBUFFER, m_UI->getFBO());
 
-    m_ComposedCanvasCount = 0;
+    m_Stats.composed = 0;
     for (auto &com : compList) {
-        m_ComposedCanvasCount++;
+        m_Stats.composed++;
         com.handler->m_Context->preComposeOn(rootctx, com.left,
             com.top, com.opacity, com.zoom, com.needClip ? &com.clip : nullptr);
     }
@@ -447,6 +448,9 @@ void Context::frame(bool draw)
     m_UI->makeMainGLCurrent();
     /* Skia context is dirty after a call to layerize */
     (static_cast<Canvas2DContext *>(m_RootHandler->getContext()))->getSkiaContext()->resetGrBackendContext();
+
+    m_Stats.repaint = 0;
+    m_Stats.resize  = 0;
 }
 
 void NidiumContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
@@ -824,6 +828,9 @@ JSObject *Context::ReadStructuredCloneOp(JSContext *cx,
 
 Context::~Context()
 {
+
+    m_ContextCache.emptyCache();
+
     if (m_DebugHandler != NULL) {
         delete m_DebugHandler->getContext();
         delete m_DebugHandler;
@@ -834,9 +841,11 @@ Context::~Context()
         delete m_RootHandler;
     }
 
-    m_JSWindow->callFrameCallbacks(0, true);
+    if (m_JSWindow) {
+        m_JSWindow->callFrameCallbacks(0, true);
 
-    delete m_JSWindow;
+        delete m_JSWindow;
+    }
 
     /*
         Don't let the base class destroy the JS.
@@ -846,9 +855,6 @@ Context::~Context()
     destroyJS();
 
     delete m_GLState;
-
-    SkiaContext::m_GlSurface = nullptr;
-
     ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
     m_InputHandler.clear();
 

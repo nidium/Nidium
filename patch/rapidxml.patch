@@ -1,5 +1,5 @@
---- rapidxml/rapidxml.hpp
-+++ rapidxml/rapidxml.hpp
+--- rapidxml/rapidxml.hpp	2017-02-21 10:40:13.494706377 +0100
++++ rapidxml/rapidxml.hpp	2017-02-21 13:59:41.287715360 +0100
 @@ -1,6 +1,8 @@
  #ifndef RAPIDXML_HPP_INCLUDED
  #define RAPIDXML_HPP_INCLUDED
@@ -9,13 +9,13 @@
  // Copyright (C) 2006, 2009 Marcin Kalicinski
  // Version 1.13
  // Revision $DateTime: 2009/05/13 01:46:17 $
-@@ -2031,7 +2033,51 @@ namespace rapidxml
+@@ -2031,7 +2033,57 @@
              text += 3;      // Skip ]]>
              return cdata;
          }
 -        
 +        template<int Flags>
-+        xml_node<Ch> *parse_script(Ch *&text)
++        xml_node<Ch> *parse_custom(Ch *&text, const char *tag)
 +        {
 +            // Create element node
 +            xml_node<Ch> *element = this->allocate_node(node_element);
@@ -32,29 +32,35 @@
 +
 +            // Parse attributes, if any
 +            parse_node_attributes<Flags>(text, element);
-+
 +            if (*text == Ch('>'))
 +            {
 +                ++text;
 +                Ch *value = text;
 +
-+                while (text[0] != Ch('<') || text[1] != Ch('/') || text[2] != Ch('s') ||
-+                     text[3] != Ch('c') || text[4] != Ch('r') || text[5] != Ch('i') ||
-+                     text[6] != Ch('p') || text[7] != Ch('t') || text[8] != Ch('>'))
-+                {
-+                    if (!text[0])
-+                        RAPIDXML_PARSE_ERROR("unexpected end of data", text);
++                int tag_len = strlen(tag);
++                int tag_match = 0;
 +
-+                    ++text;
++                while (tag_match != tag_len) {
++                    tag_match = 0;
++                    for (int i = 0; i < tag_len; i++) {
++                        if (text[i] == Ch(tag[i])) {
++                            tag_match++;
++                        } else if (!text[0]) {
++                            RAPIDXML_PARSE_ERROR("unexpected end of data", text);
++                        } else {
++                            ++text;
++                        }
++                    }
 +                }
 +
 +                element->value(value, text - value);
 +
-+                if (!(Flags & parse_no_string_terminators))
++                if (!(Flags & parse_no_string_terminators)) {
 +                    *text = Ch('\0');
 +                }
 +
-+                text += 9;
++                text += tag_len;
++            }
 +
 +            return element;
 +        }
@@ -62,20 +68,40 @@
          // Parse element node
          template<int Flags>
          xml_node<Ch> *parse_element(Ch *&text)
-@@ -2089,6 +2135,19 @@ namespace rapidxml
+@@ -2089,6 +2141,39 @@
                  // Parse and append element node
                  return parse_element<Flags>(text);
  
 +            /*
-+                Nidium - Anthony Catel :
-+                Parse script tags independantly
++                Nidium : Parse some custom tags independantly
++                script, nss, template
 +            */
 +            case Ch('s'):
 +                if (text[1] == Ch('c') && text[2] == Ch('r') &&
 +                    text[3] == Ch('i') && text[4] == Ch('p') &&
 +                    text[5] == 't' && text[6] == '>')
 +                {
-+                    return parse_script<Flags>(text);
++                    return parse_custom<Flags>(text, "</script>");
++                } 
++
++                return parse_element<Flags>(text);
++
++            case Ch('n'):
++                if (text[1] == Ch('s') && text[2] == Ch('s') &&
++                    (text[3] == '>' || text[3] == ' '))
++                {
++                    return parse_custom<Flags>(text, "</nss>");
++                } 
++
++                return parse_element<Flags>(text);
++
++            case Ch('t'):
++                if (text[1] == Ch('e') && text[2] == Ch('m') &&
++                    text[3] == Ch('p') && text[4] == Ch('l') &&
++                    text[5] == Ch('a') && text[6] == Ch('t') &&
++                    text[7] == Ch('e') && (text[8] == '>' || text[8] == ' '))
++                {
++                    return parse_custom<Flags>(text, "</template>");
 +                } 
 +
 +                return parse_element<Flags>(text);

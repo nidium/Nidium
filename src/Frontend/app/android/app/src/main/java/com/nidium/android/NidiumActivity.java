@@ -49,6 +49,14 @@ public class NidiumActivity extends SDLActivity {
         }
 
         super.onCreate(savedInstanceState);
+
+        // Override SDL text edit with our own implementation
+        SDLActivity.mTextEdit = new Keyboard(this, SDLActivity.mLayout);
+    }
+
+    public Keyboard getKeyboard()
+    {
+        return (Keyboard)SDLActivity.mTextEdit;
     }
 
     private void startNMLPicker() {

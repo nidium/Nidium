@@ -404,7 +404,7 @@ void CanvasContext::preComposeOn(Canvas2DContext *layer,
     float ratio        = SystemInterface::GetInstance()->backingStorePixelRatio();
 
     SkiaContext *skia = layer->getSkiaContext();
-    SkISize layerSize = skia->getCanvas()->getDeviceSize();
+    SkISize layerSize = skia->getCanvas()->getBaseLayerSize();
 
     /*
         Activate alpha blending

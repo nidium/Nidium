@@ -12,6 +12,7 @@
 
 #include "Frontend/Assets.h"
 #include "Binding/JSStream.h"
+#include "Binding/NidiumJS.h"
 #include <vector>
 #include <utility>
 
@@ -59,10 +60,10 @@ public:
     void onMessage(const Core::SharedMessages::Message &msg);
     void loadFile(const char *filename, NMLLoadedCallback cb, void *arg);
 
-    void loadDefaultItems(Assets *assets);
+    void loadDefaultItems();
     nidium_xml_ret_t loadAssets(rapidxml::xml_node<> &node);
     nidium_xml_ret_t loadMeta(rapidxml::xml_node<> &node);
-    nidium_xml_ret_t loadLayout(rapidxml::xml_node<> &node);
+    nidium_xml_ret_t parseNode(rapidxml::xml_node<> &node);
 
     void onAssetsItemReady(Assets::Item *item);
     void onAssetsBlockReady(Assets *asset);
@@ -85,17 +86,17 @@ public:
         return m_Meta.size.height;
     }
 
-    rapidxml::xml_node<> *getLayout() const
+    rapidxml::xml_node<> *getLST() const
     {
-        return m_Layout;
+        return m_LST;
     }
 
-    JSObject *getJSObjectLayout() const
+    JSObject *getJSObjectLST() const
     {
-        return m_JSObjectLayout;
+        return m_JSObjectLST;
     }
 
-    JSObject *buildLayoutTree(rapidxml::xml_node<> &node);
+    JSObject *buildLST(rapidxml::xml_node<> &node);
 
     void setNJS(Binding::NidiumJS *js);
 
@@ -110,9 +111,9 @@ private:
                                       rapidxml::xml_node<> &node);
 
     bool loadData(char *data, size_t len, rapidxml::xml_document<> &doc);
-    void addAsset(Assets *);
     ape_global *m_Net;
     IO::Stream *m_Stream;
+    Assets *m_Assets = nullptr;
 
     /* Define callbacks for tags in <application> */
     struct _nml_tags
@@ -120,12 +121,9 @@ private:
         const char *str;
         tag_callback cb; // Call : (this->*cb)()
         bool unique;
-    } m_NmlTags[4] = { { "assets", &NML::loadAssets, false },
+    } m_NmlTags[3] = { { "assets", &NML::loadAssets, false },
                        { "meta", &NML::loadMeta, true },
-                       { "layout", &NML::loadLayout, true },
-                       { NULL, NULL, false } };
-
-    uint32_t m_nAssets;
+                       { NULL, &NML::parseNode, false} };
 
     Binding::NidiumJS *m_Njs;
 
@@ -141,20 +139,13 @@ private:
         } size;
     } m_Meta;
 
-    struct
-    {
-        Assets **list;
-        uint32_t allocated;
-        uint32_t size;
-    } m_AssetsList;
     NMLLoadedCallback m_Loaded;
     void *m_LoadedArg;
 
-    rapidxml::xml_node<> *m_Layout = nullptr;
+    rapidxml::xml_node<> *m_LST = nullptr;
+    JS::Heap<JSObject *> m_JSObjectLST;
 
     std::vector<std::pair<std::string, std::string>> m_AppAttr;
-
-    JS::Heap<JSObject *> m_JSObjectLayout;
 
     bool m_DefaultItemsLoaded;
 };

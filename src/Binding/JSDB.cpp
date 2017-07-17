@@ -9,6 +9,7 @@
 #include <leveldb/db.h>
 
 #include "Core/Path.h"
+#include "Binding/NidiumJS.h"
 
 #ifdef _MSC_VER
 #include "Port/MSWindows.h"

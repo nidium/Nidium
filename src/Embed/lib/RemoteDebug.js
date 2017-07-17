@@ -1,10 +1,22 @@
 /*
-   Copyright 2016 Nidium Inc. All rights reserved.
-   Use of this source code is governed by a MIT license
-   that can be found in the LICENSE file.
-*/
+ * Copyright 2017 Nidium Inc. All rights reserved.
+ * Use of this source code is governed by a MIT license
+ * that can be found in the LICENSE file.
+ */
 
-const cssParse = require("css-parse");
+
+const cssParse = require("../modules/css-parse.js");
+const Elements = require("Elements");
+
+function camelCase(input) {
+    return input.toLowerCase().replace(/-(.)/g, function(match, group1) {
+        return group1.toUpperCase();
+    });
+}
+
+function hyphen(input) {
+    return input.replace(/([a-zA-Z])(?=[A-Z])/g, '$1-').toLowerCase(); 
+}
 
 class RemoteDebug {
 
@@ -60,6 +72,8 @@ class RemoteDebug {
         this.wsServer.onmessage = (client, message) => {
             var obj = JSON.parse(message.data);
             var call = this.methods.get(obj.method);
+
+            console.log("got", obj.method, (call !== undefined));
 
             obj.params = obj.params || {};
 
@@ -193,7 +207,77 @@ class RemoteDebug {
             value: value,
             description: this.getStringValueDescription(value)
         };
-        
+    }
+
+    getCSS(node) {
+        /*let stylesProps = [
+            "width","height","top","left",
+            ].sort();*/
+
+        var canvas = document.getCanvasByIdx(node);
+
+        if (!canvas || !canvas.style) {
+            return null;
+        }
+
+        let stylesProps = [];
+        for (let prop in canvas.style) {
+            stylesProps.push(prop);
+        }
+
+        stylesProps.sort();
+
+        let returnedProps = [];
+        let curcol = 0;
+        let cumulText = '';
+
+        for (let style of stylesProps) {
+            let val = canvas.style[style];
+            if (val == undefined) {
+                continue;
+            }
+
+            style = hyphen(style);
+
+            let text = `${style}: ${val};`;
+            cumulText += text + ' ';
+
+            returnedProps.push({
+                name: style,
+                value: val + '',
+                text: text,
+                disabled: false,
+                implicit: false,
+                range: {
+                    startLine: 0,
+                    startColumn: curcol,
+                    endLine: 0,
+                    endColumn: curcol + text.length
+                }
+            });
+
+            curcol += text.length + 1;
+        }
+
+        cumulText = cumulText.trim();
+
+        return {
+                /*
+                    set the styleSheetId to the canvas idx.
+                    When editing the css, the debugger
+                    is sending us the styleSheedId rather than the nodeID
+                */
+                styleSheetId: node + "",
+                cssProperties: returnedProps,
+                shorthandEntries: [],
+                cssText: cumulText,
+                range: {
+                    startLine: 0,
+                    startColumn: 0,
+                    endLine: 0,
+                    endColumn: cumulText.length
+                }            
+            }
     }
 
     onReady(){};
@@ -355,14 +439,22 @@ _remotedebug.handle('Runtime.evaluate', function(reply, params) {
     Handle highlighting.
     This is called when the user hover on an element in the DOM view.
 */
+_remotedebug.handle('DOM.hideHighlight', function(reply, params) {
+
+    Elements.Node.hideHighlight();
+    
+    return reply({});
+});
+
 _remotedebug.handle('DOM.highlightNode', function(reply, params) {
     var canvas = document.getCanvasByIdx(params.nodeId);
     if (!canvas) {
         console.log("Node not found");
         return reply({});
     }
-
-    canvas.highlight();
+    try {
+        canvas.highlight();
+    } catch(e){};
     
     return reply({});
 });
@@ -380,6 +472,41 @@ _remotedebug.handle('DOM.setNodeValue', function(reply, params) {
     return reply({});
 });
 
+_remotedebug.handle('CSS.getComputedStyleForNode', function(reply, params) {
+    console.log("Get conputedstyle")
+    var canvas = document.getCanvasByIdx(params.nodeId);
+
+    if (!canvas) {
+        console.log("Not found");
+        return reply({});
+    }
+
+    var ret = [];
+    [
+        "width",
+        "height",
+        "marginTop",
+        "marginRight",
+        "marginBottom",
+        "marginLeft",
+        "paddingTop",
+        "paddingRight",
+        "paddingBottom",
+        "paddingLeft"
+    ].forEach(function(prop) {
+        ret.push({
+            name: hyphen(prop),
+            value: "10px"
+        })
+    });
+
+    console.log("send computed style");
+
+    return reply({
+        computedStyle: ret
+    });
+});
+
 /*
     Send "styles" for a specific elements
     (usually called when a user click an element).
@@ -388,62 +515,26 @@ _remotedebug.handle('DOM.setNodeValue', function(reply, params) {
 */
 _remotedebug.handle('CSS.getMatchedStylesForNode', function(reply, params) {
 
-    let stylesProps = [
-        "width","height","top","left",
-        ].sort();
-
-    var canvas = document.getCanvasByIdx(params.nodeId);
-    if (!canvas) {
-        console.log("Node not found");
+    let styles = _remotedebug.getCSS(params.nodeId)
+    if (!styles) {
         return reply({});
     }
 
-    let returnedProps = [];
-    let curcol = 0;
-    let cumulText = '';
+    reply({
+        inlineStyle: styles
+    });
 
-    for (let style of stylesProps) {
-        let val = canvas[style];
-        let text = `${style}: ${val};`;
-        cumulText += text + ' ';
+});
 
-        returnedProps.push({
-            name: style,
-            value: val + '',
-            text: text,
-            disabled: false,
-            implicit: false,
-            range: {
-                startLine: 0,
-                startColumn: curcol,
-                endLine: 0,
-                endColumn: curcol + text.length
-            }
-        });
+_remotedebug.handle('CSS.getInlineStylesForNode', function(reply, params) {
 
-        curcol += text.length + 1;
+    let styles = _remotedebug.getCSS(params.nodeId)
+    if (!styles) {
+        return reply({});
     }
 
-    cumulText = cumulText.trim();
-
     reply({
-        inlineStyle: {
-            /*
-                set the styleSheetId to the canvas idx.
-                When editing the css, the debugger
-                is sending us the styleSheedId rather than the nodeID
-            */
-            styleSheetId: params.nodeId + "",
-            cssProperties: returnedProps,
-            shorthandEntries: [],
-            cssText: cumulText,
-            range: {
-                startLine: 0,
-                startColumn: 0,
-                endLine: 0,
-                endColumn: cumulText.length
-            }            
-        }
+        inlineStyle: styles
     });
 
 });
@@ -460,11 +551,7 @@ _remotedebug.handle('DOM.getDocument', function(reply, params) {
 
     function getTree(root, genesis = false) {
         let children = root.getChildren();
-
-        let nodeName = "canvas";
-        if ("name" in root) {
-            nodeName = root.name();
-        }
+        let nodeName = root.tagName || "unknown";
 
         let tree = {
             nodeId: parseInt(root.idx),
@@ -498,15 +585,13 @@ _remotedebug.handle('DOM.getDocument', function(reply, params) {
             tree.documentURL = "file://";
             tree.baseURL = "file://";
             tree.xmlVersion = "";
-        } else {
-            tree.attributes.push("width", root.width + '', "height", root.height + '');
+        } else if (root.attributes) {
+            for (let attr in root.attributes) {
+                tree.attributes.push(attr, root.attributes[attr] + '')
+            }
         }
 
-        if (root.id) {
-            tree.attributes.push("id", root.id);
-        }
-
-        console.log(tree.attributes);
+        //console.log(tree.attributes);
 
         for (let child of children) {
             tree.children.push(getTree(child));
@@ -551,11 +636,12 @@ _remotedebug.handle('CSS.setStyleTexts', function(reply, params) {
     }
 
     for (let declaration of ret.stylesheet.rules[0].declarations) {
-        canvas[declaration.property] = parseInt(declaration.value);
-        console.log(declaration.property, canvas[declaration.property], declaration.value);
+        canvas.style[camelCase(declaration.property)] = declaration.value;
     }
 
-    return reply({});
+    return reply({
+        styles: _remotedebug.getCSS(parseInt(params.edits[0].styleSheetId))
+    });
 });
 
 _remotedebug.onClient = function() {

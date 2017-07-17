@@ -210,13 +210,13 @@ void JSWindow::keyupdown(
     JS::RootedValue keyV(m_Cx, JS::Int32Value(keycode));
     JS::RootedValue locationV(m_Cx, JS::Int32Value(location));
     JS::RootedValue alt(
-        m_Cx, JS::BooleanValue(!!(mod & UIInterface::kKeyModifier_Alt)));
+        m_Cx, JS::BooleanValue(!!(mod & InputEvent::kKeyModifier_Alt)));
     JS::RootedValue ctl(
-        m_Cx, JS::BooleanValue(!!(mod & UIInterface::kKeyModifier_Control)));
+        m_Cx, JS::BooleanValue(!!(mod & InputEvent::kKeyModifier_Control)));
     JS::RootedValue shift(
-        m_Cx, JS::BooleanValue(!!(mod & UIInterface::kKeyModifier_Shift)));
+        m_Cx, JS::BooleanValue(!!(mod & InputEvent::kKeyModifier_Shift)));
     JS::RootedValue meta(
-        m_Cx, JS::BooleanValue(!!(mod & UIInterface::kKeyModifier_Meta)));
+        m_Cx, JS::BooleanValue(!!(mod & InputEvent::kKeyModifier_Meta)));
     JS::RootedValue space(m_Cx, JS::BooleanValue(keycode == 32));
     JS::RootedValue rep(m_Cx, JS::BooleanValue(!!(repeat)));
     EVENT_PROP("keyCode", keyV);
@@ -292,6 +292,90 @@ void JSWindow::textInput(const char *data)
     }
 }
 #undef EVENT_PROP
+
+void JSWindow::onKeyUpDown(int keyCode, int location, int mod, bool repeat, bool isUpKey)
+{
+    JS::RootedObject obje(m_Cx, JSEvents::CreateEventObject(m_Cx));
+    JSObjectBuilder obj(m_Cx, obje);
+
+    JS::RootedValue space(m_Cx, JS::BooleanValue(keyCode == 32));
+    JS::RootedValue repeatValue(m_Cx, JS::BooleanValue(!!(repeat)));
+    JS::RootedValue locationValue(m_Cx, JS::Int32Value(location));
+
+    JS::RootedValue alt(
+        m_Cx, JS::BooleanValue(!!(mod & InputEvent::kKeyModifier_Alt)));
+    JS::RootedValue ctl(
+        m_Cx, JS::BooleanValue(!!(mod & InputEvent::kKeyModifier_Control)));
+    JS::RootedValue shift(
+        m_Cx, JS::BooleanValue(!!(mod & InputEvent::kKeyModifier_Shift)));
+    JS::RootedValue meta(
+        m_Cx, JS::BooleanValue(!!(mod & InputEvent::kKeyModifier_Meta)));
+
+    obj.set("keyCode", keyCode);
+    obj.set("location", locationValue);
+    obj.set("repeat", repeatValue);
+    obj.set("altKey", alt);
+    obj.set("ctrlKey", ctl);
+    obj.set("shiftKey", shift);
+    obj.set("metaKey", meta);
+    obj.set("spaceKey", space);
+
+    JS::RootedValue evVal(m_Cx, obj.jsval());
+
+    if (isUpKey) {
+        this->fireJSEvent("keyup", &evVal);
+    } else {
+        this->fireJSEvent("keydown", &evVal);
+    }
+}
+
+void JSWindow::onKeyPress(const char *c)
+{
+    JS::RootedObject obje(m_Cx, JSEvents::CreateEventObject(m_Cx));
+    JSObjectBuilder obj(m_Cx, obje);
+
+    obj.set("char", c);
+
+    JS::RootedValue evVal(m_Cx, obj.jsval());
+    this->fireJSEvent("keypress", &evVal);
+}
+
+
+void JSWindow::onCompositionStart()
+{
+    JS::RootedObject obje(m_Cx, JSEvents::CreateEventObject(m_Cx));
+    JSObjectBuilder obj(m_Cx, obje);
+
+    obj.set("data", "");
+
+    JS::RootedValue evVal(m_Cx, obj.jsval());
+    this->fireJSEvent("compositionstart", &evVal);
+}
+
+void JSWindow::onCompositionUpdate(const char *data)
+{
+    JS::RootedObject obje(m_Cx, JSEvents::CreateEventObject(m_Cx));
+    JSObjectBuilder obj(m_Cx, obje);
+
+    JS::RootedString dataStr(m_Cx, JSUtils::NewStringWithEncoding(
+                                   m_Cx, data, strlen(data), "utf8"));
+
+    obj.set("data", (JS::HandleString)(&dataStr));
+
+    JS::RootedValue evVal(m_Cx, obj.jsval());
+    this->fireJSEvent("compositionupdate", &evVal);
+}
+
+void JSWindow::onCompositionEnd()
+{
+    JS::RootedObject obje(m_Cx, JSEvents::CreateEventObject(m_Cx));
+    JSObjectBuilder obj(m_Cx, obje);
+
+    obj.set("data", "");
+
+    JS::RootedValue evVal(m_Cx, obj.jsval());
+    this->fireJSEvent("compositionend", &evVal);
+}
 
 void JSWindow::systemMenuClicked(const char *id)
 {
@@ -1112,20 +1196,6 @@ void JSWindow::callFrameCallbacks(double ts, bool garbage)
     }
 }
 
-void JSWindow::createMainCanvas(int width, int height, JS::HandleObject docObj)
-{
-    JS::RootedObject canvas(
-        m_Cx, JSCanvas::GenerateJSObject(m_Cx, width, height, &m_Handler));
-    Context::GetObject<Frontend::Context>(m_Cx)->getRootHandler()->addChild(
-        m_Handler);
-
-    m_Handler->setPositioning(CanvasHandler::COORD_RELATIVE);
-
-    JS::RootedValue canval(m_Cx, JS::ObjectValue(*canvas));
-    JS_DefineProperty(m_Cx, docObj, "canvas", canval,
-                      JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
-}
-
 JSWindow *JSWindow::GetObject(JSContext *cx)
 {
     return Context::GetObject<Frontend::Context>(cx)->getJSWindow();
@@ -1209,8 +1279,6 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx,
 
     JSWindow::AssociateObject(cx, jwin, globalObj, true);
     jwin->setUniqueInstance();
-
-    jwin->createMainCanvas(width, height, docObj);
 
     // Set the __nidium__ properties
     JS::RootedObject nidiumObj(cx, JS_NewPlainObject(cx));

@@ -20,11 +20,12 @@
 #include "Binding/NidiumJS.h"
 #include "Binding/ThreadLocalContext.h"
 
-
 #include "Graphics/GLResources.h"
 
 #include "Core/Context.h"
 #include "Frontend/InputHandler.h"
+
+#include "Graphics/SurfaceCache.h"
 
 #include <Yoga.h>
 
@@ -179,6 +180,11 @@ public:
         return &m_InputHandler;
     }
 
+
+    uint64_t getCurrentFrame() {
+        return m_Stats.nframe;
+    }
+
     void log(const char *str) override;
     void logClear() override;
     void logShow() override;
@@ -186,6 +192,7 @@ public:
 
     YGConfigRef m_YogaConfig;
     uint64_t m_CanvasCreatedIdx = 8;
+    Graphics::SurfaceCache m_ContextCache;
 private:
     Graphics::GLResources m_Resources;
     Graphics::CanvasHandler *m_RootHandler;
@@ -215,8 +222,19 @@ private:
         float fps;
         float minfps;
         float sampleminfps;
+
+        int repaint = 0;
+        int resize = 0;
+        int composed = 0;
     } m_Stats;
 
+    void statsIncRepaint() {
+        m_Stats.repaint++;
+    }
+
+    void statsIncResize() {
+        m_Stats.resize++;
+    }
 
     void forceLinking();
     void loadNativeObjects(int width, int height);
@@ -236,8 +254,6 @@ private:
     ape_pool_list_t m_CanvasEventsCanvas;
 
     Graphics::CanvasHandler *m_CurrentClickedHandler;
-
-    uint32_t m_ComposedCanvasCount = 0;
 
     void triggerEvents();
 

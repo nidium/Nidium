@@ -1,15 +1,15 @@
 /*
-   Copyright 2016 Nidium Inc. All rights reserved.
-   Use of this source code is governed by a MIT license
-   that can be found in the LICENSE file.
-*/
+ * Copyright 2017 Nidium Inc. All rights reserved.
+ * Use of this source code is governed by a MIT license
+ * that can be found in the LICENSE file.
+ */
 
 /*
     AnimationBlock provides a way to easily create animation is a declarative way
 
     Example on animating properties for my_obj and my_obj2 :
 
-        AnimationBlock(2000, Easing.Bounce.Out, (my_obj, my_obj2) => {
+        var handler = AnimationBlock((my_obj, my_obj2) => {
             my_obj.left = 200;
             my_obj.top = 50;
             my_obj2.opacity = 0.2;
@@ -20,23 +20,27 @@
                 
                 my_obj.left = 0;
             }
-        }, my_obj, my_obj2)(() => {
+        }, 2000, Easing.Bounce.Out, my_obj, my_obj2);
+
+        handler.onFinish = () => {
             console.log("Animation ended");
-        });
+        };
 
     Example on animating properties on a list of objects (array(lst))
 
-        AnimationBlock(2000, Easing.Bounce.Out, (...lst) => {
+        var anim = AnimationBlock((...lst) => {
             for (let o of lst) {
                 o.left = Math.random()*600;
                 o.top = Math.random()*500;
             }
-        }, ...lst)(() => {
+        }, 2000, Easing.Bounce.Out, ...lst);
+
+        handler = () => {
             console.log("Animation ended");
-        });
+        };
 */
 
-var Easing = require("easing");
+const Easing = require("../modules/easing.js");
 
 var AnimationsList = new Set();
 
@@ -47,7 +51,7 @@ var AnimationsList = new Set();
         for (let anim of AnimationsList) {
             let { end, start, ease, list, duration } = anim;
             let e = ease((curDate - start) / (end - start));
-            let finish = (curDate > end);
+            let finish = (curDate > end) || anim.finished;
 
             for (let elem of list) {
                 let { target, property, value, startValue } = elem;
@@ -58,7 +62,7 @@ var AnimationsList = new Set();
                 if (anim.next) {
                     anim.redo(anim.next);
                 } else {
-                    anim.finish();
+                    anim.onFinish();
                     AnimationsList.delete(anim);
                 }
             }
@@ -70,7 +74,7 @@ var AnimationsList = new Set();
     draw();
 }
 
-var AnimationBlock = function(duration, ease, callback, ...objs)
+var AnimationBlock = function(callback, duration, ease, ...objs)
 {
     let proxies = [];
 
@@ -78,7 +82,9 @@ var AnimationBlock = function(duration, ease, callback, ...objs)
         duration,
         ease,
         objs,
-        finish: function(){},
+        onFinish: function(){},
+        finished: false,
+        loop: false /* todo */
     };
 
     AnimationsList.add(anim);
@@ -123,7 +129,25 @@ var AnimationBlock = function(duration, ease, callback, ...objs)
 
     })(callback);
 
-    return function(animationFinished) {
-        anim.finish = animationFinished;
-    }
+    var handler = {
+        finish() {
+            anim.finished = true;
+        },
+
+        cancel() {
+            anim.onFinish = function(){};
+            AnimationsList.delete(anim);
+        },
+
+        set onFinish(call) {
+            anim.onFinish = call;
+        }
+    };
+
+    return handler;
+}
+
+module.exports = {
+    setAnimation: AnimationBlock,
+    Easing: Easing
 }
