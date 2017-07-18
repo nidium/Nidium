@@ -128,6 +128,7 @@ bool JSDocument::JS_addToRootCanvas(JSContext *cx, JS::CallArgs &args)
     }
 
     rootHandler->addChild(handler);
+    rootHandler->computeLayoutPositions();
 
     return true;
 }
