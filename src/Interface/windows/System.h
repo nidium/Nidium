@@ -32,8 +32,9 @@ public:
     const char *execute(const char *cmd);
     void print(const char *buf);
 private:
-    bool m_SystemUIReady;
-    char *m_EmbedPath;
+    bool m_SystemUIReady = false;
+    char *m_EmbedPath = nullptr;
+    char *m_UserDirectory = nullptr;
     FILE *m_LogF;
 };
 

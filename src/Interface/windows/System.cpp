@@ -10,6 +10,7 @@
 #include <Shlobj.h>
 #include <locale.h>
 #include <string>
+#include <../../Core/Path.h>
 
 #ifndef MIN
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -18,9 +19,25 @@
 namespace Nidium {
 namespace Interface {
 
+static char *WideCharToUTF8(WCHAR *str)
+{
+    int length = WideCharToMultiByte(CP_UTF8, 0, str, -1, NULL, 0, NULL, NULL);
+    if (length == 0) {
+        return nullptr;
+    }
+
+    char* output = new char[length];
+    if (WideCharToMultiByte(CP_UTF8, 0, str, -1, output , length, NULL, NULL) == 0) {
+        delete[] output;
+        return nullptr;
+    }
+
+    return output;
+}
+
 void OnSize(HWND hwnd, UINT flag, int width, int height)
 {
-        // Handle resizing
+    // Handle resizing
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -54,19 +71,51 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-System::System() : m_EmbedPath(NULL), m_SystemUIReady(false)
-    {
-     m_fBackingStorePixelRatio = 1.0;
+// Attach output of application to parent console
+// Source : https://www.tillett.info/2013/05/13/how-to-create-a-windows-program-that-works-as-both-as-a-gui-and-console-application/
+static BOOL AttachOutputToConsole(void) {
+    HANDLE consoleHandleOut, consoleHandleError;
 
-    char nidiumPath[MAX_PATH];
-    char parent[MAX_PATH], dir[MAX_PATH];
-    if (GetModuleFileName(NULL, nidiumPath, MAX_PATH) != 0) {
-        const char *embed = "src/Embed/";
-        _splitpath(nidiumPath, NULL, &parent[0], NULL, NULL);
-        _splitpath(&parent[0], NULL, &dir[0], NULL, NULL);
-        size_t len = strlen(dir) + strlen(embed) + 2;
-        m_EmbedPath = static_cast<char *>(malloc(sizeof(char) * len));
-        snprintf(m_EmbedPath, len, "%s/%s", dir, embed);
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        // Redirect unbuffered STDOUT to the console
+        consoleHandleOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        if (consoleHandleOut != INVALID_HANDLE_VALUE) {
+            freopen("CONOUT$", "w", stdout);
+            setvbuf(stdout, nullptr, _IONBF, 0);
+        } else {
+            return false;
+        }
+
+        // Redirect unbuffered STDERR to the console
+        consoleHandleError = GetStdHandle(STD_ERROR_HANDLE);
+        if (consoleHandleError != INVALID_HANDLE_VALUE) {
+            freopen("CONOUT$", "w", stderr);
+            setvbuf(stderr, nullptr, _IONBF, 0);
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    //Not a console application
+    return false;
+}
+
+System::System()
+{
+    m_fBackingStorePixelRatio = 1.0;
+
+    // Redirect stdout to the current terminal (if any)
+    AttachOutputToConsole();
+
+    // Get the path to %USERPROFILE%\Documents
+    PWSTR userDirectoryW;
+    if (SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &userDirectoryW) == S_OK) {
+         char *userDirectory = WideCharToUTF8(userDirectoryW);
+         m_UserDirectory = strdup((std::string(userDirectory) + "\\").c_str());
+         free(userDirectory);
+    } else {
+        ndm_log(NDM_LOG_ERROR, "System", "Failed to get path to user directory");
     }
 }
 
@@ -75,6 +124,12 @@ System::~System()
     if (m_EmbedPath) {
         free(m_EmbedPath);
     }
+
+    if (m_UserDirectory) {
+        free(m_UserDirectory);
+    }
+
+
 }
 
 void System::print(const char *buf)
@@ -117,7 +172,7 @@ void System::initSystemUI(HINSTANCE hInstance)
     }
 }
 
-
+// FIXME : getCacheDirectory() should point to AppData folder
 const char *System::getCacheDirectory()
 {
     const char *homedir = getUserDirectory();
@@ -135,14 +190,33 @@ const char *System::getCacheDirectory()
 
 const char *System::getEmbedDirectory()
 {
+    if (!m_EmbedPath) {
+        WCHAR nidiumPathW[MAX_PATH];
+        if (!GetModuleFileNameW(NULL, nidiumPathW, MAX_PATH) != 0) {
+            ndm_log(NDM_LOG_ERROR, "System", "Failed to get module filename");
+            return nullptr;
+        }
+
+        const char *embed = "../src/Embed/";
+        char *nidiumPath = WideCharToUTF8(nidiumPathW);
+        char dir[MAX_PATH];
+        char driveLetter[3];
+        std::string path;
+
+        _splitpath(nidiumPath, &driveLetter[0], &dir[0], NULL, NULL);
+
+        path += std::string(driveLetter) + std::string(dir) + "/" + std::string(embed);
+
+        m_EmbedPath = Core::Path::Sanitize(path.c_str());
+
+        delete[] nidiumPath;
+    }
+
     return m_EmbedPath;
 }
 
 const char* System::getUserDirectory() {
-   // caller must free memory after receiving result
-   TCHAR *path = new TCHAR[128];
-   SHGetSpecialFolderPath(NULL, path, CSIDL_PERSONAL, FALSE);
-    return path;
+    return m_UserDirectory;
 };
 
 const char *System::getLanguage()
