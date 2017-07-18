@@ -36,7 +36,7 @@
                     'NIDIUM_CRASH_COLLECTOR_ENDPOINT="<(nidium_crash_collector_endpoint)"',
                 ],
             }],
-            ['OS=="win"', {
+            ['target_os=="win"', {
                 'link_settings': {
                     'libraries': [
                         'SDL2.lib',

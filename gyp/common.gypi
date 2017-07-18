@@ -83,6 +83,11 @@
                     ],
                 }
             }],
+            ['target_os=="win"', {
+               'defines': [
+                    'NDM_TARGET_WIN',
+                ]
+            }]
         ],
 
         'target_conditions': [

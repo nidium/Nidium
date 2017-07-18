@@ -12,7 +12,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#ifdef _MSC_VER
+#ifdef NDM_TARGET_WIN
 #include "Port/MSWindows.h"
 #else
 #include <strings.h>
@@ -24,6 +24,12 @@
 #include <prio.h>
 
 #include "Core/Utils.h"
+
+#ifdef NDM_TARGET_WIN
+#define NDM_PATH_SEP "\\"
+#else
+#define NDM_PATH_SEP "/"
+#endif
 
 namespace Nidium {
 namespace Core {
@@ -227,22 +233,34 @@ bool Path::IsRelative(const char *path)
         return false;
     }
 
-    /* We are matching a local file scheme (either from file:// or simple path)
-     */
+    /* We are matching a local file scheme (either from file:// or simple path) */
+#ifdef NDM_TARGET_WIN
+    /* On windows check if the path doesn't starts with a drive letter eg: "c:" */
+    return strlen(pPath) > 2
+                ? !(isalpha(pPath[0]) && pPath[1] == ':')
+                : true;
+#else
     return pPath[0] != '/';
+#endif
 }
 
 char *Path::GetDir(const char *fullpath)
 {
-    int len = strlen(fullpath);
-    char *ret;
-    if (len == 0) {
+    int len;
+    if (!fullpath || (len = strlen(fullpath)) == 0) {
         return NULL;
     }
-    ret = static_cast<char *>(malloc(sizeof(char) * (len + 1)));
-    memcpy(ret, fullpath, len + 1);
 
+    char *ret = strdup(fullpath);
     char *pos = strrchr(ret, '/');
+#ifdef NDM_TARGET_WIN
+    /* On windows check if a backslash is present before a slash */
+    char *pos2 = strrchr(ret, '\\');
+    if ((pos2 - ret) + 1 > (pos - ret + 1)) {
+        pos = pos2;
+    }
+#endif
+
     if (pos != NULL) {
         pos[1] = '\0';
     }
@@ -402,6 +420,9 @@ char *Path::Sanitize(const char *path, bool *external)
                 }
                 break;
             case '/':
+#ifdef NDM_TARGET_WIN
+            case '\\':
+#endif
                 switch (state) {
                     case kPathState_Dot:
                         break;
@@ -437,15 +458,18 @@ char *Path::Sanitize(const char *path, bool *external)
     std::string finalPath;
     if (outsideRoot) {
         for (int i = minCounter; i != 0; i++) {
-            finalPath += "../";
+            finalPath += ".." NDM_PATH_SEP;
         }
     } else if (!isRelative) {
+#ifndef NDM_TARGET_WIN
+        // Absolute path starts with a "/"
+        // Not needed on windows, since absolute path starts with a drive letter instead
         finalPath += "/";
+#endif
     }
 
-
     for (int i = 0; elements[i].length() != 0; i++) {
-        finalPath += elements[i] + "/";
+        finalPath += elements[i] + NDM_PATH_SEP;
     }
 
     if (finalPath.length() > 0 && state == kPathState_Name) {
