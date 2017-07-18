@@ -145,7 +145,7 @@ bool JSModule::initNative()
 
     JS_SetPrivate(exports, this);
 
-        PRLibrary *m_DLModule = PR_LoadLibrary(m_FilePath->path());
+    PRLibrary *m_DLModule = PR_LoadLibrary(m_FilePath->path());
     if (!m_DLModule) {
         ndm_logf(NDM_LOG_ERROR, "JSModule", "Failed to open module : %s\n", (int) PR_GetError());
         return false;
