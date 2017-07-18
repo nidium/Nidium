@@ -273,12 +273,8 @@ void UIWinInterface::renderSystemTray()
 // {{{ UIWinConsole
 void UIWinConsole::log(const char *str)
 {
-    if (m_IsOpen) {
-        m_Interface->processWinPendingEvents();
-    } else {
-        fprintf(stdout, "%s", str);
-        fflush(stdout);
-    }
+    fprintf(stdout, "%s", str);
+    fflush(stdout);
 }
 #if 0
 static void consoleHidden(GtkWidget *widget, GdkEvent *ev, gpointer priv)
