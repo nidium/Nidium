@@ -13,9 +13,9 @@
                     # Any change to dir2nvfs will trigger the action
                     '<(nidium_src_path)/Tools/dir2nvfs.cpp',
                     '<(nidium_tools_path)dir2nvfs',
-                    # If I use find command inside a variable, output is not 
-                    # considered as multiple files using it in inputs works fine
-                    '<!@(find <(nidium_embed_dir) -type f)',
+                    # Using find command inside a variable, output is not
+                    # considered as multiple files. Using it in inputs works fine
+                    '<!@(find <(nidium_embed_dir) -type f |sed \'s/.*/"&"/\')',
                 ],
                 'outputs': [
                     '<(nidium_embed_bin)'
