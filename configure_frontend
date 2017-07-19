@@ -143,7 +143,7 @@ def skia():
         skiaArgs += " %s=%s" % (k, json.dumps(v))
 
     return {
-        "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", revision="98829b9"),
+        "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", branch="chrome/m58"),
         "build": [
             "python tools/git-sync-deps",
             "bin/gn gen out/Static --args='%s'" % (skiaArgs),
@@ -331,7 +331,7 @@ def ffmpeg():
         env.set("PATH", os.path.join(ROOT, "tools") + ":" + Platform.getEnviron("PATH", ""))
 
     return {
-        "location": Deps.GitRepo("git://git.ffmpeg.org/ffmpeg.git", tag="n3.3"),
+        "location": Deps.GitRepo("https://github.com/FFmpeg/FFmpeg.git", branch="release/3.3"),
         "patch": [],
         "build":
         [

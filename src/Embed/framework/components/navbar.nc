@@ -117,7 +117,6 @@
                     menu.style.display = "flex";
                     menu.show();
                 } else {
-                    console.log("hide")
                     menu.style.display = "none";
                     menu.hide();
                 }

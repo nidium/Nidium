@@ -10,6 +10,7 @@
 #include <SkColor.h>
 #include <SkBlurMask.h>
 
+class SkArenaAlloc;
 class SkMaskFilter;
 class SkColorFilter;
 
@@ -57,12 +58,7 @@ public:
             SkBlurMask::ConvertRadiusToSigma(radius), dx, dy, flags));
     }
 
-    virtual ShadowLooper::Context *
-    createContext(SkCanvas *, void *storage) const override;
-    virtual size_t contextSize() const override
-    {
-        return sizeof(ShadowLooperContext);
-    }
+    ShadowLooper::Context *makeContext(SkCanvas *, SkArenaAlloc*) const override;
 
     SK_TO_STRING_OVERRIDE()
     SK_DECLARE_PUBLIC_FLATTENABLE_DESERIALIZATION_PROCS(ShadowLooper)
@@ -80,8 +76,8 @@ protected:
                  uint32_t flags = kNone_BlurFlag);
     ShadowLooper(SkReadBuffer &);
 
-    virtual void flatten(SkWriteBuffer &) const override;
-    virtual bool asABlurShadow(BlurShadowRec *) const override;
+    void flatten(SkWriteBuffer &) const override;
+    bool asABlurShadow(BlurShadowRec *) const override;
 
 private:
     sk_sp<SkMaskFilter>  m_fBlur;

@@ -358,6 +358,7 @@ SkiaContext *SkiaContext::CreateWithTextureBackend(Frontend::Context *fctx,
     std::shared_ptr<CanvasSurface> cs = CanvasSurface::Create(ceilf(width * ratio), ceilf(height * ratio), gr);
 
     if (!cs) {
+        ndm_logf(NDM_LOG_ERROR, "SkiaContext", "Faield to create CanvasSurface -> CanvasSurface::Create(%f, %f)", ceilf(width * ratio), ceilf(height * ratio));
         return nullptr;
     }
 
@@ -1121,12 +1122,12 @@ void SkiaContext::GetStringColor(uint32_t color, char *out)
 
 int SkiaContext::getWidth()
 {
-    return getCanvas()->getDeviceSize().fWidth;
+    return getCanvas()->getBaseLayerSize().fWidth;
 }
 
 int SkiaContext::getHeight()
 {
-    return getCanvas()->getDeviceSize().fHeight;
+    return getCanvas()->getBaseLayerSize().fHeight;
 }
 
 uint32_t SkiaContext::getFillColor() const
@@ -1345,7 +1346,7 @@ void SkiaContext::redrawScreen()
 {
     SkCanvas *canvas = getCanvas();
 
-    canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()),
+    canvas->readPixels(SkIRect::MakeSize(canvas->getBaseLayerSize()),
                          m_Screen);
     canvas->writePixels(*m_Screen, 0, 0);
     CANVAS_FLUSH();
@@ -1390,8 +1391,8 @@ void SkiaContext::setFontSize(double size)
 void SkiaContext::setFontStyle(const char *style)
 {
     PAINT->setFakeBoldText((strcasestr(style, "bold")));
-    PAINT->setUnderlineText((strcasestr(style, "underline")));
-    PAINT->setStrikeThruText((strcasestr(style, "strike")));
+    //PAINT->setUnderlineText((strcasestr(style, "underline")));
+    //PAINT->setStrikeThruText((strcasestr(style, "strike")));
 
     PAINT->setTextSkewX(strcasestr(style, "italic") ? m_FontSkew : 0);
 }

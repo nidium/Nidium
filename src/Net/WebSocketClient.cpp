@@ -133,7 +133,7 @@ void WebSocketClient::HTTPRequestEnded()
 
     m_Socket->callbacks.on_read = nidium_ws_read_ws;
 
-    this->fireEvent<WebSocketClient>(WebSocketClient::kEvents_ClientConnect,
+    this->fireEventSync<WebSocketClient>(WebSocketClient::kEvents_ClientConnect,
                                      args);
 }
 
@@ -266,7 +266,7 @@ void WebSocketClient::onClose()
     Args args;
     args[0].set(this);
 
-    this->fireEvent<WebSocketClient>(WebSocketClient::kEvents_ClientClose,
+    this->fireEventSync<WebSocketClient>(WebSocketClient::kEvents_ClientClose,
                                      args);
 }
 // }}}

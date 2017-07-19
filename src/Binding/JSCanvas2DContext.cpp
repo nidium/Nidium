@@ -1838,7 +1838,7 @@ void Canvas2DContext::flush()
 
 void Canvas2DContext::getSize(int *width, int *height) const
 {
-    SkISize size = m_Skia->getCanvas()->getDeviceSize();
+    SkISize size = m_Skia->getCanvas()->getBaseLayerSize();
 
     *width  = size.width();
     *height = size.height();
@@ -1869,6 +1869,11 @@ Canvas2DContext::Canvas2DContext(CanvasHandler *handler,
     height = nidium_max(height, 1);
 
     m_Skia = SkiaContext::CreateWithTextureBackend(ui->getNidiumContext(), width, height);
+
+    if (!m_Skia) {
+        return;
+    }
+
     m_Skia->set2dContext(this);
 
     assert(m_Skia != nullptr);
@@ -1893,6 +1898,10 @@ Canvas2DContext::Canvas2DContext(
             ui = Interface::__NidiumUI;
         }
         m_Skia = SkiaContext::CreateWithTextureBackend(ui->getNidiumContext(), width, height);
+    }
+
+    if (!m_Skia) {
+        return;
     }
 
     m_Skia->set2dContext(this);

@@ -24,6 +24,10 @@ public:
     SurfaceCache(){};
     ~SurfaceCache(){};
 
+    void emptyCache() {
+        m_Store.empty();
+    }
+
     void addToCache(int width, int height, std::shared_ptr<CanvasSurface> cs);
     std::shared_ptr<CanvasSurface> getCachedSurface(int width, int height);
 
