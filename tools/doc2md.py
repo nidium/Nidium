@@ -78,7 +78,7 @@ def parseMethod(method, isEvent=False):
                                     method["name"],
                                     fnArgs)
         if method["is_slow"]:
-            out += "<!-- YAML\n- Slow method\n-->"
+            out += "<!-- YAML\n- Slow method\n-->\n"
 
     out += method["description"] + "\n"
 
