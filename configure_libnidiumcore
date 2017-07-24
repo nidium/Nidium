@@ -93,7 +93,12 @@ def mozilla():
     return {
         "chdir": "js/src/obj",
         "location": DEPEDENCY_REPO + "/mozjs-45.5.3.tar.bz2",
-        "build": [configure, "make"],
+        "build": [
+            # Comment out ICU version checking that use outdated flags for sed command
+            "sed -i.bak '15814,15818 {s/^/#/}' ../configure",
+            configure,
+            "make"
+        ],
         "env": env,
         "outputs": ["mozglue/build/libmozglue.a$", "dist/lib/libnspr4.a$", "js/src/libjs_static.a$", "js/src/js-config.h$"],
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "mozilla_android.patch")],
