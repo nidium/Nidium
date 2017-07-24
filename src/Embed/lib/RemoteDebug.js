@@ -371,6 +371,7 @@ _remotedebug.handle('Page.getResourceTree', function(reply, params) {
 
 _remotedebug.handle("Rendering.setShowFPSCounter", function(reply, params) {
     document.showFPS(params.show);
+    reply({});
 });
 
 _remotedebug.handle('Runtime.getProperties', function(reply, params) {
