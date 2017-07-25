@@ -567,6 +567,7 @@ def setDependencies():
 
     if Konstruct.config("ios", "tvos"):
         # Temporary disable nidium audio and video for iOS/tvOS
+        # as portaudio doesn't support iOS/tvOS
         Gyp.set("nidium_audio", 0);
         Gyp.set("nidium_opengles2", 1)
 
@@ -576,8 +577,7 @@ def setDependencies():
             "basekit",
             "libcoroutine",
             "portaudio",
-            "ffmpeg"
-            )
+            "ffmpeg")
 
     if not Konstruct.config("android") and Platform.system == "Linux":
         Deps.append("libnotify")
