@@ -1,0 +1,34 @@
+[{
+    "title": "Getting started",
+    "folder": "getting-started",
+    "pages": [
+        {"file": "introduction", "title": "Introduction"},
+        {"file": "hello-world", "title": "Hello World"},
+        {"file": "installing", "title": "Installing"}
+    ]
+},
+{
+    "title": "Graphics",
+    "folder": "graphics",
+    "pages": [
+        {"file": "general-concepts", "title": "General concept"}
+    ]
+},
+{
+    "title": "Misc",
+    "folder": "misc",
+    "pages": [
+        {"file": "reinventing-the-wheel", "title": "Reinventing the wheel"},
+        {"file": "contributing", "title": "Contributing"},
+        {"file": "building", "title": "Building from the sources"}
+    ]
+},
+{
+    "title": "Internals",
+    "folder": "internals",
+    "pages": [
+        {"file": "classmapper", "title": "C++ to JavaScript Binding"},
+        {"file": "logging", "title": "Internal logging"},
+        {"file": "rooting", "title": "JSAPI Rooting Howto"}
+    ]
+}]

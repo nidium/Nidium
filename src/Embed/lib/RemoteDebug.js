@@ -60,7 +60,16 @@ class RemoteDebug {
         this.currentObjectId = 1;        
     }
 
-    run(port = 9223, ip = "127.0.0.1") {
+    run(port = 9223, ip = "0.0.0.0") {
+        // Nidium Instance Discovery (UDP broadcast server)
+        this.udpClient = new Socket("0.0.0.0", 1234).listen("udp");
+
+        this.udpClient.onmessage = (data, info) => {
+            console.log(`Discovery, got ${data} from ${info.ip}:${info.port}`);
+            this.udpClient.sendTo(info.ip, info.port, window.title.substr(0, 512) + "\n");
+        };
+
+        // Chrome DevTools WS server
         this.wsServer = new WebSocketServer(`ws://${ip}:${port}`);
 
         this.wsServer.onopen = (client) => {
@@ -358,6 +367,11 @@ _remotedebug.handle('Emulation.canEmulate', function(reply, params) {
 
 _remotedebug.handle('Page.getResourceTree', function(reply, params) {
     reply({"frameTree":{"frame":{"id":"22514.2","loaderId":"22514.5","url":"file://","mimeType":"text/html","securityOrigin":"file://"},"resources":[]}});
+});
+
+_remotedebug.handle("Rendering.setShowFPSCounter", function(reply, params) {
+    document.showFPS(params.show);
+    reply({});
 });
 
 _remotedebug.handle('Runtime.getProperties', function(reply, params) {

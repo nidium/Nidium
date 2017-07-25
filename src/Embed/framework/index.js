@@ -7,9 +7,6 @@
 /*
  * Native NML tags (low level)
  */
-load("embed://framework/elements/node.js");
-load("embed://framework/elements/element.js");
-load("embed://framework/elements/layout.js");
 load("embed://framework/elements/nss.js");
 load("embed://framework/elements/script.js");
 load("embed://framework/elements/template.js");
