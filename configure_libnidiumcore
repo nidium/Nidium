@@ -95,7 +95,7 @@ def mozilla():
         "location": DEPEDENCY_REPO + "/mozjs-45.5.3.tar.bz2",
         "build": [
             # Comment out ICU version checking that use outdated flags for sed command
-            "sed -i.bak '15814,15818 {s/^/#/}' ../configure",
+            "sed -i.bak '15814,15818 s/^[^#]/#/' ../configure",
             configure,
             "make"
         ],
