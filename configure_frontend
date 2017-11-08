@@ -201,7 +201,7 @@ def angle():
         "python scripts/bootstrap.py",
         "gclient sync",
         fixAngleThinArchive,
-        "ninja -C out/Release/ preprocessor translator translator_lib angle_common"
+        "ninja -C out/Release/ preprocessor translator angle_common"
     ]
 
     # Disable some errors for clang 3.5 & 3.7
@@ -227,12 +227,11 @@ def angle():
         buildSteps.insert(2, "python build/gyp_angle -Dis_android=1")
 
     return {
-        "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785"),
+        "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/3208"),
         "build": buildSteps,
         "outputs": [
             os.path.join(outPath, "libpreprocessor.a"),
             os.path.join(outPath, "libtranslator.a"),
-            os.path.join(outPath, "libtranslator_lib.a"),
             os.path.join(outPath, "libangle_common.a")
         ],
         "env": env

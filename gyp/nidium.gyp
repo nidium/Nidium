@@ -46,7 +46,6 @@
                     'libraries': [
                         '-lskia',
                         '-ltranslator',
-                        '-ltranslator_lib',
                         '-lpreprocessor',
                         '-langle_common',
                         '-lSDL2',
@@ -106,7 +105,6 @@
                         'libjs_static.a',
                         'libskia.a',
                         'libtranslator.a',
-                        'libtranslator_lib.a',
                         'libpreprocessor.a',
                         'libangle_common.a',
                         'libSDL2.a',

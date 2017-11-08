@@ -44,7 +44,6 @@
                 "-lskia",
                 "-lzip",
                 "-ltranslator",
-                "-ltranslator_lib",
                 "-lpreprocessor",
                 "-langle_common",
                 "-lm",
