@@ -104,9 +104,13 @@ def skia():
     outputs = []
     args = {
         "extra_cflags_cc": [
-            "-Wno-unused-function",
             "-Wno-array-bounds",
+            "-Wno-cast-qual",
+            "-Wno-inconsistent-missing-destructor-override",
             "-Wno-return-local-addr",
+            "-Wno-unused-function",
+            "-Wno-unused-template",
+            "-Wno-zero-as-null-pointer-constant",
             "-DGR_GL_CUSTOM_SETUP_HEADER=<../../../../../patch/skia_gl_config.h>"
         ],
         "is_official_build": True,
@@ -205,7 +209,7 @@ def angle():
     ]
 
     # Disable some errors for clang 3.5 & 3.7
-    env.append("CXXFLAGS", " -Wno-c++11-narrowing -Wno-sign-compare -Wno-error")
+    env.append("CXXFLAGS", " -Wno-c++11-narrowing -Wno-sign-compare -Wno-error -Wno-zero-as-null-pointer-constant")
 
     # Angle only build with ninja
     env.set("GYP_GENERATORS", "ninja")
