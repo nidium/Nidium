@@ -302,6 +302,7 @@ void UIInterface::handleEvent(const SDL_Event *event)
             } else {
                 keyCode = SDL_KEYCODE_TO_DOMCODE(event->key.keysym.sym);
             }
+            printf("INDEX: %d SDL: %d DOM: %d\n", SDL_KEYCODE_TO_SCANCODE(event->key.keysym.sym) - 1, event->key.keysym.sym, keyCode);
 
             if (event->key.keysym.mod & KMOD_SHIFT
                 || SDL_KEYCODE_GET_CODE(keyCode) == 16) {
