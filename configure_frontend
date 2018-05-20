@@ -111,6 +111,7 @@ def skia():
             "-Wno-unused-function",
             "-Wno-unused-template",
             "-Wno-zero-as-null-pointer-constant",
+            "-Wno-expansion-to-defined",
             "-DGR_GL_CUSTOM_SETUP_HEADER=<../../../../../patch/skia_gl_config.h>"
         ],
         "is_official_build": True,

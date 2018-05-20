@@ -78,6 +78,18 @@ $ ./configure_frontend
 $ ./bin/nidium
 ```
 
+On a mac-os based system you need xcode installed.
+
+```
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+$ git clone https://github.com/nidium/NidiumTools.git
+$ git clone --recursive https://github.com/nidium/Nidium.git
+$ export PYTHONPATH=$(pwd)/NidiumTools/src
+$ cd Nidium
+$ ./configure_frontend
+$ ./bin/nidium
+```
+
 ## Documentation
 
 We strive to have excellent documentation, both for our [getting started guide](http://www.nidium.com/docs/guide/get-started/hello-world.html) and for the [API Reference](http://www.nidium.com/docs/api/).

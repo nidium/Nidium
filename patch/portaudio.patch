@@ -1,5 +1,5 @@
---- portaudio/configure.in 2016-09-30 09:45:35.000000000 +0200
-+++ portaudio/configure.in 2016-09-30 09:47:22.000000000 +0200
+--- portaudio.org/configure.in	2014-01-16 18:49:33.000000000 +0100
++++ portaudio/configure.in	2018-05-20 09:09:54.000000000 +0200
 @@ -204,7 +204,7 @@
  
          AC_DEFINE(PA_USE_COREAUDIO,1)
@@ -9,7 +9,7 @@
          LIBS="-framework CoreAudio -framework AudioToolbox -framework AudioUnit -framework Carbon"
  
          if test "x$enable_mac_universal" = "xyes" ; then
-@@ -249,6 +249,15 @@
+@@ -249,8 +249,20 @@
                elif xcodebuild -version -sdk macosx10.9 Path >/dev/null 2>&1 ; then
                   mac_version_min="-mmacosx-version-min=10.4"
                   mac_sysroot="-isysroot `xcodebuild -version -sdk macosx10.9 Path`"
@@ -22,33 +22,12 @@
 +             elif xcodebuild -version -sdk macosx10.12 Path >/dev/null 2>&1 ; then
 +                 mac_version_min="-mmacosx-version-min=10.4"
 +                 mac_sysroot="-isysroot `xcodebuild -version -sdk macosx10.12 Path`"
++             elif xcodebuild -version -sdk macosx10.13 Path >/dev/null 2>&1 ; then
++                 mac_version_min="-mmacosx-version-min=10.4"
++                 mac_sysroot="-isysroot `xcodebuild -version -sdk macosx10.13 Path`"
                else
-                  AC_MSG_ERROR([Couldn't find 10.5, 10.6, 10.7, 10.8 or 10.9 SDK])
+-                 AC_MSG_ERROR([Couldn't find 10.5, 10.6, 10.7, 10.8 or 10.9 SDK])
++                 AC_MSG_ERROR([Couldn't find SDK 10.5-10.13])
                fi
---- portaudio/configure 2016-09-30 09:45:26.000000000 +0200
-+++ portaudio/configure 2016-09-30 09:46:45.000000000 +0200
-@@ -15787,7 +15787,7 @@
-         $as_echo "#define PA_USE_COREAUDIO 1" >>confdefs.h
+            esac
  
- 
--        CFLAGS="$CFLAGS -I\$(top_srcdir)/src/os/unix -Werror"
-+        CFLAGS="$CFLAGS -I\$(top_srcdir)/src/os/unix -Wall"
-         LIBS="-framework CoreAudio -framework AudioToolbox -framework AudioUnit -framework Carbon"
- 
-         if test "x$enable_mac_universal" = "xyes" ; then
-@@ -15819,6 +15819,15 @@
-               elif xcodebuild -version -sdk macosx10.9 Path >/dev/null 2>&1 ; then
-                  mac_version_min="-mmacosx-version-min=10.4"
-                  mac_sysroot="-isysroot `xcodebuild -version -sdk macosx10.9 Path`"
-+             elif xcodebuild -version -sdk macosx10.10 Path >/dev/null 2>&1 ; then
-+                 mac_version_min="-mmacosx-version-min=10.4"
-+                 mac_sysroot="-isysroot `xcodebuild -version -sdk macosx10.10 Path`"
-+             elif xcodebuild -version -sdk macosx10.11 Path >/dev/null 2>&1 ; then
-+                 mac_version_min="-mmacosx-version-min=10.4"
-+                 mac_sysroot="-isysroot `xcodebuild -version -sdk macosx10.11 Path`"
-+             elif xcodebuild -version -sdk macosx10.12 Path >/dev/null 2>&1 ; then
-+                 mac_version_min="-mmacosx-version-min=10.4"
-+                 mac_sysroot="-isysroot `xcodebuild -version -sdk macosx10.12 Path`"
-               else
-                  as_fn_error $? "Couldn't find 10.5, 10.6, 10.7, 10.8 or 10.9 SDK" "$LINENO" 5
-               fi

@@ -15,6 +15,9 @@
             '<(third_party_path)/linenoise/',
             '<(nidium_src_path)',
         ],
+        'cflags': [
+             "-Wno-expansion-to-defined",
+        ],
         'sources': [
             '<(nidium_src_path)/Server/app/main.cpp',
             '<(nidium_src_path)/Server/Server.cpp',
