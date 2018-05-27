@@ -91,49 +91,6 @@ void File::checkRead(bool async, void *arg)
     }
 }
 
-int File::rm()
-{
-    int ret = unlink(m_Path);
-
-    closeFd();
-
-    return ret;
-}
-
-void File::rmrf()
-{
-    FTS *tree;
-    FTSENT *f;
-
-    char *path[] = { m_Path, NULL };
-
-    tree = fts_open(path, FTS_COMFOLLOW | FTS_NOCHDIR, File_compare);
-
-    if (!tree) {
-        ndm_log(NDM_LOG_ERROR, "File", "Failed to fts_open()");
-        return;
-    }
-    while ((f = fts_read(tree))) {
-        switch (f->fts_info) {
-            case FTS_F:
-            case FTS_NS:
-            case FTS_SL:
-            case FTS_SLNONE:
-                unlink(f->fts_path);
-                break;
-            case FTS_DP:
-                rmdir(f->fts_path);
-                break;
-            default:
-                break;
-        }
-    }
-
-    fts_close(tree);
-
-    closeFd();
-}
-
 File::~File()
 {
     Core::PthreadAutoLock tasksLock(&getManagedLock());

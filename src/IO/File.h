@@ -55,8 +55,6 @@ public:
     void write(char *buf, size_t size, void *arg = NULL);
     void seek(size_t pos, void *arg = NULL);
     void listFiles(void *arg = NULL);
-    void rmrf();
-    int rm();
 
     /*
         Check whether a path points to an existing filename.

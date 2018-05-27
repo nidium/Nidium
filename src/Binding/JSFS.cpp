@@ -12,8 +12,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "IO/FileSystem.h"
+
 using Nidium::Core::SharedMessages;
 using Nidium::Core::Task;
+using Nidium::IO::FileSystem::mkdirp;
 
 namespace Nidium {
 namespace Binding {
@@ -104,6 +107,103 @@ public:
 // }}}
 
 // {{{ Implementation
+
+bool JSFS::JS_isDir(JSContext *cx, JS::CallArgs &args)
+{
+    JS::RootedString path(cx);
+
+    if (!JS_ConvertArguments(cx, args, "S", path.address())) {
+
+        args.rval().setBoolean(false);
+
+        return true;
+
+    }
+
+    JSAutoByteString cpath(cx, path);
+
+    struct stat statbuf;
+
+    if (stat(strdup(cpath.ptr()), &statbuf) == -1) {
+
+        args.rval().setBoolean(false);
+
+        return true;
+
+    }
+
+    args.rval().setBoolean(S_ISDIR(statbuf.st_mode));
+
+    return true;
+
+}
+
+bool JSFS::JS_isFile(JSContext *cx, JS::CallArgs &args)
+{
+    JS::RootedString path(cx);
+
+    if (!JS_ConvertArguments(cx, args, "S", path.address())) {
+
+        args.rval().setBoolean(false);
+
+        return true;
+
+    }
+
+    JSAutoByteString cpath(cx, path);
+
+    struct stat statbuf;
+
+    if (stat(strdup(cpath.ptr()), &statbuf) == -1) {
+
+        args.rval().setBoolean(false);
+
+        return true;
+
+    }
+
+    args.rval().setBoolean(S_ISREG(statbuf.st_mode));
+
+    return true;
+
+}
+
+bool JSFS::JS_createDirSync(JSContext *cx, JS::CallArgs &args)
+{
+    JS::RootedString path(cx);
+
+    if (!JS_ConvertArguments(cx, args, "S", path.address())) {
+
+        args.rval().setBoolean(false);
+
+        return true;
+
+    }
+
+
+    JSAutoByteString cpath(cx, path);
+    struct stat statbuf;
+
+    stat(strdup(cpath.ptr()), &statbuf);
+
+    if (S_ISDIR(statbuf.st_mode)) {
+
+        args.rval().setBoolean(true);
+
+        return true;
+
+    }
+
+
+    mkdirp(cpath.ptr());
+    stat(strdup(cpath.ptr()), &statbuf);
+
+    args.rval().setBoolean(S_ISDIR(statbuf.st_mode));
+
+    return false;
+
+}
+
 bool JSFS::JS_readDir(JSContext *cx, JS::CallArgs &args)
 {
     JS::RootedString path(cx);
@@ -130,10 +230,36 @@ bool JSFS::JS_readDir(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
+bool JSFS::JS_removeSync(JSContext *cx, JS::CallArgs &args)
+{
+    JS::RootedString path(cx);
+
+    if (!JS_ConvertArguments(cx, args, "S", path.address())) {
+
+        args.rval().setBoolean(false);
+
+        return true;
+
+    }
+
+    JSAutoByteString cpath(cx, path);
+
+    int retval = remove(strdup(cpath.ptr()));
+
+    args.rval().setBoolean(retval == 0);
+
+    return true;
+
+}
+
 JSFunctionSpec *JSFS::ListMethods()
 {
     static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSFS, createDirSync, 1),
+        CLASSMAPPER_FN(JSFS, isDir, 1),
+        CLASSMAPPER_FN(JSFS, isFile, 1),
         CLASSMAPPER_FN(JSFS, readDir, 2),
+        CLASSMAPPER_FN(JSFS, removeSync, 1),
 
         JS_FS_END
     };
