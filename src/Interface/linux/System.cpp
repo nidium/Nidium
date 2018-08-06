@@ -183,7 +183,6 @@ void System::initSystemUI()
     }
 }
 
-
 const char *System::cwd()
 {
     static char dir[MAXPATHLEN];
@@ -192,14 +191,10 @@ const char *System::cwd()
 
     return dir;
 }
+
 const char *System::getLanguage()
 {
-
-    const char *lang;
-
-    lang = setlocale(LC_IDENTIFICATION, NULL);
-
-    return lang;
+    return setlocale(LC_IDENTIFICATION, NULL);
 }
 
 void System::sendNotification(const char *title,
@@ -216,26 +211,27 @@ void System::sendNotification(const char *title,
 
 const char *System::execute(const char *cmd)
 {
-    char buffer[128];
-    FILE *fp;
+    // caller must free the allocated string when done.
     std::string *result = new std::string();
+    result.reserve(128);
 
-    fp = popen(cmd, "r");
-    if (fp == nullptr) {
-        return nullptr;
-    }
+    struct pipeDeleter {
+        void operator()(FILE *ptr) const noexcept {
+            pclose(ptr);
+        }
+    };
 
-    while (!feof(fp)) {
-        if (fgets(buffer, 128, fp) != nullptr) {
-            result->append(buffer);
+    std::unique_ptr<FILE, pipeDeleter> pipe(popen(cmd, "r"));
+
+    if (pipe) {
+        while (!feof(pipe.get())) {
+            if (fgets(const_cast<char*>(result.data()), result.capacity(), pipe.get()) != nullptr) {
+                result += result.data();
+            }
         }
     }
 
-    pclose(fp);
-
-    // FIXME : Memory leak, caller should have to free the
-    // memory but osx implementation is different from linux
-    return result->c_str();
+    return result.c_str();
 }
 // }}}
 
