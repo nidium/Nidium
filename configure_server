@@ -31,7 +31,7 @@ Deps.set(
 @Deps.register("jemalloc")
 def jemalloc():
     return {
-        "location": Deps.GitRepo("https://github.com/jemalloc/jemalloc.git", tag="4.1.0"),
+        "location": Deps.GitRepo("https://github.com/jemalloc/jemalloc.git", tag="5.2.1"),
         "build": ["./autogen.sh", "./configure --enable-prof", "make"],
         "outputs": ["lib/libjemalloc.a"]
     }
