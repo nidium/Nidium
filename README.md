@@ -64,9 +64,14 @@ You can download nidium binaries for Linux and OSX from the [download page](http
 
 ## Building nidium
 
-To build nidium you need at least 5.7GB of disk space. A build from scratch may take 30 to 90 minutes, depending of the speed of your computer.
+To build nidium you need:
+ - at least 5.7GB of disk space.
+ - an account on *.googlesource.com (https://skia.googlesource.com/new-password)
+   You will be prompted to login during the `./configure_frontend` step.
 
-On a debian based system, a few commands will get you started.
+A build from scratch may take 30 to 90 minutes, depending of the speed of your computer.
+
+### On a debian based system, a few commands will get you started.
 
 ```
 $ apt-get install libpci-dev python2.7 git make patch clang pkg-config libgtk2.0-dev libgtk-3-dev mesa-common-dev libglu1-mesa-dev libosmesa6-dev yasm libasound2 libasound2-dev libbz2-1.0
@@ -78,7 +83,7 @@ $ ./configure_frontend
 $ ./bin/nidium
 ```
 
-On a mac-os based system you need xcode installed.
+### On a mac-os based system you need xcode installed.
 
 ```
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
