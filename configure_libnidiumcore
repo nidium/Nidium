@@ -111,7 +111,7 @@ def httpParser():
         env.update(Variables.get("androidEnvClang"))
 
     return {
-        "location": Deps.GitRepo("https://github.com/nodejs/http-parser.git", tag="v2.6.2"),
+        "location": Deps.GitRepo("https://github.com/nodejs/http-parser.git", tag="v2.9.2"),
         "build": ["make package"],
         "env": env,
         "outputs": ["libhttp_parser.a"]
