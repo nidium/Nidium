@@ -52,10 +52,10 @@ def leveldb():
         env.set("TARGET_OS", "OS_ANDROID_CROSSCOMPILE")
 
     return {
-        "location": Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.18"),
+        "location": Deps.GitRepo("https://github.com/google/leveldb.git", tag="1.22"),
         # leveldb make doest not detect CXXFLAGS changes, so we force "make clean"
-        "build": ["make clean","make"],
-        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "leveldb.patch")],
+        "build": ["cmake .", "make clean", "make"],
+        #"patchs": [os.path.join(CONFIGURE_PATH, "patch", "leveldb.patch")],
         "env": env,
         "outputs": ["libleveldb(.a|.lib)"]
     }
